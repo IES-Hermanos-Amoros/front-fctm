@@ -1,0 +1,7 @@
+//Abrir terminal desde dentro del directorio "api_test" (Open in Integrated Terminal)
+//Ejecutar este comando
+
+json-server --watch --port 4000 info.json
+
+
+//NOTA: Instalar json-server de forma global si no está instalado en el equipo (npm i -g json-server)
