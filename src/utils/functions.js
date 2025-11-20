@@ -22,6 +22,8 @@ export const sendRequest = async (method, params, url, redir = '') => {
             // withCredentials: true // Si más adelante necesitas cookies
         });
 
+        console.log(response)
+
         // Detecta automáticamente msg o data desde el backend
         res.success = true;
         res.status = response.status;

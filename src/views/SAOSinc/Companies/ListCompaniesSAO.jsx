@@ -12,10 +12,11 @@ const ListCompaniesSAO = () => {
         console.log(credentials)
 
         setLoading(true);
-        const res = await sendRequest("GET", credentials, "/api/v2/sao/companies");
+        const res = await sendRequest("POST", credentials, "/api/v2/sao/companies_sinc");
         setLoading(false);
 
         if (res.success) {
+            //console.log(res.data)
             setCompanies(res.data || []);
         } else {
             setCompanies([]);
