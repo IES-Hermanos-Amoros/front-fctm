@@ -21,6 +21,7 @@ function MainDashboard() {
       '/actions': 'Acciones',
       '/fcts': 'FCTs',
       '/reviews': 'Reseñas',
+      '/sinc/empresas': 'Sincronizar Empresas con SAO'
     }
     return routes[pathname] || 'Panel'
   }

@@ -51,7 +51,7 @@ return (
                         </a>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/sinc/empresas">
                             <i className="bi bi-circle"></i>
                             <span>Empresas</span>
                         </a>
