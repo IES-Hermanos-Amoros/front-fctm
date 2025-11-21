@@ -7,15 +7,21 @@ import Reports from '../../components/Reports';
 let documentosOLD = [
     { _id: 1,
       nombre: "Decreto 485/2025",
-      ruta: "../documents/doc1.pdf"
+      ruta: "../documents/doc1.pdf",
+      autor: "María",
+      observaciones: "Es un documento muy bonito"
      },
      { _id: 2,
       nombre: "Ley 1111",
-      ruta: "../documents/doc2.pdf"
+      ruta: "../documents/doc2.pdf",
+      autor: "María",
+      observaciones: "Es un documento muy bonito"
      },
      { _id: 3,
       nombre: "Currículum Pepe",
-      ruta: "../documents/doc3.pdf"
+      ruta: "../documents/doc3.pdf",
+      autor: "María",
+      observaciones: "Es un documento muy bonito"
      }
   ]
 
@@ -80,7 +86,9 @@ const ListDocuments = () => {
   const colDocumentos = [
         {   key:"_id", encabezado: "#"} ,
         {   key:"nombre", encabezado: "Nombre"} ,
-        {   key:"ruta", encabezado: "Ruta"}        
+        {   key:"ruta", encabezado: "Ruta"},
+        {   key:"autor", encabezado: "Autor"},
+        {   key:"observaciones", encabezado: "Observaciones"}        
     ]
 
   
@@ -95,30 +103,32 @@ const ListDocuments = () => {
 
   return (
     <section className='dashboard section'>
-        <section className="dashboard section">
-          <div className="row mb-3">
-            <div className="col-12">
-              <button className="btn btn-success" onClick={crearDocumento}>
-                Añadir Documento
-              </button>
-            </div>
+      <div className="row mb-3">
+        <div className="col-12">
+          <button className="btn btn-success" onClick={crearDocumento}>
+            Añadir Documento
+          </button>
         </div>
-            <div className="row">
-                <div className="col-lg-12">
-                    <div className="row">
-                      <div className='col-12'>
-                        {loading ? (
-                          <p>Cargando documentos...</p>
-                        ) : (
-                          <GenericTable key={documentos.length} tableTitle='Gestión Documental' datos={documentos} columnas={colDocumentos} onShow={verFicha} onDelete={eliminarDocumento} />                
-                        )}
-                      </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+      </div>
+
+      <div className="row">
+        <div className="col-12">
+          {loading ? (
+            <p>Cargando documentos...</p>
+          ) : (
+            <GenericTable
+              key={documentos.length}
+              tableTitle='Gestión Documental'
+              datos={documentos}
+              columnas={colDocumentos}
+              onShow={verFicha}
+              onDelete={eliminarDocumento}
+            />
+          )}
+        </div>
+      </div>
     </section>
-  )
+);
 }
 
 export default ListDocuments

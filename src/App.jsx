@@ -1,6 +1,7 @@
 // import Icons
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import 'remixicon/fonts/remixicon.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 // import Bootstrap
 import 'bootstrap/dist/css/bootstrap.min.css';

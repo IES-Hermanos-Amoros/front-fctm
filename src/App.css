@@ -304,3 +304,91 @@ tspan {
 th {
   color: var(--textStrong);
 }
+
+
+
+/* OLD TABLAS - DATATABLES.NET */
+/*
+.dt-search .dt-input {
+    padding: 0.45rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.dt-search .dt-input:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
+}
+
+.dt-length .dt-input {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+.dt-length .dt-input {
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+}
+
+.dt-paging button.dt-paging-button {
+    padding: 6px 12px;
+    margin: 0 3px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background: #fff;
+    cursor: pointer;
+}
+
+.dt-paging button.dt-paging-button.current {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+.dt-paging button.dt-paging-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dt-layout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.dt-layout-start,
+.dt-layout-end {
+  display: flex;
+  align-items: center;
+}
+
+.dt-search label {
+  margin-right: 0.5rem;
+}
+*/
+
+/* Estirar columnas al ancho de la tabla datatable*/ 
+/*.dt-container {
+  width: 100% !important;
+}
+
+.dataTable {
+  width: 100% !important;
+  table-layout: fixed;
+}
+
+.dt-layout-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dt-layout-cell.dt-layout-full {
+  width: 100%;
+}*/
+
