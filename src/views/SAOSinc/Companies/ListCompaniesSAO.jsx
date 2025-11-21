@@ -17,7 +17,14 @@ const ListCompaniesSAO = () => {
 
         if (res.success) {
             //console.log(res.data)
-            setCompanies(res.data || []);
+            const { newCompanies, updatedCompanies } = res.data;
+        // Añadimos un flag a cada compañía
+            const companies = [
+                ...newCompanies.map(c => ({ ...c, status: 'new' })),
+                ...updatedCompanies.map(c => ({ ...c, status: 'updated' }))
+            ];
+
+            setCompanies(companies); // suponiendo que tienes un useState
         } else {
             setCompanies([]);
             console.error("Error al cargar empresas:", res.message);
@@ -34,13 +41,34 @@ const ListCompaniesSAO = () => {
             {companies.length === 0 && !loading && <p>No hay empresas disponibles.</p>}
 
             {companies.length > 0 && (
-                <ul>
-                    {companies.map((company) => (
-                        <li key={company.SAO_id || company.SAO_id}>
-                            {company.SAO_id} - {company.SAO_name || company.SAO_name || "Empresa sin nombre"}
-                        </li>
-                    ))}
-                </ul>
+                <table className="table">
+                    <thead>
+                        <tr>
+                        <th>Nombre</th>
+                        <th>Actividad</th>
+                        <th>Ciudad</th>
+                        <th>Estado</th>
+                        <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {companies.map((company) => (
+                        <tr key={company.SAO_id} className={company.status}>
+                            <td>{company.SAO_name}</td>
+                            <td>{company.SAO_company_activity}</td>
+                            <td>{company.SAO_company_city}</td>
+                            <td>{company.SAO_company_state}</td>
+                            <td>
+                            {company.status === 'new' ? (
+                                <span className="badge bg-success">Nueva</span>
+                            ) : (
+                                <span className="badge bg-warning">Actualizada</span>
+                            )}
+                            </td>
+                        </tr>
+                        ))}
+                    </tbody>
+                </table>
             )}
         </div>
     );
