@@ -5,11 +5,11 @@ import "./DarkMode.css";
 
 const DarkMode = () => {
     const setDarkMode = () => {
-        document.querySelector("body").setAttribute("data-theme", "dark");
+        document.querySelector("body").setAttribute("data-bs-theme", "dark");
     }
 
     const setLightMode = () => {
-        document.querySelector("body").setAttribute("data-theme", "light");
+        document.querySelector("body").setAttribute("data-bs-theme", "light");
     }
 
     const toggleTheme = (e) => {

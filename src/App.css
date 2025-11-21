@@ -1,135 +1,106 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800;900;1000&family=Roboto:wght@100;300;400;500;700;900&display=swap');
+/* Fuente Nunito de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
 
-/* ---------------------------------
-# General
---------------------------------- */
+/* Paleta de colores de modo claro */
 :root {
   scroll-behavior: smooth;
   --primary: #4154f1;
   --second: #717ff5;
-  --bgColor: #f6f9ff;
-  --textColor: #444444;
-  --cardBg: #fff;
-  --cardBorder: #ebeef4;
-  --cardTitle: #012970;
-  --cardTitleSpan: #899bbd;
-  --cardFooterText: #798eb3;
-  --cardShadow: rgba(1, 41, 112, 0.1);
-  --dropdownDivider: #a5c5fe;
-  --dropdownText: #444444;
-  --dropdownArrow: #fff;
-  --dropdownArrowBorder: #eaedf1;
-  --cardOverlay: rgba(255, 255, 255, 0.6);
-  --iconCardBgSales: #f6f6fe;
-  --iconCardBgRevenue: #e0f8e9;
-  --iconCardBgCustomers: #ffecdf;
-  --iconCardColorRevenue: #2eca6a;
-  --iconCardColorCustomers: #ff771d;
-  --infoCardTitle: #012970;
-  --filterIcon: #aab7cf;
-  --footerBorder: #cddfff;
-  --footerText: #012970;
-  --headerBg: #fff;
-  --headerShadow: rgba(1, 41, 112, 0.1);
-  --headerText: #012970;
-  --navIconColor: #012970;
-  --subtleText: #919191;
-  --headingColor: #012970;
-  --subtleText: #777777;
-  --timelineLineColor: #eceefe;
-  --badgeBorder: #fff;
-  --headingColor: #012970;
-  --inputBorder: rgba(1, 41, 112, 0.2);
-  --inputBorderHover: rgba(1, 41, 112, 0.3);
-  --inputShadowHover: rgba(1, 41, 112, 0.15);
-  --cardBackground: white;
-  --tableHeaderBg: #f6f6fe;
-  --cardBackground: #fff;
-  --shadowColor: rgba(1, 41, 112, 0.1);
-  --scrollbarThumb: #aab7cf;
-  --mutedText: #899bbd;
-  --headingColor: #012970;
-  --cardLightBg: #f4f4f4;
-  --cardTextColor: #000000;
-  --textMuted: #6c757d;
-  --textStrong: #000000;
+  --bgcolor: #f6f9ff;
+  --text-color: #444;
+  --card-bg: #ffffff;
+  --header-bg: #ffffff;
+  --sidebar-bg: #ffffff;
 }
 
-[data-theme="dark"] {
-  --primary: #4154f1;
-  --second: #717ff5;
-  --bgColor: #282c34;
-  --textColor: #f6f9ff;
-  --cardBg: #1f1f1f;
-  --cardBorder: #383c44;
-  --cardTitle: #8da9ff;
-  --cardTitleSpan: #a8b4d4;
-  --cardFooterText: #a0aeca;
-  --cardShadow: rgba(0, 0, 0, 0.4);
-  --dropdownDivider: #445caa;
-  --dropdownText: #dcdcdc;
-  --dropdownArrow: #2b2b2b;
-  --dropdownArrowBorder: #3c3f4a;
-  --cardOverlay: rgba(40, 44, 52, 0.5);
-  --iconCardBgSales: #2f3244;
-  --iconCardBgRevenue: #2e4035;
-  --iconCardBgCustomers: #453528;
-  --iconCardColorRevenue: #5efc9d;
-  --iconCardColorCustomers: #ff9942;
-  --infoCardTitle: #aebcf2;
-  --filterIcon: #c0c8dc;
-  --footerBorder: #445165;
-  --footerText: #d4dcff;
-  --headerBg: #1e1e2f;
-  --headerShadow: rgba(0, 0, 0, 0.6);
-  --headerText: #e0e8ff;
-  --navIconColor: #d0d8ff;
-  --subtleText: #b0b0b0;
-  --headingColor: #d0d8ff;
-  --subtleText: #b0b0b0;
-  --timelineLineColor: #444b66;
-  --badgeBorder: #1e1e2f;
-  --headingColor: #d0d8ff;
-  --inputBorder: rgba(255, 255, 255, 0.2);
-  --inputBorderHover: rgba(255, 255, 255, 0.3);
-  --inputShadowHover: rgba(255, 255, 255, 0.15);
-  --cardBackground: #1f1f2b;
-  --tableHeaderBg: #2c2c3a;
-  --cardBackground: #1f1f2b;
-  --shadowColor: rgba(0, 0, 0, 0.5);
-  --scrollbarThumb: #5c6a89;
-  --mutedText: #a4b0d0;
-  --headingColor: #d0d8ff;
-  --cardLightBg: #2c2c3a;
-  --cardTextColor: #f0f0f0;
-  --textMuted: #b0b0b0;
-  --textStrong: #ffffff;
+/* Paleta de colores de modo oscuro */
+[data-bs-theme='dark'] {
+  --bgcolor: #1a1e2e;
+  --text-color: #f8f9fa;
+  --card-bg: #2a3042;
+  --header-bg: #2a3042;
+  --sidebar-bg: #2a3042;
+  --bs-body-color: #f8f9fa;
+  --bs-body-bg: #1a1e2e;
+  --bs-border-color: #3a4055;
+  --bs-light: #2a3042;
+  --bs-dark: #f8f9fa;
+  --bs-gray-100: #2a3042;
+  --bs-gray-200: #3a4055;
+  --bs-gray-300: #4a4f61;
+  --bs-gray-900: #f8f9fa;
+  --bs-light: #2a3042;
+  --bs-dark: #f8f9fa;
 }
 
-*{
+/* Reseteo de estilos generales */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-
+/* Estilos generales */
 body {
   font-family: 'Open Sans', sans-serif;
-  color: var(--textColor);
-  background: var(--bgColor);
+  color: var(--text-color);
+  background: var(--bgcolor);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Estilos para tarjetas en modo oscuro */
+.card {
+  background-color: var(--card-bg);
+  border-color: var(--bs-border-color);
+}
+
+/* Estilos para la barra de navegación */
+.header {
+  background-color: var(--header-bg) !important;
+}
+
+/* Estilos para la barra lateral */
+.sidebar {
+  background-color: var(--sidebar-bg) !important;
+}
+
+/* Estilos para la tabla en modo claro */
+.table {
+  --bs-table-color: var(--text-color);
+  --bs-table-bg: transparent;
+  --bs-table-striped-color: var(--text-color);
+  --bs-table-striped-bg: rgba(0, 0, 0, 0.05);
+  --bs-table-active-color: var(--text-color);
+  --bs-table-active-bg: rgba(0, 0, 0, 0.1);
+  --bs-table-hover-color: var(--text-color);
+  --bs-table-hover-bg: rgba(0, 0, 0, 0.075);
+}
+
+/* Estilos para la tabla en modo oscuro */
+[data-bs-theme='dark'] .table {
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.05);
+  --bs-table-active-bg: rgba(255, 255, 255, 0.1);
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.075);
+}
+
+/* Hover filas de tabla en modo oscuro */
+[data-bs-theme='dark'] .table tr:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* color visible sobre fondo oscuro */
 }
 
 a {
   color: var(--primary);
   text-decoration: none;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
+/* Estilos para los enlaces al pasar el ratón por encima */
 a:hover {
   color: var(--second);
-  text-decoration: none;
 }
 
+/* Estilos para los titulos de los elementos de la interfaz */
 h1,
 h2,
 h3,
@@ -139,20 +110,20 @@ h6 {
   font-family: 'Nunito', sans-serif;
 }
 
-/*------------------------------------------------------------------
-# Override some default Bootstrap stylings
-------------------------------------------------------------------*/
-
-/* Dropdown menus */
+/* Sobreescribir estilos de bootstrap */
 .dropdown-menu {
   border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -o-border-radius: 4px;
   padding: 10px 0;
-  -webkit-animation-name: dropdown-animate;
   animation-name: dropdown-animate;
-  -webkit-animation-duration: 0.2s;
+  -webkit-animation-name: dropdown-animate;
   animation-duration: 0.2s;
-  -webkit-animation-fill-mode: both;
+  -webkit-animation-duration: 0.2s;
   animation-fill-mode: both;
+  -webkit-animation-fill-mode: both;
   border: 0;
   box-shadow: 0 5px 30px 0 rgba(82, 63, 105, 0.2);
 }
@@ -165,7 +136,7 @@ h6 {
 }
 
 .dropdown-menu .dropdown-footer a {
-  color: var(--dropdownText);
+  color: #444;
   text-decoration: underline;
 }
 
@@ -174,7 +145,7 @@ h6 {
 }
 
 .dropdown-menu .dropdown-divider {
-  color: var(--dropdownDivider);
+  color: #a5c5fe;
   margin: 0;
 }
 
@@ -182,6 +153,10 @@ h6 {
   font-size: 14px;
   padding: 10px 15px;
   transition: 0.3s;
+  -webkit-transition: 0.3s;
+  -moz-transition: 0.3s;
+  -ms-transition: 0.3s;
+  -o-transition: 0.3s;
 }
 
 .dropdown-menu .dropdown-item i {
@@ -191,7 +166,7 @@ h6 {
 }
 
 .dropdown-menu .dropdown-item:hover {
-  background-color: var(--bgColor);
+  background-color: #f6f9ff;
 }
 
 @media (min-width: 768px) {
@@ -199,27 +174,72 @@ h6 {
     content: '';
     width: 13px;
     height: 13px;
-    background: var(--dropdownArrow);
+    background: #fff;
     position: absolute;
     top: -7px;
     right: 20px;
     transform: rotate(45deg);
-    border-top: 1px solid var(--dropdownArrowBorder);
-    border-left: 1px solid var(--dropdownArrowBorder);
-  }
-}
-
-@-webkit-keyframes dropdown-animate {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
+    -webkit-transform: rotate(45deg);
+    -moz-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    border-top: 1px solid #eaedf1;
+    border-left: 1px solid #eaedf1;
+    z-index: 1001;
   }
 
-  0% {
-    opacity: 0;
+  /* Estilos para la flechita de los menús desplegables en modo oscuro */
+  [data-bs-theme='dark'] .dropdown-menu-arrow::before {
+    background: var(--bs-body-bg);
+    border-top: 1px solid var(--bs-border-color);
+    border-left: 1px solid var(--bs-border-color);
+  }
+
+  /* Estilos para el menú de filtro del dashboard */
+  .dashboard .filter {
+    position: absolute;
+    right: 10px;
+    top: 15px;
+  }
+
+  .dashboard .filter .icon {
+    color: #aab7cf;
+    padding: 0 5px;
+    font-size: 18px;
+    transition: 0.3s;
+  }
+
+  .dashboard .filter .icon:hover,
+  .dashboard .filter .icon:focus {
+    color: #4154f1;
+  }
+
+  /* Estilos para el menú desplegable en modo oscuro */
+  [data-bs-theme='dark'] .dashboard .filter .icon {
+    color: #8a94a8;
+  }
+
+  [data-bs-theme='dark'] .dashboard .filter .icon:hover,
+  [data-bs-theme='dark'] .dashboard .filter .icon:focus {
+    color: #6c7df5;
+  }
+
+  [data-bs-theme='dark'] .dashboard .dropdown-menu {
+    background-color: #2a3042;
+    border: 1px solid #3a4055;
+  }
+
+  [data-bs-theme='dark'] .dashboard .dropdown-item {
+    color: #e9ecef;
+  }
+
+  [data-bs-theme='dark'] .dashboard .dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #f8f9fa;
+  }
+
+  [data-bs-theme='dark'] .dashboard .dropdown-header h6 {
+    color: #f8f9fa;
   }
 }
 
@@ -237,19 +257,37 @@ h6 {
   }
 }
 
-/* Card */
+@-webkit-keyframes dropdown-animate {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+
+  0% {
+    opacity: 0;
+  }
+}
+
+/* Estilos generales para las tarjetas en modos claro y oscuro */
 .card {
   margin-bottom: 30px;
   border: none;
+  box-shadow: 0 0 30px rgba(1, 41, 112, 0.1);
   border-radius: 5px;
-  box-shadow: 0px 0 30px var(--cardShadow);
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
 }
 
 .card-header,
 .card-footer {
-  border-color: var(--cardBorder);
-  background-color: var(--cardBg);
-  color: var(--cardFooterText);
+  border-color: #ebeef4;
+  background-color: #fff;
+  color: #798eb3;
   padding: 15px;
 }
 
@@ -257,15 +295,25 @@ h6 {
   padding: 20px 0 15px 0;
   font-size: 18px;
   font-weight: 500;
-  color: var(--cardTitle);
+  color: #012970;
   letter-spacing: 1px;
   font-family: 'Roboto', sans-serif;
+  transition: color 0.3s ease;
+}
+
+[data-bs-theme='dark'] .card-title {
+  color: #ffffff;
 }
 
 .card-title span {
-  color: var(--cardTitleSpan);
+  color: #899bbd;
   font-size: 14px;
   font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+[data-bs-theme='dark'] .card-title span {
+  color: #8a94a8;
 }
 
 .card-body {
@@ -273,122 +321,5 @@ h6 {
 }
 
 .card-img-overlay {
-  background-color: var(--cardOverlay);
+  background-color: rgba(255, 255, 255, 0.6);
 }
-
-.card-body,
-.info-card,
-.sales-card {
-  background-color: var(--cardLightBg);
-  color: var(--cardTextColor);
-}
-
-th,
-td {
-  background-color: var(--cardLightBg) !important;
-  color: var(--cardTextColor) !important;
-}
-
-.text-muted {
-  color: var(--textMuted) !important;
-}
-
-.apexcharts-legend-text,
-.apexcharts-legend-text tspan,
-tspan {
-  fill: var(--textMuted) !important;
-  color: var(--textMuted) !important;
-}
-
-.card-title,
-th {
-  color: var(--textStrong);
-}
-
-
-
-/* OLD TABLAS - DATATABLES.NET */
-/*
-.dt-search .dt-input {
-    padding: 0.45rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    font-size: 0.9rem;
-    outline: none;
-}
-
-.dt-search .dt-input:focus {
-    border-color: #86b7fe;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, .25);
-}
-
-.dt-length .dt-input {
-    padding: 0.35rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-}
-
-.dt-length .dt-input {
-    padding: 0.35rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-}
-
-.dt-paging button.dt-paging-button {
-    padding: 6px 12px;
-    margin: 0 3px;
-    border-radius: 6px;
-    border: 1px solid #dee2e6;
-    background: #fff;
-    cursor: pointer;
-}
-
-.dt-paging button.dt-paging-button.current {
-    background: #0d6efd;
-    color: #fff;
-    border-color: #0d6efd;
-}
-
-.dt-paging button.dt-paging-button.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.dt-layout-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.dt-layout-start,
-.dt-layout-end {
-  display: flex;
-  align-items: center;
-}
-
-.dt-search label {
-  margin-right: 0.5rem;
-}
-*/
-
-/* Estirar columnas al ancho de la tabla datatable*/ 
-/*.dt-container {
-  width: 100% !important;
-}
-
-.dataTable {
-  width: 100% !important;
-  table-layout: fixed;
-}
-
-.dt-layout-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dt-layout-cell.dt-layout-full {
-  width: 100%;
-}*/
-
