@@ -2,7 +2,100 @@ import axios from "axios"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
+
+
 export const sendRequest = async (method, params, url, redir = '') => {
+    let res = {
+        success: false,
+        status: null,
+        data: null,
+        message: ""
+    };
+
+    try {
+
+        console.log(url);
+        console.log(params);
+
+        const response = await axios({
+            method,
+            url,
+            data: params,
+            // withCredentials: true
+        });
+
+        console.log(response);
+
+        // Caso éxito
+        res.success = true;
+        res.status = response.status;
+        res.data = response.data.data ?? response.data;
+        res.message = response.data.msg ?? response.data.message ?? "Operación exitosa";
+
+        if (method !== "GET" && res.message) {
+            showAlert(res.message, "success");
+        }
+
+        if (redir) {
+            setTimeout(() => window.location.href = redir, 500);
+        }
+
+    } catch (error) {
+
+        console.log("ERROR:");
+        console.log(error);
+        console.log(".......................");
+
+        // Tabla de mensajes útiles según HTTP status
+        const httpStatusMessages = {
+            400: "Solicitud incorrecta (400)",
+            401: "No autorizado (401)",
+            403: "Acceso prohibido (403)",
+            404: "Recurso no encontrado (404)",
+            500: "Error interno del servidor (500)"
+        };
+
+        // --- Caso 1: El servidor respondió con código 4xx o 5xx ---
+        if (error.response) {
+            res.status = error.response.status;
+
+            const backendMsg =
+                error.response.data?.msg ||
+                error.response.data?.message ||
+                error.response.data?.error ||
+                error.response.data?.error?.message;
+
+            res.message =
+                backendMsg ||
+                httpStatusMessages[error.response.status] ||
+                "Error inesperado del servidor";
+
+            res.data = error.response.data;
+        }
+
+        // --- Caso 2: No hubo respuesta del servidor ---
+        else if (error.request) {
+            res.message = "El servidor no responde. Verifica tu conexión.";
+        }
+
+        // --- Caso 3: Error al preparar la solicitud ---
+        else {
+            res.message = error.message || "Error inesperado";
+        }
+
+        showAlert(res.message, "error");
+
+        if (redir) {
+            setTimeout(() => window.location.href = redir, 500);
+        }
+    }
+
+    return res;
+};
+
+
+
+export const sendRequestOLDv2 = async (method, params, url, redir = '') => {
     let res = {
         success: false,
         status: null,
@@ -39,6 +132,10 @@ export const sendRequest = async (method, params, url, redir = '') => {
             setTimeout(() => window.location.href = redir, 500);
         }
     } catch (error) {
+        console.log("ERROR:")
+        console.log(error)
+        console.log(".......................")
+
         // Error de servidor o de red
         if (error.response && error.response.data) {
             res.status = error.response.status;

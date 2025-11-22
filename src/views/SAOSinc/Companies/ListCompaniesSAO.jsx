@@ -74,7 +74,7 @@ const ListCompaniesSAO = () => {
         { key: "SAO_name", encabezado: "Nombre" },
         { key: "status", encabezado: "Tipo" },        
         { key: "SAO_company_city", encabezado: "Ciudad" },
-        { key: "SAO_company_state", encabezado: "Estado" },
+        { key: "SAO_company_state", encabezado: "Provincia" },
         { key: "SAO_company_activity", encabezado: "Actividad" },
     ];
 
