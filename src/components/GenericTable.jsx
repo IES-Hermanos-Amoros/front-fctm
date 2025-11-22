@@ -9,8 +9,8 @@ const GenericTable = ({
   tableTitle = '',
   datos = [],
   columnas = [],
-  onShow,
-  onDelete
+  onShow = null,
+  onDelete = null
 }) => {
 
   const tableRef = useRef();
@@ -68,8 +68,9 @@ const GenericTable = ({
               {columnas.map((col) => (
                 <th key={col.key}>{col.encabezado}</th>
               ))}
-              <th>Info</th>
-              <th>Borrar</th>
+              {/* Mostrar cabecera solo si las funciones existen */}
+              {onShow && <th>Info</th>}
+              {onDelete && <th>Borrar</th>}
             </tr>
           </thead>
           <tbody>
@@ -77,17 +78,29 @@ const GenericTable = ({
               <tr key={elem._id}>
                 {columnas.map((col) => (
                   <td key={col.key}>{elem[col.key]}</td>
-                ))}
-                <td>
-                  <button className="btn btn-info btn-sm" onClick={() => onShow(elem._id)}>
-                    <i className="fa-sharp fa-solid fa-magnifying-glass fa-rotate-90 fa-1xs"></i>
-                  </button>
-                </td>
-                <td>
-                  <button className="btn btn-danger btn-sm" onClick={() => onDelete(elem._id)}>
-                    <i className="fa-solid fa-trash"></i>
-                  </button>
-                </td>
+                ))}                
+                {/* Mostrar botones SOLO si las funciones existen */}
+                {onShow && (
+                  <td>
+                    <button
+                      className="btn btn-info btn-sm"
+                      onClick={() => onShow(elem._id)}
+                    >
+                      <i className="fa-sharp fa-solid fa-magnifying-glass fa-rotate-90 fa-1xs"></i>
+                    </button>
+                  </td>
+                )}
+
+                {onDelete && (
+                  <td>
+                    <button
+                      className="btn btn-danger btn-sm"
+                      onClick={() => onDelete(elem._id)}
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
