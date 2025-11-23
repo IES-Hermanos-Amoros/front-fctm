@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const host = import.meta.env.VITE_BASE_URL_BACKEND;
+const host = import.meta.env.VITE_BASE_URL_BACKEND_SOCKET;
 
 export default function useSocketProgress(resetSignal) {
     const [progress, setProgress] = useState(0);
@@ -9,7 +9,7 @@ export default function useSocketProgress(resetSignal) {
     const socketRef = useRef(null);
 
     useEffect(() => {
-        // Crear un socket nuevo
+        // Crear un socket NUEVO cada vez que resetSignal cambie
         socketRef.current = io(host, { reconnection: true });
 
         const handleProgress = (data) => {
@@ -27,12 +27,12 @@ export default function useSocketProgress(resetSignal) {
                 socketRef.current.disconnect();
             }
         };
-    }, [resetSignal]); // 🔑 Nuevo socket cada vez que resetSignal cambie
+    }, [resetSignal]); // 🔑 reconecta el socket al cambiar resetSignal
 
     const resetProgress = () => {
         setProgress(0);
         setMessage("");
     };
 
-    return { progress, message, resetProgress, socket: socketRef.current };
+    return { progress, message, resetProgress };
 }

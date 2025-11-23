@@ -4,7 +4,7 @@ import withReactContent from "sweetalert2-react-content"
 
 
 
-export const sendRequest = async (method, params, url, redir = '') => {
+export const sendRequest = async (method, params, url, skipComponentReset = false, redir = '') => {
     let res = {
         success: false,
         status: null,
@@ -90,6 +90,8 @@ export const sendRequest = async (method, params, url, redir = '') => {
         }
     }
 
+    res.skipComponentReset = skipComponentReset;
+
     return res;
 };
 
@@ -155,6 +157,7 @@ export const sendRequestOLDv2 = async (method, params, url, redir = '') => {
             setTimeout(() => window.location.href = redir, 500);
         }
     }
+
 
     return res;
 };

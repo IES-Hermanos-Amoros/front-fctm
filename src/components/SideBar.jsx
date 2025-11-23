@@ -45,7 +45,7 @@ return (
                         </a>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/sinc/alumnos">
                             <i className="bi bi-circle"></i>
                             <span>Alumnado</span>
                         </a>

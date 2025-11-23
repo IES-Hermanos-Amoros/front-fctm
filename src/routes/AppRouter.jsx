@@ -7,6 +7,8 @@ import ListJobOffers from "../views/JobOffers/ListJobOffers"
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
+import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
+
 // Importa más vistas...
 
 export default function AppRouter() {
@@ -17,6 +19,8 @@ export default function AppRouter() {
       <Route path="/documents/:id" element={<ShowDocument />} />
       <Route path="/joboffers" element={<ListJobOffers />} />
       <Route path="/sinc/empresas" element={<ListCompaniesSAO />} />
+      <Route path="/sinc/alumnos" element={<ListStudentsSAO />} />
+
 
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
