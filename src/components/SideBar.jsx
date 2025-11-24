@@ -57,7 +57,7 @@ return (
                         </a>
                     </li>
                     <li>
-                        <a href="#">
+                        <a href="/sinc/fcts">
                             <i className="bi bi-circle"></i>
                             <span>FCTs</span>
                         </a>
