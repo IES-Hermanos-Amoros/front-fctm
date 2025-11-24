@@ -39,7 +39,7 @@ return (
                     data-bs-parent="#sidebar-nav"
                 >
                     <li>
-                        <a href="#">
+                        <a href="/sinc/profesores">
                             <i className="bi bi-circle"></i>
                             <span>Admin/Profesorado</span>
                         </a>

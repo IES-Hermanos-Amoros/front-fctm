@@ -22,8 +22,8 @@ function MainDashboard() {
       '/fcts': 'FCTs',
       '/reviews': 'Reseñas',
       '/sinc/empresas': 'Sincronizar Empresas con SAO',
-      '/sinc/alumnos': 'Sincronizar Alumnos con SAO'
-
+      '/sinc/alumnos': 'Sincronizar Alumnos con SAO',
+      '/sinc/profesores': "Sincronizar Profesores - Administradores con SAO"
     }
     return routes[pathname] || 'Panel'
   }
