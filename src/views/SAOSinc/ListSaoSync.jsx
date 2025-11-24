@@ -10,7 +10,8 @@ const ListSaoSync = ({
     endpointApply,        // ENDPOINT para insertar/actualizar en MongoDB
     columnas,             // columnas dinámicas
     title,                // Título de la tabla
-    mappingFunction       // función para transformar datos al formato de la tabla
+    mappingFunction,       // función para transformar datos al formato de la tabla
+    verCheckTodasFCTs = false
 }) => {
 
     const [items, setItems] = useState([]);               // Datos transformados para la tabla
@@ -26,7 +27,7 @@ const ListSaoSync = ({
     // 1) CARGAR DATOS SAO
     // --------------------------------------------------------
     const fetchData = async () => {
-        const credentials = await promptCredentials();
+        const credentials = await promptCredentials(verCheckTodasFCTs);
         if (!credentials) return;
 
         setLoading(true);

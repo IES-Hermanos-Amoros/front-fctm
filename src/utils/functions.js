@@ -264,7 +264,7 @@ export const confirmation = async(name,url,redir)=>{
  * Devuelve un objeto {username, password} si el usuario confirma,
  * o null si cancela.
  */
-export const promptCredentials = async () => {
+/*export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
     const MySwal = withReactContent(Swal);
 
     const { value: formValues } = await MySwal.fire({
@@ -272,6 +272,7 @@ export const promptCredentials = async () => {
         html:
             '<input id="swal-username" class="swal2-input" placeholder="Usuario">' +
             '<input id="swal-password" type="password" class="swal2-input" placeholder="Contraseña">',
+            mostrarCheckTodasFCTs ? '<input id="swal-todasFCTs" type="checkbox" class="swal2-input">':'',
         focusConfirm: false,
         showCancelButton: true,
         confirmButtonText: 'Aceptar',
@@ -283,6 +284,51 @@ export const promptCredentials = async () => {
                 Swal.showValidationMessage('Por favor ingresa usuario y contraseña');
             }
             return { username, password };
+        }
+    });
+
+    if (!formValues) return null; // usuario canceló
+    return formValues;
+};*/
+export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
+    const MySwal = withReactContent(Swal);
+
+    const { value: formValues } = await MySwal.fire({
+        title: 'Autenticación SAO',
+        html: `
+            <input id="swal-username" class="swal2-input custom-input" placeholder="Usuario">
+            <input id="swal-password" type="password" class="swal2-input custom-input" placeholder="Contraseña">
+            
+            ${
+                mostrarCheckTodasFCTs
+                    ? `
+                    <div class="swal-checkbox-container">
+                        <label class="swal-checkbox">
+                            <input id="swal-todasFCTs" type="checkbox">
+                            <span>Sincronizar Todas las FCTs (solo admin.)</span>
+                        </label>
+                    </div>
+                    `
+                    : ''
+            }
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const username = document.getElementById('swal-username').value;
+            const password = document.getElementById('swal-password').value;
+            const todasFCTs = mostrarCheckTodasFCTs
+                ? document.getElementById('swal-todasFCTs').checked
+                : false;
+
+            if (!username || !password) {
+                Swal.showValidationMessage('Por favor ingresa usuario y contraseña');
+                return false;
+            }
+
+            return { username, password, todasFCTs };
         }
     });
 

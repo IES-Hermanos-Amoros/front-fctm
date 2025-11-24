@@ -33,6 +33,7 @@ export default function ListFctsSAO() {
             columnas={columnasFcts}
             title="FCTs sincronizadas"
             mappingFunction={mapFcts}
+            verCheckTodasFCTs = {true}
         />
     );
 }
