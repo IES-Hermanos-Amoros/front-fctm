@@ -4,7 +4,7 @@
 /* Paleta de colores de modo claro */
 :root {
   scroll-behavior: smooth;
-  --primary: #4154f1;
+  --primary: #030833;
   --second: #717ff5;
   --bgcolor: #f6f9ff;
   --text-color: #444;
@@ -211,7 +211,7 @@ h6 {
 
   .dashboard .filter .icon:hover,
   .dashboard .filter .icon:focus {
-    color: #4154f1;
+    color: #030833;
   }
 
   /* Estilos para el menú desplegable en modo oscuro */
@@ -295,7 +295,7 @@ h6 {
   padding: 20px 0 15px 0;
   font-size: 18px;
   font-weight: 500;
-  color: #012970;
+  color: #011b48;
   letter-spacing: 1px;
   font-family: 'Roboto', sans-serif;
   transition: color 0.3s ease;

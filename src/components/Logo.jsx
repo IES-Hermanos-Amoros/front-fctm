@@ -1,5 +1,7 @@
 import React from 'react';
 import './logo.css';
+const curso = import.meta.env.VITE_CURSO;
+
 
 function Logo () {
     const handleToggleSideBar = () => {
@@ -10,7 +12,7 @@ function Logo () {
         <div className="d-flex align-items-center justify-content-between">
             <a href="/" className="logo d-flex align-items-center">
                 {/* <img src="" alt="" /> */}
-                <span className="d-none d-lg-block">FCT Manager 25-26</span>
+                <span className="d-none d-lg-block">FCT Manager {curso}</span>
             </a>
             <i
                 className="bi bi-list toggle-sidebar-btn"

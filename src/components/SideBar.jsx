@@ -1,5 +1,6 @@
 import React from 'react';
 import './sideBar.css';
+import { NavLink } from 'react-router-dom'
 import navList from '../data/navItem';
 import NavItem from './NavItem';
 
@@ -38,29 +39,31 @@ return (
                     className="nav-content collapse"
                     data-bs-parent="#sidebar-nav"
                 >
-                    <li>
-                        <a href="/sinc/profesores">
+                    <li>                       
+                        <NavLink
+                                to="/sinc/profesores">
+                                
                             <i className="bi bi-circle"></i>
                             <span>Admin/Profesorado</span>
-                        </a>
+                        </NavLink>
                     </li>
                     <li>
-                        <a href="/sinc/alumnos">
+                        <NavLink to="/sinc/alumnos">
                             <i className="bi bi-circle"></i>
                             <span>Alumnado</span>
-                        </a>
+                        </NavLink>
                     </li>
                     <li>
-                        <a href="/sinc/empresas">
+                        <NavLink to="/sinc/empresas">
                             <i className="bi bi-circle"></i>
                             <span>Empresas</span>
-                        </a>
+                        </NavLink>
                     </li>
                     <li>
-                        <a href="/sinc/fcts">
+                        <NavLink to="/sinc/fcts">
                             <i className="bi bi-circle"></i>
                             <span>FCTs</span>
-                        </a>
+                        </NavLink>
                     </li>
                 </ul>
             </li>
