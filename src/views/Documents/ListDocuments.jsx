@@ -117,7 +117,6 @@ const ListDocuments = () => {
             <p>Cargando documentos...</p>
           ) : (
             <GenericTable
-              key={documentos.length}
               tableTitle='Gestión Documental'
               datos={documentos}
               columnas={colDocumentos}

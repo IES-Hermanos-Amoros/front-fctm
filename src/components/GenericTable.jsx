@@ -14,6 +14,8 @@ const GenericTable = ({
   mostrarCheckbox = false // 👈 nuevo parámetro opcional (por defecto false)
 }) => {
 
+  console.log(datos)
+
   const tableRef = useRef();
   const [selectedIds, setSelectedIds] = useState([]); // 👈 ESTADO INTERNO Y PERSISTENTE
 
@@ -83,20 +85,26 @@ const GenericTable = ({
   useEffect(() => {
     initDataTable();
     //Nuevo para gestión de checkbox
-    attachCheckboxEvents();
-    reapplyChecks();
+    if(mostrarCheckbox){
+      attachCheckboxEvents();
+      reapplyChecks();
+    }
     //-------------------------------
   }, [datos]);
 
   // Cada vez que los datos cambien se reaplican los checks sin perder
   useEffect(() => {
-    reapplyChecks();
+    if(mostrarCheckbox){
+      reapplyChecks();
+    }
   }, [datos, selectedIds]);
 
   //OPCIONAL
   // Exponer a consola para debug si quieres ver seleccionados
   useEffect(()=>{
-    if(selectedIds.length) console.log("🔐 Seleccionados:", selectedIds)
+        if(mostrarCheckbox){
+          if(selectedIds.length) console.log("🔐 Seleccionados:", selectedIds)
+          }
   }, [selectedIds])
 
   return (

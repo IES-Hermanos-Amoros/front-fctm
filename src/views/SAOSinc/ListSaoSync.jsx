@@ -93,7 +93,7 @@ const ListSaoSync = ({
         return {
             ...c,
             status: (
-                <span
+                <span key={c._id}
                     title={c.statusTooltip || ""}
                     className={`status-label ${labelClass}`}
                 >
@@ -135,10 +135,10 @@ const ListSaoSync = ({
 
                 {items.length > 0 && (
                     <GenericTable
-                        key={itemsWithTooltip.length}
                         tableTitle={title}
                         datos={itemsWithTooltip}
                         columnas={columnas}
+                        mostrarCheckbox={true}
                     />
                 )}
             </section>

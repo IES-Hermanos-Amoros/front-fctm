@@ -14,11 +14,11 @@ const mapFcts = (data) => {
 
     return [
         ...newFCT.map(c => ({
-            ...c, _id: c.SAO_id, status: "New", statusTooltip: ""
+            ...c, _id: c.SAO_fct_id, status: "New", statusTooltip: ""
         })),
         ...updatedFCT.map(c => ({
             ...c,
-            _id: c.SAO_id,
+            _id: c.SAO_fct_id,
             status: "Updated",
             statusTooltip: c.SAO_MODIFIED_FIELDS.map(f => f.field).join(", ")
         }))
