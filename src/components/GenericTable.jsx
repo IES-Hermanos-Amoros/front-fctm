@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import $, { event } from "jquery";
 import 'datatables.net';
 import 'datatables.net-responsive';
@@ -10,10 +10,12 @@ const GenericTable = ({
   datos = [],
   columnas = [],
   onShow = null,
-  onDelete = null
+  onDelete = null,
+  mostrarCheckbox = false // 👈 nuevo parámetro opcional (por defecto false)
 }) => {
 
   const tableRef = useRef();
+  const [selectedIds, setSelectedIds] = useState([]); // 👈 ESTADO INTERNO Y PERSISTENTE
 
   // Inicialización de DataTables
   const initDataTable = () => {
@@ -51,9 +53,51 @@ const GenericTable = ({
     };
   };
 
+
+  // 1️⃣ Engancha eventos DELEGADOS a los checkbox (sobreviven a destroy/init)
+  const attachCheckboxEvents = () => {
+    const $table = $(tableRef.current);
+
+    $table.off("change", ".generic-checkbox");
+    $table.on("change", ".generic-checkbox", function () {
+      const id = $(this).attr("data-id");
+      const isChecked = this.checked;
+
+      setSelectedIds(prev =>
+        isChecked ? [...prev, id] : prev.filter(x => x !== id)
+      );
+    });
+  };
+
+  // 2️⃣ Reaplica los checks según selectedIds internamente
+  const reapplyChecks = () => {
+    const $table = $(tableRef.current);
+    $table.find(".generic-checkbox").each(function () {
+      const id = $(this).attr("data-id");
+      if (selectedIds.includes(id)) {
+        $(this).prop("checked", true);
+      }
+    });
+  };
+
   useEffect(() => {
     initDataTable();
+    //Nuevo para gestión de checkbox
+    attachCheckboxEvents();
+    reapplyChecks();
+    //-------------------------------
   }, [datos]);
+
+  // Cada vez que los datos cambien se reaplican los checks sin perder
+  useEffect(() => {
+    reapplyChecks();
+  }, [datos, selectedIds]);
+
+  //OPCIONAL
+  // Exponer a consola para debug si quieres ver seleccionados
+  useEffect(()=>{
+    if(selectedIds.length) console.log("🔐 Seleccionados:", selectedIds)
+  }, [selectedIds])
 
   return (
     <div className="card recent-sales overflow-auto">
@@ -65,6 +109,9 @@ const GenericTable = ({
         >
           <thead className="table-light">
             <tr>
+              {/* 👇 Checkbox como PRIMERA columna si está activado */}
+              {mostrarCheckbox && <th><input className='generic-checkbox' type="checkbox" disabled /></th>}
+
               {columnas.map((col) => (
                 <th key={col.key}>{col.encabezado}</th>
               ))}
@@ -76,9 +123,13 @@ const GenericTable = ({
           <tbody>
             {datos.map((elem) => (
               <tr key={elem._id}>
+                {/* 👇 Checkbox como PRIMERA columna si está activado */}
+                {mostrarCheckbox && <th><input className='generic-checkbox' type="checkbox" data-id={elem._id} /></th>}
+
                 {columnas.map((col) => (
                   <td key={col.key}>{elem[col.key]}</td>
-                ))}                
+                ))}
+
                 {/* Mostrar botones SOLO si las funciones existen */}
                 {onShow && (
                   <td>

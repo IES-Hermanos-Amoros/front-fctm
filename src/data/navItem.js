@@ -23,12 +23,12 @@ const navList = [
     icon: 'bi bi-card-list',
     path: '/joboffers'
     },
-    /*{
+    {
     _id: 5,
     name: 'Gestión Documental',
     icon: 'bi bi-envelope',
     path: '/documents'
-    },*/
+    },
     /*{
     _id: 6,
     name: 'Login',

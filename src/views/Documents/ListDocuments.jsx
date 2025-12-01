@@ -123,6 +123,7 @@ const ListDocuments = () => {
               columnas={colDocumentos}
               onShow={verFicha}
               onDelete={eliminarDocumento}
+              mostrarCheckbox = {true}
             />
           )}
         </div>
