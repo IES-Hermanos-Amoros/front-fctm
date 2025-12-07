@@ -138,7 +138,7 @@ const ListSaoSync = ({
                         tableTitle={title}
                         datos={itemsWithTooltip}
                         columnas={columnas}
-                        mostrarCheckbox={true}
+                        mostrarCheckbox={false}
                     />
                 )}
             </section>
