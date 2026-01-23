@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react'
+import { sendRequest } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import "./ListDocuments.css"
 import ReactTableTanstack from '../../components/ReactTableTanstack'
@@ -24,6 +25,15 @@ let documentosOLD = [
      }
   ]
 
+  const colDocumentosOLD = [
+        {   key:"_id", encabezado: "#"} ,
+        {   key:"nombre", encabezado: "Nombre"} ,
+        {   key:"ruta", encabezado: "Ruta"},
+        {   key:"autor", encabezado: "Autor"},
+        {   key:"observaciones", encabezado: "Observaciones"}        
+    ]
+
+
 const ListDocuments = () => {
 
   const [documentos, setDocumentos] = useState([]);
@@ -32,7 +42,25 @@ const ListDocuments = () => {
   const navigate = useNavigate();
 
 
-    const getDocumentsFetch = async() => {
+
+
+     const fetchData = async () => {            
+    
+            setLoading(true);            
+                
+            const res = await sendRequest("GET", null, "/documents/");
+    
+            setLoading(false);
+    
+            if (res.success) {
+                setDocumentos(res.data);                    
+    
+            } else {                
+                console.error("Error al cargar datos:", res.message);
+            }
+        };
+
+    /*const getDocumentsFetch = async() => {
          setLoading(true);
         await fetch('http://localhost:4000/documents')
           .then(res => res.json())
@@ -43,7 +71,7 @@ const ListDocuments = () => {
           .finally(()=>{
             setLoading(false);
           })
-    }
+    }*/
 
     // Simular GET
     const getDocuments = () => {
@@ -79,15 +107,17 @@ const ListDocuments = () => {
   };
 
     useEffect(() => {
-      getDocuments();
+      //getDocuments();
+      fetchData()
     }, []);
 
+    
   const colDocumentos = [
         {   key:"_id", encabezado: "#"} ,
-        {   key:"nombre", encabezado: "Nombre"} ,
-        {   key:"ruta", encabezado: "Ruta"},
-        {   key:"autor", encabezado: "Autor"},
-        {   key:"observaciones", encabezado: "Observaciones"}        
+        {   key:"FCTM_document_name", encabezado: "Nombre"} ,
+        {   key:"FCTM_document_url", encabezado: "Ruta"},
+        {   key:"FCTM_document_description", encabezado: "Descripción"},
+        {   key:"FCTM_document_type", encabezado: "Tipo Doc."}        
     ]
 
   
