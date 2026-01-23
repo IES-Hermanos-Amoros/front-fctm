@@ -13,18 +13,15 @@ const ReactTableTanstack = ({
   datos = [],
   columnas = [],
   mobileMode = 'card', // 'collapse' | 'card'
+  mostrarCheckBox = false,
+  onSelectionChange = null, // callback opcional
 }) => {
   const [globalFilter, setGlobalFilter] = useState('')
   const [expandedRows, setExpandedRows] = useState({})
   const [isMobile, setIsMobile] = useState(false)
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 5,
-  })
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
-  /* =======================
-     RESPONSIVE
-  ======================= */
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
     onResize()
@@ -32,18 +29,33 @@ const ReactTableTanstack = ({
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  const toggleRow = id =>
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
+
+  const toggleSelection = id => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) newSet.delete(id)
+      else newSet.add(id)
+      if (onSelectionChange) onSelectionChange([...newSet])
+      return newSet
+    })
+  }
+
   /* =======================
      COLUMNAS
   ======================= */
-  const cols = columnas.map(col => ({
-    accessorKey: col.key,
-    header: col.encabezado,
-    cell: info => info.getValue(),
-  }))
+  const cols = [
+    ...(mostrarCheckBox
+      ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
+      : []),
+    ...columnas.map(col => ({
+      accessorKey: col.key,
+      header: col.encabezado,
+      cell: info => info.getValue(),
+    })),
+  ]
 
-  /* =======================
-     TABLA
-  ======================= */
   const table = useReactTable({
     data: datos,
     columns: cols,
@@ -55,18 +67,14 @@ const ReactTableTanstack = ({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  const toggleRow = id =>
-    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
-
   /* =======================
-     MOBILE - CARD MODE
+     MODO MOBILE CARD
   ======================= */
   if (isMobile && mobileMode === 'card') {
     return (
       <div className="rt-card">
         <div className="rt-card-body">
           <h1>{tableTitle}</h1>
-
           <input
             className="searchInput"
             placeholder="Buscar..."
@@ -77,24 +85,29 @@ const ReactTableTanstack = ({
           <div className="cardsContainer">
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
+              const selected = selectedIds.has(row.original._id)
+
+              let longPressTimer = null
+              const handleMouseDown = () => {
+                longPressTimer = setTimeout(() => toggleSelection(row.original._id), 500)
+              }
+              const handleMouseUp = () => clearTimeout(longPressTimer)
 
               return (
                 <div
                   key={row.id}
-                  className="card"
+                  className={`card ${selected ? 'card-selected' : ''}`}
                   style={{ maxHeight: expanded ? '500px' : '80px' }}
                   onClick={() => toggleRow(row.id)}
+                  onMouseDown={mostrarCheckBox ? handleMouseDown : undefined}
+                  onMouseUp={mostrarCheckBox ? handleMouseUp : undefined}
+                  onTouchStart={mostrarCheckBox ? handleMouseDown : undefined}
+                  onTouchEnd={mostrarCheckBox ? handleMouseUp : undefined}
                 >
-                  {row.getVisibleCells().map((cell, i) => (
-                    <div
-                      key={cell.id}
-                      style={{ opacity: expanded ? 1 : i > 1 ? 0 : 1 }}
-                    >
-                      <strong>{columnas[i].encabezado}:</strong>{' '}
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                  {row.getVisibleCells().map(cell => (
+                    <div key={cell.id} style={{ opacity: expanded ? 1 : 1 }}>
+                      <strong>{flexRender(cell.column.columnDef.header, cell.getContext())}:</strong>{' '}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>
                   ))}
                 </div>
@@ -103,33 +116,21 @@ const ReactTableTanstack = ({
           </div>
 
           <div className="pagination">
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
+            <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
               ◀
             </button>
-
             <span>
-              Página {table.getState().pagination.pageIndex + 1} de{' '}
-              {table.getPageCount()}
+              Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
             </span>
-
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
+            <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
               ▶
             </button>
-
             <select
               value={table.getState().pagination.pageSize}
               onChange={e => table.setPageSize(Number(e.target.value))}
             >
               {[5, 10, 20, 50].map(size => (
-                <option key={size} value={size}>
-                  Mostrar {size}
-                </option>
+                <option key={size} value={size}>Mostrar {size}</option>
               ))}
             </select>
           </div>
@@ -145,7 +146,6 @@ const ReactTableTanstack = ({
     <div className="rt-card">
       <div className="rt-card-body">
         <h1>{tableTitle}</h1>
-
         <input
           className="searchInput"
           placeholder="Buscar..."
@@ -157,14 +157,9 @@ const ReactTableTanstack = ({
           <thead>
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id}>
-                {isMobile && <th />}
+                {mostrarCheckBox && <th><input type="checkbox" disabled /></th>}
                 {hg.headers.map(h => (
-                  <th key={h.id}>
-                    {flexRender(
-                      h.column.columnDef.header,
-                      h.getContext()
-                    )}
-                  </th>
+                  <th key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</th>
                 ))}
               </tr>
             ))}
@@ -173,39 +168,36 @@ const ReactTableTanstack = ({
           <tbody>
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
+              const selected = selectedIds.has(row.original._id)
 
               return (
                 <Fragment key={row.id}>
-                  <tr onClick={() => isMobile && toggleRow(row.id)}>
-                    {isMobile && (
-                      <td>{expanded ? '−' : '+'}</td>
+                  <tr onClick={() => isMobile && toggleRow(row.id)}
+                      className={selected ? 'row-selected' : ''}>
+                    {mostrarCheckBox && (
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleSelection(row.original._id)}
+                        />
+                      </td>
                     )}
-
                     {row.getVisibleCells().map(cell => (
                       <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>
 
                   {isMobile && expanded && (
                     <tr>
-                      <td
-                        colSpan={columnas.length + 1}
-                        className="rowCollapseExpanded"
-                      >
-                        {row.getVisibleCells().map((cell, i) => (
+                      <td colSpan={columnas.length + (mostrarCheckBox ? 1 : 0)}
+                          className="rowCollapseExpanded">
+                        {row.getVisibleCells().map(cell => (
                           <div key={cell.id}>
-                            <strong>
-                              {columnas[i].encabezado}:
-                            </strong>{' '}
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
+                            <strong>{flexRender(cell.column.columnDef.header, cell.getContext())}:</strong>{' '}
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </div>
                         ))}
                       </td>
@@ -218,33 +210,21 @@ const ReactTableTanstack = ({
         </table>
 
         <div className="pagination">
-          <button
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
+          <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
             ◀
           </button>
-
           <span>
-            Página {table.getState().pagination.pageIndex + 1} de{' '}
-            {table.getPageCount()}
+            Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
           </span>
-
-          <button
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
+          <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
             ▶
           </button>
-
           <select
             value={table.getState().pagination.pageSize}
             onChange={e => table.setPageSize(Number(e.target.value))}
           >
             {[5, 10, 20, 50].map(size => (
-              <option key={size} value={size}>
-                Mostrar {size}
-              </option>
+              <option key={size} value={size}>Mostrar {size}</option>
             ))}
           </select>
         </div>

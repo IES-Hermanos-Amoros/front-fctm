@@ -149,6 +149,8 @@ const ListDocuments = () => {
               tableTitle='Gestión Documental'
               datos={documentos}
               columnas={colDocumentos}
+              mobileMode = "card"
+              mostrarCheckBox = {true}
             />
           )}
         </div>
