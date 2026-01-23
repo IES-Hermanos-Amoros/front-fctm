@@ -1,7 +1,8 @@
 import React, {useState, useEffect} from 'react'
 import { useNavigate } from 'react-router-dom';
 import "./ListDocuments.css"
-import ReactTableTanstack from '../../components/ReactTableTanstack'
+import GenericTable from '../../components/GenericTable'
+import Reports from '../../components/Reports';
 
 let documentosOLD = [
     { _id: 1,
@@ -115,10 +116,13 @@ const ListDocuments = () => {
           {loading ? (
             <p>Cargando documentos...</p>
           ) : (
-            <ReactTableTanstack
+            <GenericTable
               tableTitle='Gestión Documental'
               datos={documentos}
               columnas={colDocumentos}
+              onShow={verFicha}
+              onDelete={eliminarDocumento}
+              mostrarCheckbox = {true}
             />
           )}
         </div>

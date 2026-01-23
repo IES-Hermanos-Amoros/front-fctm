@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { sendRequest, promptCredentials } from '../../utils/functions';
-import ReactTableTanstack from '../../components/ReactTableTanstack';
+import GenericTable from '../../components/GenericTable';
 import CircularProgress from '../../components/CircularProgress';
 import useSocketProgress from '../../hooks/useSocketProgress';
 import "./ListSaoSync.css";
@@ -134,10 +134,11 @@ const ListSaoSync = ({
                 )}
 
                 {items.length > 0 && (
-                    <ReactTableTanstack
+                    <GenericTable
                         tableTitle={title}
                         datos={itemsWithTooltip}
                         columnas={columnas}
+                        mostrarCheckbox={true}
                     />
                 )}
             </section>
