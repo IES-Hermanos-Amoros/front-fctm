@@ -2,10 +2,12 @@
 import { Routes, Route } from 'react-router-dom'
 
 import Home from '../components/Dashboard'
+import ListDummy from '../views/Dummy/ListDummy'
 import ListDocuments from '../views/Documents/ListDocuments'
 import ListJobOffers from "../views/JobOffers/ListJobOffers"
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
+import ShowDummy from "../views/Dummy/ShowDummy"
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
 import ListTeachersSAO from '../views/SAOSinc/Teachers/ListTeachersSAO'
@@ -25,6 +27,8 @@ export default function AppRouter() {
       <Route path="/sinc/profesores" element={<ListTeachersSAO />} />      
       <Route path="/sinc/fcts" element={<ListFctsSAO />} />      
 
+      <Route path="/dummy" element={<ListDummy />} />
+      <Route path="/dummy/:id" element={<ShowDummy />} />
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
     </Routes>

@@ -29,6 +29,12 @@ const navList = [
     icon: 'bi bi-envelope',
     path: '/documents'
     },
+    {
+    _id: 6,
+    name: 'Datos Dummy',
+    icon: 'bi bi-envelope',
+    path: '/dummy'
+    },
     /*{
     _id: 6,
     name: 'Login',

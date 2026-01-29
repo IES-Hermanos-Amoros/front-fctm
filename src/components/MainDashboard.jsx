@@ -18,6 +18,7 @@ function MainDashboard() {
       '/students': 'Alumnos',
       '/joboffers': 'Ofertas de Trabajo',
       '/documents': 'Documentos',
+      '/dummy': 'Datos Dummy de Ejemplo',
       '/actions': 'Acciones',
       '/fcts': 'FCTs',
       '/reviews': 'Reseñas',
