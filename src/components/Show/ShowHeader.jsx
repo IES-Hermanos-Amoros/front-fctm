@@ -1,10 +1,14 @@
 import React from "react";
 
-const ShowHeader = ({ title }) => {
+const ShowHeader = ({ title, onBack }) => {
   return (
-    <div className="mb-4">
-      <h2>{title}</h2>
-      <hr />
+    <div className="d-flex align-items-center mb-3">
+      {onBack && (
+        <button className="btn btn-outline-secondary me-2" onClick={onBack}>
+          Volver
+        </button>
+      )}
+      <h2 className="m-0">{title}</h2>
     </div>
   );
 };

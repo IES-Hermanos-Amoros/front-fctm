@@ -4,12 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import ReactTableTanstack from '../../components/ReactTableTanstack';
 
 const ListDummy = () => {
-  // Estado para almacenar los datos que vienen del backend
-  const [data, setData] = useState([]); // useState: mantiene los datos de la tabla
-  const [loading, setLoading] = useState(false); // useState: controla si estamos cargando datos
-  const [error, setError] = useState(null); // useState: guarda mensajes de error si falla la carga
+  const [data, setData] = useState([]); // Datos de la tabla
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const navigate = useNavigate(); // hook de React Router para navegación programática
+  const navigate = useNavigate();
 
   // =======================
   // COLUMNAS MEMORIZADAS
@@ -22,8 +21,23 @@ const ListDummy = () => {
     { key: "FCTM_dummy_observations", encabezado: "Observaciones" },
     { key: "FCTM_dummy_other_contact", encabezado: "Otro Contacto" },
     { key: "FCTM_dummy_description", encabezado: "Descripción" },
-    { key: "FCTM_dummy_type", encabezado: "Tipo de Dato" }
-  ], []); // useMemo: memoriza las columnas para que no se vuelvan a crear en cada render
+    { key: "FCTM_dummy_type", encabezado: "Tipo de Dato" },
+
+    // Columna de acción (ver ficha)
+    {
+      key: "__actions",
+      encabezado: "Ver",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => navigate(`/dummy/${row._id}`)}
+          title="Ver ficha"
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      )
+    }
+  ], [navigate]);
 
   // =======================
   // FETCH DATA
@@ -31,32 +45,18 @@ const ListDummy = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
       const res = await sendRequest("GET", null, "/dummy");
-
-      if (res.success) {
-        setData(res.data);
-      } else {
-        setError(res.message || "Error al cargar datos");
-      }
+      if (res.success) setData(res.data);
+      else setError(res.message || "Error al cargar datos");
     } catch (err) {
       setError(err.message || "Error al cargar datos");
     } finally {
       setLoading(false);
     }
-  }, []); // useCallback: memoriza la función fetchData para que no cambie en cada render, útil para pasarla a useEffect
+  }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]); // useEffect: ejecuta fetchData cuando el componente se monta y siempre que fetchData cambie (gracias a useCallback no cambia)
-
-  // =======================
-  // NAVEGACIÓN
-  // =======================
-  const verFicha = (id) => {
-    navigate(`/dummy/${id}`);
-  };
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   // =======================
   // RENDER
@@ -88,7 +88,6 @@ const ListDummy = () => {
               columnas={columnas}
               mobileMode="card"
               mostrarCheckBox={true}
-              onRowClick={verFicha}
             />
           )}
         </div>

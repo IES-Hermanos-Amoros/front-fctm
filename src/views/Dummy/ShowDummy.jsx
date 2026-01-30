@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -8,6 +8,7 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 
 const ShowDummy = () => {
   const { id } = useParams(); // ID obtenido desde la URL /dummy/:id
+  const navigate = useNavigate();
 
   const [data, setData] = useState(null); // Datos del dummy cargado desde API
   const [loading, setLoading] = useState(true); // Controla estado de carga
@@ -64,7 +65,11 @@ const ShowDummy = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader title="Detalle Dummy" />
+
+      <ShowHeader 
+        title={`Ficha de ${data?.SAO_username || 'Dummy'}`} 
+        onBack={() => navigate('/dummy')} 
+      />
 
       <ShowReadonlyForm data={data} />
 
