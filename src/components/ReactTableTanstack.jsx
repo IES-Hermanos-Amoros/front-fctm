@@ -45,7 +45,7 @@ const ReactTableTanstack = ({
   /* =======================
      COLUMNAS
   ======================= */
-  const cols = [
+  /*const cols = [
     ...(mostrarCheckBox
       ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
       : []),
@@ -57,6 +57,20 @@ const ReactTableTanstack = ({
         col.render
           ? col.render(info.row.original) // usa render si existe
           : info.getValue(),
+    })),
+  ]*/
+  const cols = [
+    ...(mostrarCheckBox
+      ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
+      : []),
+    ...columnas.map(col => ({
+      accessorKey: col.render ? undefined : col.key, // si hay render, no usamos accessorKey
+      id: col.key,
+      header: col.encabezado,
+      cell: info =>
+        col.render
+          ? col.render(info.row.original) // columnas con render (acciones)
+          : info.getValue(),             // columnas normales
     })),
   ]
 

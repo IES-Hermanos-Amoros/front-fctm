@@ -25,7 +25,7 @@ const ListDummy = () => {
 
     // Columna de acción (ver ficha)
     {
-      key: "__actions",
+      key: "__show",
       encabezado: "Ver",
       render: (row) => (
         <button
@@ -36,8 +36,39 @@ const ListDummy = () => {
           <i className="bi bi-search"></i>
         </button>
       )
+    },
+    // Columna de eliminar
+    {
+      key: "__delete",
+      encabezado: "Eliminar",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDelete(row._id)}
+          title="Eliminar dato"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
     }
   ], [navigate]);
+
+
+  // =======================
+  // ELIMINAR DATO
+  // =======================
+  const handleDelete = async (id) => {
+    const confirmado = window.confirm("¿Seguro que quieres eliminar este dato?");
+    if (!confirmado) return;
+
+    const res = await sendRequest("DELETE", null, `/dummy/${id}`);
+    if (res.success) {
+      alert("Dato eliminado");
+      fetchData(); // recargamos tabla
+    } else {
+      alert("Error al eliminar el dato");
+    }
+  };
 
   // =======================
   // FETCH DATA
