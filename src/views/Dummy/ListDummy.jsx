@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest } from '../../utils/functions';
+import { sendRequest, confirmation, showAlert } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import ReactTableTanstack from '../../components/ReactTableTanstack';
 
@@ -58,15 +58,22 @@ const ListDummy = () => {
   // ELIMINAR DATO
   // =======================
   const handleDelete = async (id) => {
-    const confirmado = window.confirm("¿Seguro que quieres eliminar este dato?");
+    /*const confirmado = window.confirm("¿Seguro que quieres eliminar este dato?");
+    if (!confirmado) return;*/
+    const confirmado = await confirmation(
+      "¿Seguro que quieres eliminar este dato?"
+    );
+
     if (!confirmado) return;
 
-    const res = await sendRequest("DELETE", null, `/dummy/${id}`);
+    const res = await sendRequest("DELETE", undefined, `/dummy/${id}`);
+    console.log(res)
     if (res.success) {
-      alert("Dato eliminado");
+      //alert("Dato eliminado");
       fetchData(); // recargamos tabla
     } else {
-      alert("Error al eliminar el dato");
+      //alert("Error al eliminar el dato");
+      showAlert(res.message,"error")
     }
   };
 

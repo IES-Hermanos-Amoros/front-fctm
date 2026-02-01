@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest } from "../../utils/functions";
+import { sendRequest, showAlert } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
@@ -37,9 +37,10 @@ const ShowDummy = () => {
 
     if (res.success) {
       setData(res.data);
+      setOriginalData(res.data);
       setIsEditing(false);
     } else {
-      alert("Error al guardar los cambios");
+      showAlert(res.message,"error");
     }
   };
 

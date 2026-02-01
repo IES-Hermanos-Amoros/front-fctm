@@ -8,6 +8,7 @@ import ListJobOffers from "../views/JobOffers/ListJobOffers"
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
 import ShowDummy from "../views/Dummy/ShowDummy"
+import NewDummy from '../views/Dummy/NewDummy'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
 import ListTeachersSAO from '../views/SAOSinc/Teachers/ListTeachersSAO'
@@ -28,6 +29,7 @@ export default function AppRouter() {
       <Route path="/sinc/fcts" element={<ListFctsSAO />} />      
 
       <Route path="/dummy" element={<ListDummy />} />
+      <Route path="/dummy/new" element={<NewDummy />} />
       <Route path="/dummy/:id" element={<ShowDummy />} />
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />

@@ -14,6 +14,7 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
 
     try {
 
+        console.log(method)
         console.log(url);
         console.log(params);
 
@@ -244,7 +245,21 @@ export function showAlert(msg, iconImage, focusElem=""){
 }
 
 
-export const confirmation = async(name,url,redir)=>{
+export const confirmation = async (title = "¿Seguro que quieres eliminar este dato?") => {
+  const alert = Swal.mixin({ buttonsStyling: true });
+
+  const result = await alert.fire({
+    title,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: '<i class="fa-solid fa-check"></i> Sí, eliminar',
+    cancelButtonText: '<i class="fa-solid fa-ban"></i> Cancelar'
+  });
+
+  return result.isConfirmed; // 👉 DEVUELVE true o false
+};
+
+export const confirmationOLD = async(name,url,redir)=>{
     const alert= Swal.mixin({buttonsStyling:true})
     alert.fire({
         title:"Seguro que desea eliminar '" + name + "'?",

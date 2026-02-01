@@ -6,7 +6,8 @@ const ShowEditableForm = ({
   onEdit,
   onSave,
   onCancel,
-  onChange
+  onChange,
+  hideEditButton = false   // <-- NUEVO
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault(); // evitamos recarga
@@ -18,13 +19,23 @@ const ShowEditableForm = ({
       <div className="card-header d-flex justify-content-between align-items-center">
         <strong>Datos FCTM</strong>
 
-        {!isEditing ? (
+        {/* ===== BOTONERA (MISMA ORGANIZACIÓN QUE TENÍAS) ===== */}
+
+        {/* MODO SHOW */}
+        {!isEditing && !hideEditButton && (
           <button className="btn btn-primary" onClick={onEdit}>
             Editar
           </button>
-        ) : (
+        )}
+
+        {/* MODO EDIT */}
+        {isEditing && (
           <div className="d-flex gap-2">
-            <button type="submit" form="editableForm" className="btn btn-success">
+            <button
+              type="submit"
+              form="editableForm"
+              className="btn btn-success"
+            >
               Guardar
             </button>
 
