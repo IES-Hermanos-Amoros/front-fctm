@@ -122,6 +122,19 @@
   margin-top: 16px;
 }
 
+
+/*.cardsContainer .card {
+  background: linear-gradient(135deg, #717ff5 0%, #f6f9ff 100%);
+  color: white; 
+  border-radius: 0.5rem;
+  padding: 14px 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+}*/
+
+/*
 .card {
   background-color: var(--card-bg);
   color: var(--text-color);
@@ -131,7 +144,22 @@
   overflow: hidden;
   transition: all 0.3s ease-in-out;
   cursor: pointer;
+  padding-bottom: 20px;
+  max-height: 80px; 
+}*/
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 0.5rem;
+  padding: 14px;
+  padding-bottom: 20px; /* <- para que no se corte el texto */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  cursor: pointer;
+  max-height: 80px; /* inicial */
 }
+
 
 .card div {
   margin-bottom: 4px;
