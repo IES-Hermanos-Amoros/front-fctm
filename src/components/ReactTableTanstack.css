@@ -152,12 +152,12 @@
   color: var(--text-color);
   border-radius: 0.5rem;
   padding: 14px;
-  padding-bottom: 20px; /* <- para que no se corte el texto */
+  /*padding-bottom: 20px;*/ /* <- para que no se corte el texto */
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   overflow: hidden;
   transition: all 0.3s ease-in-out;
   cursor: pointer;
-  max-height: 80px; /* inicial */
+  /*max-height: 80px;*/ /* inicial */
 }
 
 

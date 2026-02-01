@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest, confirmation, showAlert } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import ReactTableTanstack from '../../components/ReactTableTanstack';
+import ListCRUD from "../../components/List/ListCRUD"
 
 const ListDummy = () => {
   const [data, setData] = useState([]); // Datos de la tabla
@@ -100,8 +101,8 @@ const ListDummy = () => {
   // RENDER
   // =======================
   return (
-    <section className="dashboard section">
-      <div className="row mb-3">
+    <>
+      {/*<div className="row mb-3">
         <div className="col-12">
           <button
             className="btn btn-success"
@@ -110,28 +111,43 @@ const ListDummy = () => {
             Añadir Dato
           </button>
         </div>
-      </div>
+      </div>*/}
 
-      <div className="row">
-        <div className="col-12">
-          {loading && <p>Cargando datos...</p>}
-          {!loading && error && <p className="text-danger">{error}</p>}
-          {!loading && !error && data.length === 0 && (
-            <p className="text-muted">No hay datos disponibles</p>
-          )}
-          {!loading && !error && data.length > 0 && (
-            <ReactTableTanstack
+      {loading && <p>Cargando datos...</p>}
+      {!loading && error && <p className="text-danger">{error}</p>}
+      {!loading && !error && data.length === 0 && (
+        <p className="text-muted">No hay datos disponibles</p>
+      )}
+      {!loading && !error && data.length > 0 && (
+
+        <ListCRUD
+              title={"Datos Dummy CRUD"}
+              datos={data}
+              columnas={columnas}                  
+        >
+                {/* Children */}
+                <button
+              className="btn btn-success"
+              onClick={() => navigate('/dummy/new')}
+            >
+              Añadir Dato
+            </button>
+        </ListCRUD>
+
+        
+      )}        
+    </>
+  );
+};
+
+export default ListDummy;
+
+/*
+<ReactTableTanstack
               tableTitle="Datos Dummy"
               datos={data}
               columnas={columnas}
               mobileMode="card"
               mostrarCheckBox={true}
             />
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default ListDummy;
+*/

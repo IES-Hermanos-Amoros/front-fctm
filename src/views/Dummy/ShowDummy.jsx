@@ -5,6 +5,15 @@ import { sendRequest, showAlert } from "../../utils/functions";
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import ListCRUD from "../../components/List/ListCRUD";
+
+const columnasDocuments = [
+        {   key:"_id", encabezado: "#"} ,
+        {   key:"FCTM_document_name", encabezado: "Nombre"} ,
+        {   key:"FCTM_document_url", encabezado: "Ruta"},
+        {   key:"FCTM_document_description", encabezado: "Descripción"},
+        {   key:"FCTM_document_type", encabezado: "Tipo Doc."}        
+    ]
 
 const ShowDummy = () => {
   const { id } = useParams(); // ID obtenido desde la URL /dummy/:id
@@ -24,6 +33,7 @@ const ShowDummy = () => {
     if (res.success) {
       setData(res.data);
       setOriginalData(res.data); // snapshot original
+      console.log(res.data)
     } else {
       console.error("Error al cargar el dummy:", res.message);
     }
@@ -82,6 +92,20 @@ const ShowDummy = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
+
+      <ListCRUD 
+          title="Datos Dummy Relacionados"
+          datos={data.FCTM_documents}
+          columnas={columnasDocuments}          
+      >
+            {/* Children */}
+                <button
+              className="btn btn-success"
+              onClick={() => navigate('/documents/new')}
+            >
+              Añadir Documento
+            </button>
+      </ListCRUD>
     </section>
   );
 };
