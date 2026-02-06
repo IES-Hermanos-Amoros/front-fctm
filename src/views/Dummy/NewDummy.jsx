@@ -5,6 +5,12 @@ import { sendRequest, showAlert } from "../../utils/functions";
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 
+const FCTM_fields = [
+  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
+  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
+  { key: "FCTM_dummy_description", label: "Descripción", type:"text" }
+]
+
 const NewDummy = () => {
   const navigate = useNavigate();
 
@@ -44,7 +50,10 @@ const NewDummy = () => {
       />
 
       <ShowEditableForm
+        formTitle="Información FCT Manager"
+        formId="fctmForm"
         data={data}
+        fields={FCTM_fields}
         isEditing={true}           // Siempre en modo edición
         hideEditButton={true}      // No tiene sentido mostrar EDITAR en NEW
         onSave={handleSave}
