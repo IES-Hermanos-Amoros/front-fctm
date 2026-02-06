@@ -7,10 +7,33 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+//TEMPORAL hasta el uso de Zustand (y creación de maestros en el API)
+const dummyTypes = [
+  { "_id": "TEXTO", "nombre": "TEXTO" },
+  { "_id": "NUMERO", "nombre": "NUMERO" },
+  { "_id": "BOOLEANO", "nombre": "BOOLEANO" },
+  { "_id": "OTRO", "nombre": "OTRO" }
+]
+
 const SAO_fields = [
     { key: "SAO_id", label: "SAO ID", type: "text"},
     { key: "SAO_username", label: "Username:", type: "text" },
-    /*{
+    { key: "SAO_email", label: "Email", type: "email" }
+  ]
+
+const FCTM_fields = [
+  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
+  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
+  { key: "FCTM_dummy_description", label: "Descripción", type:"text" },
+  {
+      key: "FCTM_dummy_type",
+      label: "Tipo",
+      type: "select",
+      options: dummyTypes,
+      optionValue: "_id",
+      optionLabel: "nombre"
+    }
+  /*{
       key: "categoria",
       label: "Categoría:",
       type: "select",
@@ -18,13 +41,6 @@ const SAO_fields = [
       optionValue: "_id",
       optionLabel: "nombre"
     },*/
-    { key: "SAO_email", label: "Email", type: "email" }
-  ]
-
-const FCTM_fields = [
-  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
-  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
-  { key: "FCTM_dummy_description", label: "Descripción", type:"text" }
 ]
 
 const columnasDocuments = [
