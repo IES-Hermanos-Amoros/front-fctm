@@ -7,6 +7,42 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+//TEMPORAL hasta el uso de Zustand (y creación de maestros en el API)
+const dummyTypes = [
+  { "_id": "TEXTO", "nombre": "TEXTO" },
+  { "_id": "NUMERO", "nombre": "NUMERO" },
+  { "_id": "BOOLEANO", "nombre": "BOOLEANO" },
+  { "_id": "OTRO", "nombre": "OTRO" }
+]
+
+const SAO_fields = [
+    { key: "SAO_id", label: "SAO ID", type: "text"},
+    { key: "SAO_username", label: "Username:", type: "text" },
+    { key: "SAO_email", label: "Email", type: "email" }
+  ]
+
+const FCTM_fields = [
+  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
+  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
+  { key: "FCTM_dummy_description", label: "Descripción", type:"text" },
+  {
+      key: "FCTM_dummy_type",
+      label: "Tipo",
+      type: "select",
+      options: dummyTypes,
+      optionValue: "_id",
+      optionLabel: "nombre"
+    }
+  /*{
+      key: "categoria",
+      label: "Categoría:",
+      type: "select",
+      options: categorias,
+      optionValue: "_id",
+      optionLabel: "nombre"
+    },*/
+]
+
 const columnasDocuments = [
         {   key:"_id", encabezado: "#"} ,
         {   key:"FCTM_document_name", encabezado: "Nombre"} ,
@@ -82,10 +118,19 @@ const ShowDummy = () => {
         onBack={() => navigate('/dummy')} 
       />
 
-      <ShowReadonlyForm data={data} />
+      <ShowEditableForm
+        formTitle="Información de SAO"
+        formId="saoForm" 
+        data={data} 
+        fields={SAO_fields}
+        hideEditButton={true}
+      />
 
       <ShowEditableForm
+        formTitle="Datos Adicionales"
+        formId="fctmForm"
         data={data}
+        fields={FCTM_fields}
         isEditing={isEditing}
         onEdit={() => setIsEditing(true)}
         onSave={handleSave}
