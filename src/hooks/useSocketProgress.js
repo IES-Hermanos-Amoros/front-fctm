@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
-const host = import.meta.env.VITE_BASE_URL_BACKEND_SOCKET;
+let host = import.meta.env.VITE_BASE_URL_BACKEND_SOCKET;
+const protocol = __DEV_SERVER_PROTOCOL__  // 'http' o 'https'
+host = `${protocol}${host}`
 
 export default function useSocketProgress(resetSignal) {
     const [progress, setProgress] = useState(0);

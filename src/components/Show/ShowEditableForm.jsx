@@ -1,7 +1,10 @@
 import React from "react";
 
 const ShowEditableForm = ({
+  formTitle,
+  formId,
   data,
+  fields,
   isEditing,
   onEdit,
   onSave,
@@ -11,13 +14,13 @@ const ShowEditableForm = ({
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault(); // evitamos recarga
-    onSave();
+    if (onSave) onSave();
   };
 
   return (
     <div className="card">
       <div className="card-header d-flex justify-content-between align-items-center">
-        <strong>Datos FCTM</strong>
+        <strong>{formTitle}</strong>
 
         {/* ===== BOTONERA (MISMA ORGANIZACIÓN QUE TENÍAS) ===== */}
 
@@ -33,7 +36,7 @@ const ShowEditableForm = ({
           <div className="d-flex gap-2">
             <button
               type="submit"
-              form="editableForm"
+              form={formId}
               className="btn btn-success"
             >
               Guardar
@@ -51,8 +54,89 @@ const ShowEditableForm = ({
       </div>
 
       <div className="card-body">
-        <form id="editableForm" onSubmit={handleSubmit}>
-          <div className="mb-3">
+        <form id={formId} onSubmit={handleSubmit}>
+
+          {fields.map((field) => {
+          const {
+            key,
+            label,
+            type = "text",
+            options = [],
+            optionValue = "_id",
+            optionLabel = "nombre"
+          } = field
+
+          return (
+            <div className="mb-3" key={key}>
+              <label className="form-label">{label}</label>
+
+              {(() => {
+                  if (type === "select") {
+                    return (
+                      <select
+                        className="form-select"
+                        value={
+                          typeof data[key] === "object" && data[key] !== null
+                            ? data[key][optionValue]
+                            : data[key] || ""
+                        }
+                        onChange={e => onChange(key, e.target.value)}
+                        disabled={!isEditing}
+                        required
+                      >
+                        <option value="">-- Selecciona --</option>
+
+                        {options.map(opt => (
+                          <option
+                            key={opt[optionValue]}
+                            value={opt[optionValue]}
+                          >
+                            {opt[optionLabel]}
+                          </option>
+                        ))}
+                      </select>
+                    )
+                  }
+
+                  if (type === "textarea") {
+                    return (
+                      <textarea
+                        className="form-control"
+                        value={
+                          typeof data[key] === "object" && data[key] !== null
+                            ? data[key][optionLabel] || ""
+                            : data[key] || ""
+                        }
+                        onChange={e => onChange(key, e.target.value)}
+                        required
+                        readOnly={!isEditing}
+                        rows={4}
+                      />
+                    )
+                  }
+
+                  // Por defecto: input normal
+                  return (
+                    <input
+                      className="form-control"
+                      type={type}
+                      value={
+                        typeof data[key] === "object" && data[key] !== null
+                          ? data[key][optionLabel] || ""
+                          : data[key] || ""
+                      }
+                      onChange={e => onChange(key, e.target.value)}
+                      required
+                      readOnly={!isEditing}
+                    />
+                  )
+                })()}
+
+            </div>
+          )
+        })}
+
+          {/*<div className="mb-3">
             <label className="form-label">Observaciones</label>
             <textarea
               className="form-control"
@@ -88,7 +172,7 @@ const ShowEditableForm = ({
                 onChange("FCTM_dummy_description", e.target.value)
               }
             />
-          </div>
+          </div>*/}
         </form>
       </div>
     </div>
