@@ -7,7 +7,7 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
-// 1. Configuración de Columnas (Tanstack usa accessorKey)
+//  Configuración de Columnas 
 const columnasOfertas = [
   { accessorKey: "FCTM_job_title", header: "Título" },
   { accessorKey: "FCTM_job_start_date", header: "Fec. Ini" },
@@ -15,7 +15,7 @@ const columnasOfertas = [
   { accessorKey: "FCTM_job_status", header: "Estado" },
 ];
 
-// 2. Definición de campos SAO
+// Definición de campos SAO
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -39,7 +39,7 @@ const camposSAO = [
   { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
 ];
 
-// 3. Definición de campos FCTM 
+// Definición de campos FCTM 
 const camposFCTM = [
   { key: "FCTM_company_category", label: "Familia Profesional", type: "text" },
   { key: "FCTM_company_openToHire", label: "Interesada en contratar", type: "checkbox" },
@@ -83,6 +83,67 @@ const ShowCompany = () => {
       showAlert(res.message, "error");
     }
   };
+
+    // PARTE JACOB
+
+
+  const handleChange = (field, value) => {
+    setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    setData(originalData);
+    setIsEditing(false);
+  };
+
+  if (loading) return <p>Cargando información...</p>;
+  if (!data) return <p>Empresa no encontrada.</p>;
+
+  return (
+    <section>
+      <ShowHeader 
+        title={`Ficha de ${data?.SAO_name || 'Empresa'}`} 
+        onBack={() => navigate('/companies')} 
+      />
+
+      {/* Sección SAO: Solo lectura */}
+      <div>
+        <h3>Información SAO</h3>
+        <ShowReadonlyForm data={data} fields={camposSAO} />
+      </div>
+
+      <hr />
+
+      {/* Sección FCTM: Editable */}
+      <div>
+        <h3>Datos Adicionales FCTM</h3>
+        {!isEditing && (
+          <button onClick={() => setIsEditing(true)}>EDITAR</button>
+        )}
+        <ShowEditableForm
+          data={data}
+          isEditing={isEditing}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onChange={handleChange}
+          fields={camposFCTM}
+        />
+      </div>
+
+      <hr />
+
+      {/* Tabla de Ofertas */}
+      <ListCRUD 
+          title="Ofertas de Trabajo Relacionadas"
+          datos={data.FCTM_job_offers || []}
+          columnas={columnasOfertas}          
+      >
+        <button onClick={() => navigate('/offers/new', { state: { companyId: id } })}>
+          Añadir Oferta
+        </button>
+      </ListCRUD>
+    </section>
+  );
 
 };
 
