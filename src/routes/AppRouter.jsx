@@ -13,7 +13,6 @@ import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
 import ListTeachersSAO from '../views/SAOSinc/Teachers/ListTeachersSAO'
 import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
-import ListCompanies from '../views/Companies/ListCompanies'
 
 // Importa más vistas...
 
@@ -28,7 +27,6 @@ export default function AppRouter() {
       <Route path="/sinc/alumnos" element={<ListStudentsSAO />} />
       <Route path="/sinc/profesores" element={<ListTeachersSAO />} />
       <Route path="/sinc/fcts" element={<ListFctsSAO />} />
-      <Route path="/companies" element={<ListCompanies />} />
 
       <Route path="/dummy" element={<ListDummy />} />
       <Route path="/dummy/new" element={<NewDummy />} />
