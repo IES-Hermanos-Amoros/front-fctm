@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { sendRequest, confirmation, showAlert } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
-import ReactTableTanstack from '../../components/ReactTableTanstack'
 import ListCRUD from '../../components/List/ListCRUD'
 
-const ListDummy = () => {
-  const [data, setData] = useState([]) // Datos de la tabla
+const ListJobOffers = () => {
+  const [data, setData] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -16,15 +15,20 @@ const ListDummy = () => {
   // =======================
   const columnas = useMemo(
     () => [
-      { key: '_id', encabezado: '#' },
-      { key: 'SAO_id', encabezado: 'SAO ID' },
-      { key: 'SAO_username', encabezado: 'SAO Username' },
-      { key: 'SAO_email', encabezado: 'SAO Email' },
-      { key: 'FCTM_dummy_observations', encabezado: 'Observaciones' },
-      { key: 'FCTM_dummy_other_contact', encabezado: 'Otro Contacto' },
-      { key: 'FCTM_dummy_description', encabezado: 'Descripción' },
-      { key: 'FCTM_dummy_type', encabezado: 'Tipo de Dato' },
-
+      { key: 'FCTM_job_title', encabezado: 'Título' },
+      { key: 'FCTM_job_status', encabezado: 'Estado' },
+      {
+        key: 'FCTM_job_salary',
+        encabezado: 'Salario'
+      },
+      {
+        key: 'FCTM_job_start_date',
+        encabezado: 'Fecha Inicio'
+      },
+      {
+        key: 'FCTM_job_end_date',
+        encabezado: 'Fecha Cierre'
+      },
       // Columna de acción (ver ficha)
       {
         key: '__show',
@@ -32,8 +36,8 @@ const ListDummy = () => {
         render: row => (
           <button
             className="btn btn-sm btn-outline-primary"
-            onClick={() => navigate(`/dummy/${row._id}`)}
-            title="Ver ficha"
+            onClick={() => navigate(`/jobOffers/${row._id}`)}
+            title="Ver oferta"
           >
             <i className="bi bi-search"></i>
           </button>
@@ -47,7 +51,7 @@ const ListDummy = () => {
           <button
             className="btn btn-sm btn-outline-danger"
             onClick={() => handleDelete(row._id)}
-            title="Eliminar dato"
+            title="Eliminar oferta"
           >
             <i className="bi bi-trash"></i>
           </button>
@@ -58,24 +62,21 @@ const ListDummy = () => {
   )
 
   // =======================
-  // ELIMINAR DATO
+  // ELIMINAR OFERTA
   // =======================
   const handleDelete = async id => {
-    /*const confirmado = window.confirm("¿Seguro que quieres eliminar este dato?");
-    if (!confirmado) return;*/
     const confirmado = await confirmation(
-      '¿Seguro que quieres eliminar este dato?'
+      '¿Seguro que quieres eliminar esta oferta de trabajo?'
     )
 
     if (!confirmado) return
 
-    const res = await sendRequest('DELETE', undefined, `/dummy/${id}`)
-    console.log(res)
+    const res = await sendRequest('DELETE', undefined, `/jobOffers/${id}`)
+
     if (res.success) {
-      //alert("Dato eliminado");
-      fetchData() // recargamos tabla
+      showAlert('Oferta eliminada correctamente', 'success')
+      fetchData()
     } else {
-      //alert("Error al eliminar el dato");
       showAlert(res.message, 'error')
     }
   }
@@ -87,11 +88,15 @@ const ListDummy = () => {
     setLoading(true)
     setError(null)
     try {
-      const res = await sendRequest('GET', null, '/dummy')
-      if (res.success) setData(res.data)
-      else setError(res.message || 'Error al cargar datos')
+      // Ajusta la URL según tu API (ej. /job-offers o /job-offer-manager)
+      const res = await sendRequest('GET', null, '/jobOffers')
+      if (res.success) {
+        setData(res.data)
+      } else {
+        setError(res.message || 'Error al cargar las ofertas')
+      }
     } catch (err) {
-      setError(err.message || 'Error al cargar datos')
+      setError(err.message || 'Error al conectar con el servidor')
     } finally {
       setLoading(false)
     }
@@ -106,30 +111,22 @@ const ListDummy = () => {
   // =======================
   return (
     <>
-      {/*<div className="row mb-3">
-        <div className="col-12">
-          <button
-            className="btn btn-success"
-            onClick={() => navigate('/dummy/new')}
-          >
-            Añadir Dato
-          </button>
-        </div>
-      </div>*/}
-
-      {loading && <p>Cargando datos...</p>}
+      {loading && <p>Cargando ofertas...</p>}
       {!loading && error && <p className="text-danger">{error}</p>}
       {!loading && !error && data.length === 0 && (
-        <p className="text-muted">No hay datos disponibles</p>
+        <p className="text-muted">No hay ofertas disponibles</p>
       )}
       {!loading && !error && data.length > 0 && (
-        <ListCRUD title={'Datos Dummy CRUD'} datos={data} columnas={columnas}>
-          {/* Children */}
+        <ListCRUD
+          title={'Gestión de Ofertas de Trabajo'}
+          datos={data}
+          columnas={columnas}
+        >
           <button
             className="btn btn-success"
-            onClick={() => navigate('/dummy/new')}
+            onClick={() => navigate('/jobOffers/new')}
           >
-            Añadir Dato
+            Nueva Oferta
           </button>
         </ListCRUD>
       )}
@@ -137,14 +134,4 @@ const ListDummy = () => {
   )
 }
 
-export default ListDummy
-
-/*
-<ReactTableTanstack
-              tableTitle="Datos Dummy"
-              datos={data}
-              columnas={columnas}
-              mobileMode="card"
-              mostrarCheckBox={true}
-            />
-*/
+export default ListJobOffers
