@@ -7,15 +7,15 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
-// 1. Configuración de Columnas para la tabla de Ofertas
+// 1. Configuración de Columnas (Tanstack usa accessorKey)
 const columnasOfertas = [
-  { key: "FCTM_job_title", encabezado: "Título" },
-  { key: "FCTM_job_start_date", encabezado: "Fec. Ini" },
-  { key: "FCTM_job_end_date", encabezado: "Fec. Fin" },
-  { key: "FCTM_job_status", encabezado: "Estado" },
+  { accessorKey: "FCTM_job_title", header: "Título" },
+  { accessorKey: "FCTM_job_start_date", header: "Fec. Ini" },
+  { accessorKey: "FCTM_job_end_date", header: "Fec. Fin" },
+  { accessorKey: "FCTM_job_status", header: "Estado" },
 ];
 
-// 2. Definición de campos SAO (Solo lectura)
+// 2. Definición de campos SAO
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
