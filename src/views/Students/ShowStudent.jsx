@@ -7,6 +7,28 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+//MIRIAM
+const SAO_fields = [
+  { key: "SAO_id", label: "SAO ID", type: "text"},
+  { key: "SAO_username", label: "NIA", type: "text"},
+  { key: "SAO_registryDate", label: "Register Date", type: "date" },
+  { key: "SAO_accessDate", label: "Access Date", type: "date" },
+  { key: "SAO_name", label: "Name", type: "text" },
+  { key: "SAO_organization", label: "Organization", type: "text" },
+  { key: "SAO_group", label: "Group", type: "text" },
+  { key: "SAO_email", label: "Email", type: "text" },
+  { key: "SAO_phone", label: "Phone", type: "text" },
+
+  { key: "SAO_student_id", label: "Student ID", type: "text" },
+  { key: "SAO_student_socialNumber", label: "Student social number", type: "text" },
+  { key: "SAO_student_city", label: "Student city", type: "text" },
+  { key: "SAO_student_state", label: "Student state", type: "text" },
+  { key: "SAO_student_codeState", label: "Student code state", type: "text" },
+  { key: "SAO_student_address", label: "Student adress", type: "text" },
+  { key: "SAO_student_gender", label: "Student gender", type: "text" },
+  { key: "SAO_student_visibleCompanies", label: "Student visible companies", type: "text" }
+]
+
 //CAROLINA
 const FCTM_fields = [
   { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
@@ -15,28 +37,6 @@ const FCTM_fields = [
 ]
 
 const ShowStudent = () => {
-    //MIRIAM
-    const SAO_fields = [
-      { key: "SAO_id", label: "SAO ID", type: "text"},
-      { key: "SAO_username", label: "NIA", type: "text"},
-      { key: "SAO_registryDate", label: "Register Date", type: "date" },
-      { key: "SAO_accessDate", label: "Access Date", type: "date" },
-      { key: "SAO_name", label: "Name", type: "text" },
-      { key: "SAO_organization", label: "Organization", type: "text" },
-      { key: "SAO_group", label: "Group", type: "text" },
-      { key: "SAO_email", label: "Email", type: "text" },
-      { key: "SAO_phone", label: "Phone", type: "text" },
-
-      { key: "SAO_student_id", label: "Student ID", type: "text" },
-      { key: "SAO_student_socialNumber", label: "Student social number", type: "text" },
-      { key: "SAO_student_city", label: "Student city", type: "text" },
-      { key: "SAO_student_state", label: "Student state", type: "text" },
-      { key: "SAO_student_codeState", label: "Student code state", type: "text" },
-      { key: "SAO_student_address", label: "Student adress", type: "text" },
-      { key: "SAO_student_gender", label: "Student gender", type: "text" },
-      { key: "SAO_student_visibleCompanies", label: "Student visible companies", type: "text" }
-    ]
-
 
     //CAROLINA
     const { id } = useParams()
