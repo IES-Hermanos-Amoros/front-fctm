@@ -3,9 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
-import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
-import ListCRUD from "../../components/List/ListCRUD";
 
 //MIRIAM
 const SAO_fields = [
@@ -33,7 +31,17 @@ const SAO_fields = [
 const FCTM_fields = [
   { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
   { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text"},
-  { key: "FCTM_student_openToWork", label: "En búsqueda activa / Disponible", type: "boolean"}
+  {
+    key: "FCTM_student_openToWork",
+    label: "En búsqueda activa / Disponible",
+    type: "select",
+    options: [
+      { _id: true, nombre: "Sí" },
+      { _id: false, nombre: "No" }
+    ],
+    optionValue: "_id",
+    optionLabel: "nombre"
+  }
 ]
 
 const ShowStudent = () => {
@@ -54,7 +62,11 @@ const ShowStudent = () => {
       const res = await sendRequest("GET", null, `/students/${id}`)
 
       if(res.success) {
-        setData(res.data)
+          const transformedData = {
+            ...res.data,
+            FCTM_student_openToWork: String(res.data.FCTM_student_openToWork) // true/false → "true"/"false"
+          };
+        setData(transformedData)
         setOriginalData(res.data)
         console.log(res.data)
       } else {
@@ -66,16 +78,22 @@ const ShowStudent = () => {
 
     // Guardar cambios FCTM_
     const handleSave = async () => {
-      const res = await sendRequest("PUT", data, `/students/${id}`)
+      const payload = {
+        FCTM_student_observations: data.FCTM_student_observations,
+        FCTM_student_other_contact: data.FCTM_student_other_contact,
+        FCTM_student_openToWork: data.FCTM_student_openToWork === "true" ? true : false
+      }
+
+      const res = await sendRequest("PATCH", payload, `/students/${id}`);
 
       if (res.success) {
-        setData(res.data)
-        setOriginalData(res.data)
-        setIsEditing(false)
+        setData(prev => ({ ...prev, ...res.data }));
+        setOriginalData(prev => ({ ...prev, ...res.data }));
+        setIsEditing(false);
       } else {
-        showAlert(res.message,"error")
+        showAlert(res.message,"error");
       }
-    }
+    };
 
     // Actualizar campos FCTM_ en estado local
     const handleChange = (field, value) => {
@@ -98,6 +116,20 @@ const ShowStudent = () => {
     if (!data) return <p>No se encontraron datos</p>
 
     //MIRIAM
+
+    //mostrar solo los que existen
+    const filteredFCTMFields = FCTM_fields.filter(field => field.key in data).map(field => {
+      if (field.key === "FCTM_student_openToWork") {
+        return {
+          ...field,
+          value: data[field.key] === "true" ? true : false
+        }
+      }
+      return field;
+    });
+
+    const filteredSAOFields = SAO_fields.filter(field => field.key in data);
+
   return (
     <div>
         <section className="dashboard section">
@@ -110,7 +142,7 @@ const ShowStudent = () => {
             formTitle="Información de SAO"
             formId="saoForm" 
             data={data} 
-            fields={SAO_fields}
+            fields={filteredSAOFields}
             hideEditButton={true}
           />
 
@@ -118,13 +150,14 @@ const ShowStudent = () => {
             formTitle="Datos Adicionales"
             formId="fctmForm"
             data={data}
-            fields={FCTM_fields}
+            fields={filteredFCTMFields}
             isEditing={isEditing}
             onEdit={() => setIsEditing(true)}
             onSave={handleSave}
             onCancel={handleCancel}
             onChange={handleChange}
           />
+
         </section>
     </div>
   )
