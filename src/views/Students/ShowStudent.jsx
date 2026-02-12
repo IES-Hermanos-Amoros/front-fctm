@@ -18,6 +18,7 @@ const ShowStudent = () => {
     const [isEditing,setIsEditing] = useState(false)
     const [originalData,setOriginalData] = useState(null)
 
+    // Cargar el estudiante por ID
     const fetchStudent = useCallback(async () => {
       setLoading(true)
       
@@ -33,6 +34,39 @@ const ShowStudent = () => {
 
       setLoading(false)
     }, [id])
+
+    // Guardar cambios FCTM_
+    const handleSave = async () => {
+      const res = await sendRequest("PUT", data, `/students/${id}`)
+
+      if (res.success) {
+        setData(res.data)
+        setOriginalData(res.data)
+        setIsEditing(false)
+      } else {
+        showAlert(res.message,"error")
+      }
+    }
+
+    // Actualizar campos FCTM_ en estado local
+    const handleChange = (field, value) => {
+      setData(prev => ({
+        ...prev,
+        [field]: value
+      }))
+    }
+
+    const handleCancel = () => {
+      setData(originalData) // restauramos valores
+      setIsEditing(false)
+    }
+
+    useEffect(() => {
+      fetchStudent()
+    }, [fetchStudent])
+
+    if (loading) return <p>Cargando datos...</p>
+    if (!data) return <p>No se encontraron datos</p>
 
     //MIRIAM
   return (
