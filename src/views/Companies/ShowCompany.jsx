@@ -105,7 +105,13 @@ const ShowCompany = () => {
       {/* Sección SAO: Solo lectura */}
       <div>
         <h3>Información SAO</h3>
-        <ShowReadonlyForm data={data} fields={camposSAO} />
+        <ShowEditableForm
+          formTitle="Información de SAO"
+          formId="saoForm" 
+          data={data} 
+          fields={camposSAO}
+          hideEditButton={true}
+        />
       </div>
 
       <hr />
