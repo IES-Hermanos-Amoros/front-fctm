@@ -19,17 +19,21 @@ const ListJobOffers = () => {
       { key: 'FCTM_job_status', encabezado: 'Estado' },
       {
         key: 'FCTM_job_salary',
-        encabezado: 'Salario'
+        encabezado: 'Salario',
       },
       {
         key: 'FCTM_job_start_date',
-        encabezado: 'Fecha Inicio'
+        encabezado: 'Fecha Inicio',
       },
       {
         key: 'FCTM_job_end_date',
-        encabezado: 'Fecha Cierre'
+        encabezado: 'Fecha Cierre',
       },
       // Columna de acción (ver ficha)
+      {
+        key: 'FCTM_job_observations',
+        encabezado: 'Observaciones',
+      },
       {
         key: '__show',
         encabezado: 'Ver',
