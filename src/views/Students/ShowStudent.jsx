@@ -7,6 +7,13 @@ import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+//CAROLINA
+const FCTM_fields = [
+  { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
+  { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text"},
+  { key: "FCTM_student_openToWork", label: "En búsqueda activa / Disponible", type: "boolean"}
+]
+
 const ShowStudent = () => {
 
     //CAROLINA
