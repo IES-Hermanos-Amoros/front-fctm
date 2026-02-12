@@ -37,7 +37,32 @@ const ShowStudent = () => {
     //MIRIAM
   return (
     <div>
-        
+        <section className="dashboard section">
+          <ShowHeader
+            title={`Ficha de ${data?.SAO_username || 'Student'}`} 
+            onBack={() => navigate('/students')} 
+          />
+
+          <ShowEditableForm
+            formTitle="Información de SAO"
+            formId="saoForm" 
+            data={data} 
+            fields={SAO_fields}
+            hideEditButton={true}
+          />
+
+          <ShowEditableForm
+            formTitle="Datos Adicionales"
+            formId="fctmForm"
+            data={data}
+            fields={FCTM_fields}
+            isEditing={isEditing}
+            onEdit={() => setIsEditing(true)}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onChange={handleChange}
+          />
+        </section>
     </div>
   )
 }
