@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { sendRequest, confirmation, showAlert } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
+import ReactTableTanstack from '../../components/ReactTableTanstack' // Asegúrate de que la ruta sea correcta
 
 const ListJobOffers = () => {
   const [data, setData] = useState([])
@@ -10,16 +11,17 @@ const ListJobOffers = () => {
 
   const navigate = useNavigate()
 
+  // Formateador de fechas
   const formatDate = dateString => {
     if (!dateString) return '-'
     const date = new Date(dateString)
-    // Retorna formato DD/MM/YYYY
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     })
   }
+
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
@@ -27,10 +29,6 @@ const ListJobOffers = () => {
     () => [
       { key: 'FCTM_job_title', encabezado: 'Título' },
       { key: 'FCTM_job_status', encabezado: 'Estado' },
-      {
-        key: 'FCTM_job_salary',
-        encabezado: 'Salario',
-      },
       {
         key: 'FCTM_job_start_date',
         encabezado: 'Fecha Inicio',
@@ -40,11 +38,6 @@ const ListJobOffers = () => {
         key: 'FCTM_job_end_date',
         encabezado: 'Fecha Cierre',
         render: row => formatDate(row.FCTM_job_end_date),
-      },
-      // Columna de acción (ver ficha)
-      {
-        key: 'FCTM_job_observations',
-        encabezado: 'Observaciones',
       },
       {
         key: '__show',
@@ -59,7 +52,6 @@ const ListJobOffers = () => {
           </button>
         ),
       },
-      // Columna de eliminar
       {
         key: '__delete',
         encabezado: 'Eliminar',
@@ -77,18 +69,10 @@ const ListJobOffers = () => {
     [navigate]
   )
 
-  // =======================
-  // ELIMINAR OFERTA
-  // =======================
   const handleDelete = async id => {
-    const confirmado = await confirmation(
-      '¿Seguro que quieres eliminar esta oferta de trabajo?'
-    )
-
+    const confirmado = await confirmation('¿Seguro que quieres eliminar esta oferta?')
     if (!confirmado) return
-
     const res = await sendRequest('DELETE', undefined, `/jobOffers/${id}`)
-
     if (res.success) {
       showAlert('Oferta eliminada correctamente', 'success')
       fetchData()
@@ -97,20 +81,13 @@ const ListJobOffers = () => {
     }
   }
 
-  // =======================
-  // FETCH DATA
-  // =======================
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      // Ajusta la URL según tu API (ej. /job-offers o /job-offer-manager)
       const res = await sendRequest('GET', null, '/jobOffers')
-      if (res.success) {
-        setData(res.data)
-      } else {
-        setError(res.message || 'Error al cargar las ofertas')
-      }
+      if (res.success) setData(res.data)
+      else setError(res.message || 'Error al cargar las ofertas')
     } catch (err) {
       setError(err.message || 'Error al conectar con el servidor')
     } finally {
@@ -118,9 +95,7 @@ const ListJobOffers = () => {
     }
   }, [])
 
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
+  useEffect(() => { fetchData() }, [fetchData])
 
   // =======================
   // RENDER
@@ -132,18 +107,25 @@ const ListJobOffers = () => {
       {!loading && !error && data.length === 0 && (
         <p className="text-muted">No hay ofertas disponibles</p>
       )}
+
       {!loading && !error && data.length > 0 && (
-        <ListCRUD
-          title={'Gestión de Ofertas de Trabajo'}
-          datos={data}
-          columnas={columnas}
-        >
+        <ListCRUD title={'Gestión de Ofertas de Trabajo'}>
+          {/* Botón de acción que ListCRUD recibe como children */}
           <button
-            className="btn btn-success"
+            className="btn btn-success mb-3"
             onClick={() => navigate('/jobOffers/new')}
           >
             Nueva Oferta
           </button>
+
+          {/* Inyectamos la tabla de Tanstack aquí abajo */}
+          <ReactTableTanstack
+            tableTitle="Lista de Ofertas"
+            datos={data}
+            columnas={columnas}
+            mobileMode="card"
+            mostrarCheckBox={false}
+          />
         </ListCRUD>
       )}
     </>
