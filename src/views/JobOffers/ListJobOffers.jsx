@@ -10,6 +10,16 @@ const ListJobOffers = () => {
 
   const navigate = useNavigate()
 
+  const formatDate = dateString => {
+    if (!dateString) return '-'
+    const date = new Date(dateString)
+    // Retorna formato DD/MM/YYYY
+    return date.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
@@ -24,10 +34,12 @@ const ListJobOffers = () => {
       {
         key: 'FCTM_job_start_date',
         encabezado: 'Fecha Inicio',
+        render: row => formatDate(row.FCTM_job_start_date),
       },
       {
         key: 'FCTM_job_end_date',
         encabezado: 'Fecha Cierre',
+        render: row => formatDate(row.FCTM_job_end_date),
       },
       // Columna de acción (ver ficha)
       {
