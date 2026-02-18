@@ -3,9 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
-import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
-import ListCRUD from "../../components/List/ListCRUD";
 
 //MIRIAM
 const SAO_fields = [
