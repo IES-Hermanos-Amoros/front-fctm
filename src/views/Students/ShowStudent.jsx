@@ -62,10 +62,16 @@ const ShowStudent = () => {
       const res = await sendRequest("GET", null, `/students/${id}`)
 
       if(res.success) {
+          const formatDateForInput = (isoDate) => {
+            if (!isoDate) return ""
+            return isoDate.split("T")[0]
+          }
           const transformedData = {
             ...res.data,
-            FCTM_student_openToWork: String(res.data.FCTM_student_openToWork) // true/false → "true"/"false"
-          };
+            FCTM_student_openToWork: String(res.data.FCTM_student_openToWork),
+            SAO_registryDate: formatDateForInput(res.data.SAO_registryDate),
+            SAO_accessDate: formatDateForInput(res.data.SAO_accessDate)
+          }
         setData(transformedData)
         setOriginalData(res.data)
         console.log(res.data)
