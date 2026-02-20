@@ -25,8 +25,8 @@ export default function AppRouter() {
       <Route path="/joboffers" element={<ListJobOffers />} />
       <Route path="/sinc/empresas" element={<ListCompaniesSAO />} />
       <Route path="/sinc/alumnos" element={<ListStudentsSAO />} />
-      <Route path="/sinc/profesores" element={<ListTeachersSAO />} />      
-      <Route path="/sinc/fcts" element={<ListFctsSAO />} />      
+      <Route path="/sinc/profesores" element={<ListTeachersSAO />} />
+      <Route path="/sinc/fcts" element={<ListFctsSAO />} />
 
       <Route path="/dummy" element={<ListDummy />} />
       <Route path="/dummy/new" element={<NewDummy />} />
