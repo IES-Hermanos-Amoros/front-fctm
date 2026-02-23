@@ -1,0 +1,91 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { sendRequest } from '../../utils/functions';
+import { useNavigate } from 'react-router-dom'
+import ReactTableTanstack from '../../components/ReactTableTanstack';
+
+const ListCompanies = () => {
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const navigate = useNavigate();
+
+    // Columnas para la tabla
+    const columnas = useMemo(() => [
+        { key: 'SAO_username', encabezado: 'CIF' },
+        { key: 'SAO_name', encabezado: 'Nombre' },
+        { key: 'SAO_company_FCT_Number', encabezado: 'Nº Convenio FE' },
+        { key: 'SAO_company_city', encabezado: 'Localidad' },
+        {
+            key: 'FCTM_company_category',
+            encabezado: 'Familia',
+            render: row => {
+                // Si es array y tiene datos, mostrar todos los nombres separados por coma
+                if (Array.isArray(row.FCTM_company_category) && row.FCTM_company_category.length > 0) {
+                    return row.FCTM_company_category
+                        .map(cat => cat.FCTM_category_name)
+                        .filter(Boolean)
+                        .join(', ');
+                }
+                // Si es objeto
+                if (row.FCTM_company_category?.FCTM_category_name) {
+                    return row.FCTM_company_category.FCTM_category_name;
+                }
+                // Si no hay familia
+                return 'Sin familia';
+            }
+        },
+        // Columna de acción (ver ficha)
+        {
+            key: "__show",
+            encabezado: "Ver",
+            render: (row) => (
+                <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => navigate(`/companies/${row._id}`)}
+                    title="Ver ficha"
+                >
+                    <i className="bi bi-search"></i>
+                </button>
+            )
+        }
+    ], [navigate]);
+
+    // Fetch de empresas
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await sendRequest('GET', null, '/companies');
+            if (res.success) setData(res.data);
+            else setError(res.message || 'Error al cargar empresas');
+        } catch (err) {
+            setError(err.message || 'Error al cargar empresas');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchData(); }, [fetchData]);
+
+    return (
+        <div>
+            <h2>Empresas</h2>
+            {loading && <p>Cargando empresas...</p>}
+            {!loading && error && <p className="text-danger">{error}</p>}
+            {!loading && !error && data.length === 0 && (
+                <p className="text-muted">No hay empresas disponibles</p>
+            )}
+            {!loading && !error && data.length > 0 && (
+                <ReactTableTanstack
+                    tableTitle="Listado de Empresas"
+                    datos={data}
+                    columnas={columnas}
+                    mobileMode="card"
+                />
+            )}
+        </div>
+    );
+};
+
+export default ListCompanies;
