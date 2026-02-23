@@ -1,0 +1,195 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { sendRequest, showAlert } from "../../utils/functions";
+
+import ShowHeader from "../../components/Show/ShowHeader";
+import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import ListCRUD from "../../components/List/ListCRUD";
+
+//  Configuración de Columnas 
+const columnasOfertas = [
+  { key: "FCTM_job_title", encabezado: "Título" },
+  { key: "FCTM_job_start_date", encabezado: "Fec. Ini" },
+  { key: "FCTM_job_end_date", encabezado: "Fec. Fin" },
+  { key: "FCTM_job_status", encabezado: "Estado" },
+];
+
+const camposSAO = [
+  { key: "SAO_id", label: "ID Interno SAO" },
+  { key: "SAO_username", label: "CIF" },
+  { key: "SAO_registryDate", label: "Fecha de Registro" },
+  { key: "SAO_accessDate", label: "Último Acceso" },
+  { key: "SAO_name", label: "Nombre / Razón Social" },
+  { key: "SAO_organization", label: "Organización / Centro" },
+  { key: "SAO_group", label: "Grupo / Curso" },
+  { key: "SAO_email", label: "E-mail" },
+  { key: "SAO_phone", label: "Teléfono de Contacto" },
+  { key: "SAO_company_FCT_Number", label: "Nº Convenio FE" },
+  { key: "SAO_company_FCT_Date", label: "Fecha Convenio FE" },
+  { key: "SAO_company_FPDual_Number", label: "Nº Convenio FE Intensiva" },
+  { key: "SAO_company_FPDual_Date", label: "Fecha Convenio FE Intensiva" },
+  { key: "SAO_company_city", label: "Localidad" },
+  { key: "SAO_company_state", label: "Provincia" },
+  { key: "SAO_company_address", label: "Dirección Social" },
+  { key: "SAO_company_activity", label: "Actividad Económica" },
+  { key: "SAO_company_nameManager", label: "Nombre del Representante / Gerente" },
+  { key: "SAO_company_idManager", label: "DNI/NIE del Representante" },
+  { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
+];
+
+const camposFCTM = [
+  { 
+    key: "FCTM_company_category", 
+    label: "Familia Profesional", 
+    type: "select", 
+    options: [
+      { _id: "698e16964ea3b9a3e39c3757", nombre: "Desarrollo de Aplicaciones Web" },
+      { _id: "698e16e54ea3b9a3e39c3759", nombre: "Integración Social" },
+      { _id: "698e16cb4ea3b9a3e39c3758", nombre: "Sistemas Microinformáticos y Redes" }
+      
+    ],
+    render: data => {
+        if (Array.isArray(data.FCTM_company_category) && data.FCTM_company_category.length > 0) {
+            return data.FCTM_company_category
+                .map(cat => cat.FCTM_category_name || cat.nombre)
+                .filter(Boolean)
+                .join(', ');
+        }
+        // Si no es array (está en modo edición/id suelto)
+        return data.FCTM_company_category?.nombre || data.FCTM_company_category || "Sin asignar";
+    }
+  },
+  { 
+    key: "FCTM_company_openToHire", 
+    label: "Interesada en contratar", 
+    type: "select", 
+    options: [
+      { _id: true, nombre: "Sí" },
+      { _id: false, nombre: "No" }
+    ]
+  },
+  { key: "FCTM_company_other_contact", label: "Otro contacto", type: "text" },
+  { key: "FCTM_company_observations", label: "Observaciones", type: "textarea" },
+];
+
+
+
+const ShowCompany = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
+
+  const fetchCompany = useCallback(async () => {
+    setLoading(true);
+    const res = await sendRequest("GET", null, `/companies/${id}`);
+    if (res.success) {
+      const normalizedData = { ...res.data };
+      
+      // Normalizamos la categoría (si es objeto, sacamos el ID)
+      if (Array.isArray(res.data.FCTM_company_category) && res.data.FCTM_company_category.length > 0) {
+        const cat = res.data.FCTM_company_category[0];
+        normalizedData.FCTM_company_category = typeof cat === 'object' ? cat._id : cat;
+      }
+      
+      setData(normalizedData);
+      setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
+    } else {
+      showAlert("Error al cargar la empresa", "error");
+    }
+    setLoading(false);
+  }, [id]);
+
+  useEffect(() => {
+    fetchCompany();
+  }, [fetchCompany]);
+
+  const handleSave = async () => {
+    const payload = {
+      FCTM_company_category: data.FCTM_company_category ? [data.FCTM_company_category] : [], 
+      FCTM_company_openToHire: data.FCTM_company_openToHire,
+      FCTM_company_other_contact: data.FCTM_company_other_contact || "",
+      FCTM_company_observations: data.FCTM_company_observations || "",
+    };
+
+    const res = await sendRequest("PATCH", payload, `/companies/${id}`);
+    
+    if (res.success) {
+      showAlert("Empresa actualizada con éxito", "success");
+      setIsEditing(false);
+      // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
+      fetchCompany(); 
+    } else {
+      showAlert(res.message || "Error al guardar los cambios", "error");
+    }
+  };
+
+  const handleChange = (field, value) => {
+    setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleCancel = () => {
+    setData(originalData);
+    setIsEditing(false);
+  };
+
+  if (loading) return <p>Cargando información...</p>;
+  if (!data) return <p>Empresa no encontrada.</p>;
+
+  return (
+    <section>
+      <ShowHeader
+        title={`Ficha de ${data?.SAO_name || 'Empresa'}`}
+        onBack={() => navigate('/companies')}
+      />
+
+      <div className="mb-4">
+        <h3>Información SAO</h3>
+        <ShowEditableForm
+          formTitle="Datos de SAO"
+          formId="saoForm"
+          data={data}
+          fields={camposSAO}
+          hideEditButton={true}
+        />
+      </div>
+
+      <hr />
+
+      <div className="mb-4">
+        <h3>Datos Adicionales FCTM</h3>
+        <ShowEditableForm
+          formTitle="Gestión de Datos FCTM"
+          formId="fctmForm"
+          data={data}
+          fields={camposFCTM}
+          isEditing={isEditing}
+          onEdit={() => setIsEditing(true)}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onChange={handleChange}
+        />
+      </div>
+
+      <hr />
+
+      <ListCRUD
+        title="Ofertas de Trabajo Relacionadas"
+        datos={data.FCTM_job_offers || []}
+        columnas={columnasOfertas}
+      >
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/offers/new', { state: { companyId: id } })}
+        >
+          Añadir Oferta
+        </button>
+      </ListCRUD>
+    </section>
+  );
+};
+
+export default ShowCompany;

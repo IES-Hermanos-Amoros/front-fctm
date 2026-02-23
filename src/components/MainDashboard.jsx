@@ -17,7 +17,7 @@ function MainDashboard() {
       '/users': 'Usuarios',
       '/students': 'Alumnos',
       '/joboffers': 'Ofertas de Trabajo',
-      '/documents': 'Documentos',
+      '/documents': 'Documentos',      
       '/dummy': 'Datos Dummy de Ejemplo',
       '/actions': 'Acciones',
       '/fcts': 'FCTs',
