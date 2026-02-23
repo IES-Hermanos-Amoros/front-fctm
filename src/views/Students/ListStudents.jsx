@@ -35,10 +35,11 @@ const ListStudents = () => {
       key:"Actions", encabezado:"Acciones",
       render: (row) => (
         <button
-        className="btn btn-primary btn-sm"
+        className="btn btn-sm btn-outline-primary"
         onClick={() => verFicha(row._id)}
+        title="Ver ficha"
       >
-        Ver
+        <i className="bi bi-search"></i>
       </button>
         
       )
