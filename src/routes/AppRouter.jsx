@@ -10,6 +10,7 @@ import ShowDocument from '../views/Documents/ShowDocument'
 import ShowDummy from "../views/Dummy/ShowDummy"
 import ShowStudent from "../views/Students/ShowStudent"
 import ShowCompany from "../views/Companies/ShowCompany"
+import ShowJobOffer from "../views/JobOffers/ShowJobOffer"
 import NewDummy from '../views/Dummy/NewDummy'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
@@ -30,6 +31,7 @@ export default function AppRouter() {
       <Route path="/documents/:id" element={<ShowDocument />} />
       <Route path="/joboffers" element={<ListJobOffers />} />
       <Route path="/joboffers/new" element={<NewJobOffer />} />
+      <Route path="/joboffers/:id" element={<ShowJobOffer />} />
       <Route path="/companies" element={<ListCompanies />} />
       <Route path="/companies/:id" element={<ShowCompany />} />
 
