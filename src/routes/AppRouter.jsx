@@ -13,9 +13,6 @@ import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
 import ListTeachersSAO from '../views/SAOSinc/Teachers/ListTeachersSAO'
 import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
-// quitar estas
-import ListCompanies from '../views/Companies/ListCompanies'
-import ShowCompany from "../views/Companies/ShowCompany"
 
 
 
@@ -37,9 +34,6 @@ export default function AppRouter() {
       <Route path="/dummy/new" element={<NewDummy />} />
       <Route path="/dummy/:id" element={<ShowDummy />} />
 
-      // quitar estas
-      <Route path="/companies" element={<ListCompanies />} />
-      <Route path="/companies/:id" element={<ShowCompany />} />
 
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
