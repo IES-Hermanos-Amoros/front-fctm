@@ -15,6 +15,7 @@ import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
 import ListTeachersSAO from '../views/SAOSinc/Teachers/ListTeachersSAO'
 import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
+import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
 
@@ -28,6 +29,7 @@ export default function AppRouter() {
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
       <Route path="/joboffers" element={<ListJobOffers />} />
+      <Route path="/joboffers/new" element={<NewJobOffer />} />
       <Route path="/companies" element={<ListCompanies />} />
       <Route path="/companies/:id" element={<ShowCompany />} />
 
