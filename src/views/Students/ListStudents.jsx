@@ -30,12 +30,24 @@ const ListStudents = () => {
   const colStudents = [
     { key: "SAO_username", encabezado: "NIA" },
     { key: "SAO_name", encabezado: "Nombre" },
-    { key: "SAO_student_city", encabezado: "Localidad" }
+    { key: "SAO_student_city", encabezado: "Localidad" },
+    {
+      key:"Actions", encabezado:"Acciones",
+      render: (row) => (
+        <button
+        className="btn btn-primary btn-sm"
+        onClick={() => verFicha(row._id)}
+      >
+        Ver
+      </button>
+        
+      )
+    }
   ]
 //  VER ESTUDIANTE POR ID 
-//   function verFicha(id) {
-//     navigate(`/students/${id}`)
-//   }
+  function verFicha(id) {
+    navigate(`/students/${id}`)
+  }
 
   return (
     <section className='dashboard section'>
@@ -50,8 +62,9 @@ const ListStudents = () => {
               datos={students}
               columnas={colStudents}
               mobileMode="card"
-              mostrarCheckBox={true}
+              mostrarCheckBox={false}  
             />
+            
           )}
         </div>
       </div>
