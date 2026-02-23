@@ -3,19 +3,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
-import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
 //  Configuración de Columnas 
 const columnasOfertas = [
-  { accessorKey: "FCTM_job_title", header: "Título" },
-  { accessorKey: "FCTM_job_start_date", header: "Fec. Ini" },
-  { accessorKey: "FCTM_job_end_date", header: "Fec. Fin" },
-  { accessorKey: "FCTM_job_status", header: "Estado" },
+  { key: "FCTM_job_title", encabezado: "Título" },
+  { key: "FCTM_job_start_date", encabezado: "Fec. Ini" },
+  { key: "FCTM_job_end_date", encabezado: "Fec. Fin" },
+  { key: "FCTM_job_status", encabezado: "Estado" },
 ];
 
-// Definición de campos SAO
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -39,52 +37,98 @@ const camposSAO = [
   { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
 ];
 
-// Definición de campos FCTM 
 const camposFCTM = [
-  { key: "FCTM_company_category", label: "Familia Profesional", type: "text" },
-  { key: "FCTM_company_openToHire", label: "Interesada en contratar", type: "checkbox" },
+  { 
+    key: "FCTM_company_category", 
+    label: "Familia Profesional", 
+    type: "select", 
+    options: [
+      { _id: "698e16964ea3b9a3e39c3757", nombre: "Desarrollo de Aplicaciones Web" },
+      { _id: "698e16e54ea3b9a3e39c3759", nombre: "Integración Social" },
+      { _id: "698e16cb4ea3b9a3e39c3758", nombre: "Sistemas Microinformáticos y Redes" }
+      
+    ],
+    render: data => {
+        if (Array.isArray(data.FCTM_company_category) && data.FCTM_company_category.length > 0) {
+            return data.FCTM_company_category
+                .map(cat => cat.FCTM_category_name || cat.nombre)
+                .filter(Boolean)
+                .join(', ');
+        }
+        // Si no es array (está en modo edición/id suelto)
+        return data.FCTM_company_category?.nombre || data.FCTM_company_category || "Sin asignar";
+    }
+  },
+  { 
+    key: "FCTM_company_openToHire", 
+    label: "Interesada en contratar", 
+    type: "select", 
+    options: [
+      { _id: true, nombre: "Sí" },
+      { _id: false, nombre: "No" }
+    ]
+  },
   { key: "FCTM_company_other_contact", label: "Otro contacto", type: "text" },
   { key: "FCTM_company_observations", label: "Observaciones", type: "textarea" },
 ];
 
-const ShowCompany = () => {
-  const { id } = useParams()
-  const navigate = useNavigate()
 
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [isEditing, setIsEditing] = useState(false)
-  const [originalData, setOriginalData] = useState(null)
+
+const ShowCompany = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalData, setOriginalData] = useState(null);
 
   const fetchCompany = useCallback(async () => {
     setLoading(true);
-    const res = await sendRequest("GET", null, `/companies/${id}`)
+    const res = await sendRequest("GET", null, `/companies/${id}`);
     if (res.success) {
-      setData(res.data);
-      setOriginalData(res.data);
+      const normalizedData = { ...res.data };
+      
+      // Normalizamos la categoría (si es objeto, sacamos el ID)
+      if (Array.isArray(res.data.FCTM_company_category) && res.data.FCTM_company_category.length > 0) {
+        const cat = res.data.FCTM_company_category[0];
+        normalizedData.FCTM_company_category = typeof cat === 'object' ? cat._id : cat;
+      }
+      
+      setData(normalizedData);
+      setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
     } else {
-      showAlert("Error al cargar la empresa", "error")
+      showAlert("Error al cargar la empresa", "error");
     }
-    setLoading(false)
+    setLoading(false);
   }, [id]);
 
   useEffect(() => {
-    fetchCompany()
-  }, [fetchCompany])
+    fetchCompany();
+  }, [fetchCompany]);
 
   const handleSave = async () => {
-    const res = await sendRequest("PUT", data, `/companies/${id}`)
+    const payload = {
+      FCTM_company_category: data.FCTM_company_category ? [data.FCTM_company_category] : [], 
+      FCTM_company_openToHire: data.FCTM_company_openToHire,
+      FCTM_company_other_contact: data.FCTM_company_other_contact || "",
+      FCTM_company_observations: data.FCTM_company_observations || "",
+    };
+
+    const res = await sendRequest("PATCH", payload, `/companies/${id}`);
+    
     if (res.success) {
-      setData(res.data);
-      setOriginalData(res.data);
+      showAlert("Empresa actualizada con éxito", "success");
       setIsEditing(false);
-      showAlert("Empresa actualizada", "success")
+      // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
+      fetchCompany(); 
     } else {
-      showAlert(res.message, "error")
+      showAlert(res.message || "Error al guardar los cambios", "error");
     }
   };
+
   const handleChange = (field, value) => {
-    setData(prev => ({ ...prev, [field]: value }))
+    setData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCancel = () => {
@@ -92,23 +136,22 @@ const ShowCompany = () => {
     setIsEditing(false);
   };
 
-  if (loading) return <p>Cargando información...</p>
-  if (!data) return <p>Empresa no encontrada.</p>
+  if (loading) return <p>Cargando información...</p>;
+  if (!data) return <p>Empresa no encontrada.</p>;
 
   return (
     <section>
-      <ShowHeader 
-        title={`Ficha de ${data?.SAO_name || 'Empresa'}`} 
-        onBack={() => navigate('/companies')} 
+      <ShowHeader
+        title={`Ficha de ${data?.SAO_name || 'Empresa'}`}
+        onBack={() => navigate('/companies')}
       />
 
-      {/* Sección SAO: Solo lectura */}
-      <div>
+      <div className="mb-4">
         <h3>Información SAO</h3>
         <ShowEditableForm
-          formTitle="Información de SAO"
-          formId="saoForm" 
-          data={data} 
+          formTitle="Datos de SAO"
+          formId="saoForm"
+          data={data}
           fields={camposSAO}
           hideEditButton={true}
         />
@@ -116,37 +159,37 @@ const ShowCompany = () => {
 
       <hr />
 
-      {/* Sección FCTM: Editable */}
-      <div>
+      <div className="mb-4">
         <h3>Datos Adicionales FCTM</h3>
-        {!isEditing && (
-          <button onClick={() => setIsEditing(true)}>EDITAR</button>
-        )}
         <ShowEditableForm
+          formTitle="Gestión de Datos FCTM"
+          formId="fctmForm"
           data={data}
+          fields={camposFCTM}
           isEditing={isEditing}
+          onEdit={() => setIsEditing(true)}
           onSave={handleSave}
           onCancel={handleCancel}
           onChange={handleChange}
-          fields={camposFCTM}
         />
       </div>
 
       <hr />
 
-      {/* Tabla de Ofertas */}
-      <ListCRUD 
-          title="Ofertas de Trabajo Relacionadas"
-          datos={data.FCTM_job_offers || []}
-          columnas={columnasOfertas}          
+      <ListCRUD
+        title="Ofertas de Trabajo Relacionadas"
+        datos={data.FCTM_job_offers || []}
+        columnas={columnasOfertas}
       >
-        <button onClick={() => navigate('/offers/new', { state: { companyId: id } })}>
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/offers/new', { state: { companyId: id } })}
+        >
           Añadir Oferta
         </button>
       </ListCRUD>
     </section>
-  )
-}
+  );
+};
 
-
-export default ShowCompany
+export default ShowCompany;
