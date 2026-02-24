@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { sendRequest, confirmation, showAlert } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
-import ReactTableTanstack from '../../components/ReactTableTanstack' // Asegúrate de que la ruta sea correcta
 
 const ListJobOffers = () => {
   const [data, setData] = useState([])
@@ -109,7 +108,11 @@ const ListJobOffers = () => {
       )}
 
       {!loading && !error && data.length > 0 && (
-        <ListCRUD title={'Gestión de Ofertas de Trabajo'}>
+        <ListCRUD 
+              title={'Gestión de Ofertas de Trabajo'}
+              datos={data}
+              columnas={columnas}       
+        >
           {/* Botón de acción que ListCRUD recibe como children */}
           <button
             className="btn btn-success mb-3"
@@ -118,14 +121,7 @@ const ListJobOffers = () => {
             Nueva Oferta
           </button>
 
-          {/* Inyectamos la tabla de Tanstack aquí abajo */}
-          <ReactTableTanstack
-            tableTitle="Lista de Ofertas"
-            datos={data}
-            columnas={columnas}
-            mobileMode="card"
-            mostrarCheckBox={false}
-          />
+         
         </ListCRUD>
       )}
     </>

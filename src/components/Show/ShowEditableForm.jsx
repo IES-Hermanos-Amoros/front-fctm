@@ -63,13 +63,15 @@ const ShowEditableForm = ({
             type = "text",
             options = [],
             optionValue = "_id",
-            optionLabel = "nombre"
+            optionLabel = "nombre",
+            required = false
           } = field
 
           return (
             <div className="mb-3" key={key}>
-              <label className="form-label">{label}</label>
-
+              <label className="form-label">
+                {label} {required && <span className="text-danger">*</span>}
+              </label>
               {(() => {
                   if (type === "select") {
                     return (
@@ -82,7 +84,7 @@ const ShowEditableForm = ({
                         }
                         onChange={e => onChange(key, e.target.value)}
                         disabled={!isEditing}
-                        required
+                        required={required}
                       >
                         <option value="">-- Selecciona --</option>
 
@@ -108,7 +110,7 @@ const ShowEditableForm = ({
                             : data[key] || ""
                         }
                         onChange={e => onChange(key, e.target.value)}
-                        required
+                        required={required}
                         readOnly={!isEditing}
                         rows={4}
                       />
@@ -126,7 +128,7 @@ const ShowEditableForm = ({
                           : data[key] || ""
                       }
                       onChange={e => onChange(key, e.target.value)}
-                      required
+                      required={required}
                       readOnly={!isEditing}
                     />
                   )
@@ -136,43 +138,7 @@ const ShowEditableForm = ({
           )
         })}
 
-          {/*<div className="mb-3">
-            <label className="form-label">Observaciones</label>
-            <textarea
-              className="form-control"
-              value={data.FCTM_dummy_observations || ""}
-              readOnly={!isEditing}
-              onChange={e =>
-                onChange("FCTM_dummy_observations", e.target.value)
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Otro contacto</label>
-            <input
-              type="text"
-              className="form-control"
-              value={data.FCTM_dummy_other_contact || ""}
-              readOnly={!isEditing}
-              onChange={e =>
-                onChange("FCTM_dummy_other_contact", e.target.value)
-              }
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Descripción</label>
-            <input
-              type="text"
-              className="form-control"
-              value={data.FCTM_dummy_description || ""}
-              readOnly={!isEditing}
-              onChange={e =>
-                onChange("FCTM_dummy_description", e.target.value)
-              }
-            />
-          </div>*/}
+         
         </form>
       </div>
     </div>

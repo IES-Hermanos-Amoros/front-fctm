@@ -13,15 +13,15 @@ const jobStatusTypes = [
 ]
 
 const jobOfferFields = [
-  { key: 'FCTM_job_title', label: 'Título de la oferta*', type: 'text' },
-  { key: 'FCTM_job_description', label: 'Descripción*', type: 'textarea' },
+  { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
+  { key: 'FCTM_job_description', label: 'Descripción', type: 'textarea', required: true },
   { key: 'FCTM_job_requirements', label: 'Requisitos', type: 'textarea' },
-  { key: 'FCTM_job_start_date', label: 'Fecha de inicio*', type: 'date' },
-  { key: 'FCTM_job_end_date', label: 'Fecha de cierre*', type: 'date' },
+  { key: 'FCTM_job_start_date', label: 'Fecha de inicio', type: 'date', required: true },
+  { key: 'FCTM_job_end_date', label: 'Fecha de cierre', type: 'date' },
   { key: 'FCTM_job_salary', label: 'Salario', type: 'text' },
   {
     key: 'FCTM_job_status',
-    label: 'Estado*',
+    label: 'Estado',
     type: 'select',
     options: jobStatusTypes,
     optionValue: '_id',
@@ -129,7 +129,7 @@ const ShowJobOffer = () => {
       />
 
       <ShowEditableForm
-        formTitle="Información de JobOffer"
+        formTitle="Información de la Oferta de Trabajo"
         formId="ftcmForm"
         data={data}
         fields={jobOfferFields}
