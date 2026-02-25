@@ -16,7 +16,7 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
 
         console.log(method)
         console.log(url);
-        console.log(params);
+        //console.log(params);
 
         const response = await axios({
             method,
