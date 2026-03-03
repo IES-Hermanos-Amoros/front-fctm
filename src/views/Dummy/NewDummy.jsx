@@ -51,7 +51,8 @@ const FCTM_fields = [
       type: "select",
       options: dummyTypes,
       optionValue: "_id",
-      optionLabel: "nombre"
+      optionLabel: "nombre",
+      required: true
   },
   {
     key: "FCTM_category",
@@ -59,7 +60,8 @@ const FCTM_fields = [
     type: "select-multi",
     options: categoryOptions,
     optionValue: "_id",
-    optionLabel: "FCTM_category_name"
+    optionLabel: "FCTM_category_name",
+    required: true
   }
 ]
 
