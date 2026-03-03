@@ -29,6 +29,7 @@
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.28.0",
+    "react-select": "^5.10.2",
     "remixicon": "^4.6.0",
     "socket.io-client": "^4.8.1",
     "sweetalert2": "^11.26.3",

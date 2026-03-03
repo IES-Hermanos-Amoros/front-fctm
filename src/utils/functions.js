@@ -350,3 +350,87 @@ export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
     if (!formValues) return null; // usuario canceló
     return formValues;
 };
+
+
+export const normalizeFromApi = (data, configs = []) => {
+  let normalized = { ...data };
+
+  configs.forEach(config => {
+    const {
+      field,
+      options = [],
+      optionValue = "_id",
+      optionLabel = "label",
+      type = "single"
+    } = config;
+
+    if (!normalized[field]) {
+      normalized[field] = type === "multi" ? [] : null;
+      return;
+    }
+
+    if (type === "multi") {
+      normalized[field] = normalized[field]
+        .map(item => {
+
+          // 🔥 Soporta ID simple o objeto populado
+          const id = typeof item === "object" && item !== null
+            ? item[optionValue]
+            : item;
+
+          const match = options.find(opt => opt[optionValue] === id);
+
+          return match
+            ? { value: match[optionValue], label: match[optionLabel] }
+            : null;
+        })
+        .filter(Boolean);
+
+    } else {
+      const item = normalized[field];
+
+      const id = typeof item === "object" && item !== null
+        ? item[optionValue]
+        : item;
+
+      const match = options.find(opt => opt[optionValue] === id);
+
+      normalized[field] = match
+        ? { value: match[optionValue], label: match[optionLabel] }
+        : null;
+    }
+  });
+
+  return normalized;
+};
+
+
+export const normalizeToApi = (data, configs = []) => {
+  let normalized = { ...data };
+
+  configs.forEach(config => {
+    const { field, type = "single" } = config;
+
+    if (!normalized[field]) {
+      normalized[field] = type === "multi" ? [] : null;
+      return;
+    }
+
+    if (type === "multi") {
+      normalized[field] = normalized[field].map(item => item.value);
+    } else {
+      normalized[field] = normalized[field]?.value || null;
+    }
+  });
+
+  return normalized;
+};
+
+export const pickFCTMFields = (data) => {
+  return Object.keys(data)
+    .filter(key => key.startsWith("FCTM_"))
+    .reduce((acc, key) => {
+      acc[key] = data[key];
+      return acc;
+    }, {});
+};

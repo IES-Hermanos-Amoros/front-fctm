@@ -1,4 +1,6 @@
 import React from "react";
+import Select from "react-select";
+
 
 const ShowEditableForm = ({
   formTitle,
@@ -115,6 +117,26 @@ const ShowEditableForm = ({
                         rows={4}
                       />
                     )
+                  }
+
+                  if (type === "select-multi") {
+                    // React-select multiselect con chips
+                    return (
+                      <Select
+                        options={options.map(opt => ({ value: opt[optionValue], label: opt[optionLabel] }))}
+                        isMulti
+                        value={data[key] || []}
+                        onChange={(selected) => onChange(key, selected)}
+                        placeholder={`Selecciona ${label}...`}
+                        closeMenuOnSelect={false}
+                        isDisabled={!isEditing}
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        styles={{
+                          menuPortal: base => ({ ...base, zIndex: 9999 })
+                        }}
+                      />
+                    );
                   }
 
                   // Por defecto: input normal

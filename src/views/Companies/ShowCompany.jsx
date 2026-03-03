@@ -1,10 +1,38 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import { sendRequest, showAlert,normalizeFromApi, normalizeToApi,pickFCTMFields } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
+
+//TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
+// Ejemplo de categorías para el multiselect
+const categoryOptions = [
+  {
+    _id: "698e16964ea3b9a3e39c3757",
+    FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
+  },
+  {
+    _id: "698e16cb4ea3b9a3e39c3758",
+    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
+  },
+  {
+    _id: "698e16e54ea3b9a3e39c3759",
+    FCTM_category_name: "INTEGRACIÓN SOCIAL"
+  }
+];
+
+//Qué vamos a normalizar
+const normalizationConfig = [
+  {
+    field: "FCTM_company_category",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name",
+    type: "multi"
+  }
+];
 
 //  Configuración de Columnas 
 const columnasOfertas = [
@@ -38,7 +66,7 @@ const camposSAO = [
 ];
 
 const camposFCTM = [
-  { 
+  /*{ 
     key: "FCTM_company_category", 
     label: "Familia Profesional", 
     type: "select", 
@@ -58,6 +86,14 @@ const camposFCTM = [
         // Si no es array (está en modo edición/id suelto)
         return data.FCTM_company_category?.nombre || data.FCTM_company_category || "Sin asignar";
     }
+  },*/
+  {
+    key: "FCTM_company_category",
+    label: "Familias Profesionales",
+    type: "select-multi",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name"
   },
   { 
     key: "FCTM_company_openToHire", 
@@ -87,16 +123,19 @@ const ShowCompany = () => {
     setLoading(true);
     const res = await sendRequest("GET", null, `/companies/${id}`);
     if (res.success) {
-      const normalizedData = { ...res.data };
+      
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
+      /*const normalizedData = { ...res.data };
       
       // Normalizamos la categoría (si es objeto, sacamos el ID)
       if (Array.isArray(res.data.FCTM_company_category) && res.data.FCTM_company_category.length > 0) {
         const cat = res.data.FCTM_company_category[0];
         normalizedData.FCTM_company_category = typeof cat === 'object' ? cat._id : cat;
-      }
+      }*/
       
-      setData(normalizedData);
-      setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
+      setData(normalized);
+      //setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
+      setOriginalData(normalized);
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -108,20 +147,29 @@ const ShowCompany = () => {
   }, [fetchCompany]);
 
   const handleSave = async () => {
-    const payload = {
+    /*const payload = {
       FCTM_company_category: data.FCTM_company_category ? [data.FCTM_company_category] : [], 
       FCTM_company_openToHire: data.FCTM_company_openToHire,
       FCTM_company_other_contact: data.FCTM_company_other_contact || "",
       FCTM_company_observations: data.FCTM_company_observations || "",
-    };
+    };*/
+    // 1️⃣ Solo campos FCTM_
+    const fctmOnly = pickFCTMFields(data);
 
+    // 2️⃣ Normalizamos selects
+    const payload = normalizeToApi(fctmOnly, normalizationConfig);
+
+    console.log(payload)
     const res = await sendRequest("PATCH", payload, `/companies/${id}`);
     
     if (res.success) {
-      showAlert("Empresa actualizada con éxito", "success");
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
+      //showAlert("Empresa actualizada con éxito", "success");
+      setData(normalized);
+      setOriginalData(normalized);
       setIsEditing(false);
       // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
-      fetchCompany(); 
+      //fetchCompany(); 
     } else {
       showAlert(res.message || "Error al guardar los cambios", "error");
     }

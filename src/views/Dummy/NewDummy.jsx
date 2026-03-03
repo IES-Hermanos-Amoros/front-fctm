@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -13,8 +13,36 @@ const dummyTypes = [
   { "_id": "OTRO", "nombre": "OTRO" }
 ]
 
+//TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
+// Ejemplo de categorías para el multiselect
+const categoryOptions = [
+  {
+    _id: "698e16964ea3b9a3e39c3757",
+    FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
+  },
+  {
+    _id: "698e16cb4ea3b9a3e39c3758",
+    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
+  },
+  {
+    _id: "698e16e54ea3b9a3e39c3759",
+    FCTM_category_name: "INTEGRACIÓN SOCIAL"
+  }
+];
+
+//Qué vamos a normalizar
+const normalizationConfig = [
+  {
+    field: "FCTM_category",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name",
+    type: "multi"
+  }
+];
+
 const FCTM_fields = [
-  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
+  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea", required:true},
   { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
   { key: "FCTM_dummy_description", label: "Descripción", type:"text" },
   {
@@ -24,7 +52,15 @@ const FCTM_fields = [
       options: dummyTypes,
       optionValue: "_id",
       optionLabel: "nombre"
-    }
+  },
+  {
+    key: "FCTM_category",
+    label: "Categorías",
+    type: "select-multi",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name"
+  }
 ]
 
 const NewDummy = () => {
@@ -35,7 +71,8 @@ const NewDummy = () => {
     FCTM_dummy_observations: "",
     FCTM_dummy_other_contact: "",
     FCTM_dummy_description: "",
-    FCTM_dummy_type: ""
+    FCTM_dummy_type: "OTRO",
+    FCTM_category: []
   });
 
   // Actualizar campos en estado local
@@ -48,7 +85,9 @@ const NewDummy = () => {
 
   // Guardar nuevo documento
   const handleSave = async () => {
-    const res = await sendRequest("POST", data, "/dummy");
+    const payload = normalizeToApi(data, normalizationConfig);
+    console.log("Payload a enviar:", payload);
+    const res = await sendRequest("POST", payload, "/dummy");
 
     if (res.success) {
       navigate("/dummy"); // Volvemos al listado

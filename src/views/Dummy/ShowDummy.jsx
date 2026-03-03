@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import { sendRequest, showAlert,normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
+
 
 //TEMPORAL hasta el uso de Zustand (y creación de maestros en el API)
 const dummyTypes = [
@@ -14,6 +15,34 @@ const dummyTypes = [
   { "_id": "BOOLEANO", "nombre": "BOOLEANO" },
   { "_id": "OTRO", "nombre": "OTRO" }
 ]
+
+//TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
+// Ejemplo de categorías para el multiselect
+const categoryOptions = [
+  {
+    _id: "698e16964ea3b9a3e39c3757",
+    FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
+  },
+  {
+    _id: "698e16cb4ea3b9a3e39c3758",
+    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
+  },
+  {
+    _id: "698e16e54ea3b9a3e39c3759",
+    FCTM_category_name: "INTEGRACIÓN SOCIAL"
+  }
+];
+
+//Qué vamos a normalizar
+const normalizationConfig = [
+  {
+    field: "FCTM_category",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name",
+    type: "multi"
+  }
+];
 
 const SAO_fields = [
     { key: "SAO_id", label: "SAO ID", type: "text"},
@@ -32,15 +61,15 @@ const FCTM_fields = [
       options: dummyTypes,
       optionValue: "_id",
       optionLabel: "nombre"
-    }
-  /*{
-      key: "categoria",
-      label: "Categoría:",
-      type: "select",
-      options: categorias,
-      optionValue: "_id",
-      optionLabel: "nombre"
-    },*/
+  },
+  {
+    key: "FCTM_category",
+    label: "Categorías",
+    type: "select-multi",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name"
+  }
 ]
 
 const columnasDocuments = [
@@ -67,9 +96,12 @@ const ShowDummy = () => {
     const res = await sendRequest("GET", null, `/dummy/${id}`);
 
     if (res.success) {
-      setData(res.data);
-      setOriginalData(res.data); // snapshot original
-      console.log(res.data)
+
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
+
+      setData(normalized);
+      setOriginalData(normalized); // snapshot original
+      console.log(normalized)
     } else {
       console.error("Error al cargar el dummy:", res.message);
     }
@@ -79,11 +111,15 @@ const ShowDummy = () => {
 
   // Guardar cambios FCTM_
   const handleSave = async () => {
-    const res = await sendRequest("PUT", data, `/dummy/${id}`);
+
+    const payload = normalizeToApi(data, normalizationConfig);
+
+    const res = await sendRequest("PUT", payload, `/dummy/${id}`);
 
     if (res.success) {
-      setData(res.data);
-      setOriginalData(res.data);
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
+      setData(normalized);
+      setOriginalData(normalized);
       setIsEditing(false);
     } else {
       showAlert(res.message,"error");
