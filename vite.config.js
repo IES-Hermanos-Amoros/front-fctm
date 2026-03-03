@@ -65,5 +65,8 @@ export default defineConfig({
   },
   define: {
     __DEV_SERVER_PROTOCOL__: JSON.stringify(useHTTPS ? 'https' : 'http')
+  },
+  optimizeDeps: {
+    exclude: ['react-router-dom']
   }
 })
