@@ -10,16 +10,32 @@ import ListCRUD from "../../components/List/ListCRUD";
 // Ejemplo de categorías para el multiselect
 const categoryOptions = [
   {
-    _id: "698e16964ea3b9a3e39c3757",
+    _id: "69a82074499df1aec1d2477e",
+    FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES"
+  },
+  {
+    _id: "69a82074499df1aec1d2477f",
     FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
   },
   {
-    _id: "698e16cb4ea3b9a3e39c3758",
-    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
+    _id: "69a82074499df1aec1d24780",
+    FCTM_category_name: "EDUCACIÓN INFANTIL"
   },
   {
-    _id: "698e16e54ea3b9a3e39c3759",
+    _id: "69a82074499df1aec1d24781",
+    FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL"
+  },
+  {
+    _id: "69a82074499df1aec1d24782",
     FCTM_category_name: "INTEGRACIÓN SOCIAL"
+  },
+  {
+    _id: "69a82074499df1aec1d24783",
+    FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA"
+  },
+  {
+    _id: "69a82074499df1aec1d24784",
+    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
   }
 ];
 
