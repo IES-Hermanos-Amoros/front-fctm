@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
+import ListCRUD from "../../components/List/ListCRUD"
 
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowReadonlyForm from '../../components/Show/ShowReadonlyForm'
@@ -60,11 +61,21 @@ const normalizeJobOfferDates = jobOffer => {
   }
 }
 
+const columnasDocuments = [
+  { key: 'FCTM_document_name', encabezado: 'Nombre'},
+  { key: 'FCTM_document_type', encabezado: 'Tipo'},
+  { key: 'FCTM_document_url', encabezado: 'Descarga'},
+  { key: 'FCTM_inserted_date', encabezado: 'Fecha '}
+]
+
 const ShowJobOffer = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  //BORRAR DESPUES DE LA PRUEBA
+  const FCTM_documents = ["6929cea2bb70b6ef13583ccd","6929cea2bb70b6ef13583ccc","698b5e1f64da230782b54378"]
 
   const [data, setData] = useState(null) // Datos del JobOffer cargado desde API
+  const [documentData, setDocumentData] = useState([]) //Datos del Documents cargado desde API
   const [loading, setLoading] = useState(true) // Controla estado de carga
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
@@ -82,6 +93,20 @@ const ShowJobOffer = () => {
       console.log(res.data)
     } else {
       console.error('Error al cargar el joboffers:', res.message)
+    }
+
+    //Obtener documentos asociados
+    if (FCTM_documents.length > 0) {
+      const promises = FCTM_documents.map(async id =>
+          await sendRequest('GET', null, `/documents/${id}`)
+      )
+      const responses = await Promise.all(promises)
+      const documents = responses.filter(res => res.success).map(res => res.data)
+      // Ordenar por fecha
+      const sortedDocuments = [...documents].sort(
+        (a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date)
+      )
+      setDocumentData(sortedDocuments)
     }
 
     setLoading(false)
@@ -138,6 +163,12 @@ const ShowJobOffer = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      <ListCRUD 
+          title="Documentos Relacionados"
+          datos={documentData}
+          columnas={columnasDocuments}          
       />
 
     </section>
