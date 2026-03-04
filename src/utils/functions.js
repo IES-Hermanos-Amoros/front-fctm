@@ -434,3 +434,13 @@ export const pickFCTMFields = (data) => {
       return acc;
     }, {});
 };
+
+export const stringToColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  // Usamos HSL para asegurar que los colores sean legibles (Saturación 70%, Luminosidad 80% para tonos pastel)
+  const h = Math.abs(hash) % 360;
+  return `hsl(${h}, 70%, 85%)`; 
+};

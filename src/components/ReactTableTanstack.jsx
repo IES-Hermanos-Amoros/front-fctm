@@ -64,8 +64,13 @@ const ReactTableTanstack = ({
       ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
       : []),
     ...columnas.map(col => ({
-      accessorKey: col.render ? undefined : col.key, // si hay render, no usamos accessorKey
-      id: col.key,
+      // PRIORIDAD: 
+      // 1. Si existe accessorFn, lo usamos (para filtros complejos como el de buscar por categorías (array))
+      // 2. Si hay render pero no accessorFn, dejamos undefined (columnas de botones)
+      // 3. Si no hay nada de lo anterior, usamos la key
+      accessorFn: col.accessorFn ? col.accessorFn : undefined,
+      accessorKey: (!col.accessorFn && !col.render) ? col.key : undefined,
+      id: col.id || col.key, // TanStack necesita un ID único
       header: col.encabezado,
       cell: info =>
         col.render

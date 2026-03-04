@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest, confirmation, showAlert } from '../../utils/functions';
+import { sendRequest, confirmation, showAlert, stringToColor } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import ReactTableTanstack from '../../components/ReactTableTanstack';
 import ListCRUD from "../../components/List/ListCRUD"
@@ -23,6 +23,40 @@ const ListDummy = () => {
     { key: "FCTM_dummy_other_contact", encabezado: "Otro Contacto" },
     { key: "FCTM_dummy_description", encabezado: "Descripción" },
     { key: "FCTM_dummy_type", encabezado: "Tipo de Dato" },
+    { key: "FCTM_category",
+      encabezado: "Familias Profesionales",
+      // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
+      accessorFn: (row) => 
+        row.FCTM_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
+      
+      // Esta función le dice a la tabla qué PINTAR en pantalla (tus chips)
+      render: (row) => (
+        <div className="d-flex flex-wrap gap-1">
+          {row.FCTM_category?.length > 0 ? (
+            row.FCTM_category.map((cat) => {
+              // Generamos el color basado en el nombre de la categoría
+              const bgColor = stringToColor(cat.FCTM_category_name);
+              
+              return (
+                <span 
+                  key={cat._id} 
+                  className="badge rounded-pill text-dark" // Quitamos bg-info
+                  style={{ 
+                    backgroundColor: bgColor, // Color dinámico
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  {cat.FCTM_category_name}
+                </span>
+              );
+            })
+          ) : (
+            <span className="text-muted small">Sin categorías</span>
+          )}
+        </div>
+      )
+    },
 
     // Columna de acción (ver ficha)
     {
