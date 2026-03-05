@@ -19,7 +19,7 @@ import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
 import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
-
+import VerifyEmailPage from '../views/Dummy/VerifyEmailPage'
 
 // Importa más vistas...
 
@@ -46,6 +46,7 @@ export default function AppRouter() {
       <Route path="/dummy/new" element={<NewDummy />} />
       <Route path="/dummy/:id" element={<ShowDummy />} />
 
+      <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} /> 
 
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
