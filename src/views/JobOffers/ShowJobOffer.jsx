@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { sendRequest, showAlert } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
 
 import ShowHeader from '../../components/Show/ShowHeader'
-import ShowReadonlyForm from '../../components/Show/ShowReadonlyForm'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
 const jobStatusTypes = [
@@ -61,24 +60,48 @@ const normalizeJobOfferDates = jobOffer => {
   }
 }
 
-const columnasDocuments = [
-  { key: 'FCTM_document_name', encabezado: 'Nombre'},
-  { key: 'FCTM_document_type', encabezado: 'Tipo'},
-  { key: 'FCTM_document_url', encabezado: 'Descarga'},
-  { key: 'FCTM_inserted_date', encabezado: 'Fecha '}
-]
-
 const ShowJobOffer = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  //BORRAR DESPUES DE LA PRUEBA
-  const FCTM_documents = ["6929cea2bb70b6ef13583ccd","6929cea2bb70b6ef13583ccc","698b5e1f64da230782b54378"]
 
   const [data, setData] = useState(null) // Datos del JobOffer cargado desde API
   const [documentData, setDocumentData] = useState([]) //Datos del Documents cargado desde API
   const [loading, setLoading] = useState(true) // Controla estado de carga
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
+
+  const columnasDocuments = [
+    { key: 'FCTM_document_name', encabezado: 'Nombre'},
+    { key: 'FCTM_document_type', encabezado: 'Tipo'},
+    { 
+      key: 'FCTM_document_url', 
+      encabezado: 'Descarga',
+      render: (row) => {
+        if (!row) return "No disponible"
+
+        const url = row.FCTM_document_url
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer">
+            {url}
+          </a>
+        )
+      }
+    },
+    { key: 'FCTM_inserted_date', encabezado: 'Fecha '},
+    { 
+      key: '__delete', 
+      encabezado: 'Eliminar',
+      render: row => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDelete(row._id)}
+          title="Eliminar Documento"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      ),
+    }
+  ]
 
   // Cargar el JobOffer por ID
   const fetchJobOffer = useCallback(async () => {
@@ -96,8 +119,8 @@ const ShowJobOffer = () => {
     }
 
     //Obtener documentos asociados
-    if (FCTM_documents.length > 0) {
-      const promises = FCTM_documents.map(async id =>
+    if (res.data.FCTM_documents.length > 0) {
+      const promises = res.data.FCTM_documents.map(async id =>
           await sendRequest('GET', null, `/documents/${id}`)
       )
       const responses = await Promise.all(promises)
@@ -111,6 +134,18 @@ const ShowJobOffer = () => {
 
     setLoading(false)
   }, [id])
+
+  const handleDelete = async id => {
+  const confirmado = await confirmation('¿Seguro que quieres eliminar este documento?')
+  if (!confirmado) return
+    const res = await sendRequest('DELETE', undefined, `/documents/${id}`)
+    if (res.success) {
+      showAlert('Documento eliminado correctamente', 'success')
+      fetchJobOffer()
+    } else {
+      showAlert(res.message, 'error')
+    }
+  }
 
   // Guardar cambios FCTM_
   const handleSave = async () => {
@@ -165,11 +200,15 @@ const ShowJobOffer = () => {
         onChange={handleChange}
       />
 
-      <ListCRUD 
+      {documentData.length === 0 ? (
+        <h4>Oferta sin documentos</h4>
+      ) : (
+        <ListCRUD 
           title="Documentos Relacionados"
           datos={documentData}
           columnas={columnasDocuments}          
-      />
+        />
+      )}
 
     </section>
   )
