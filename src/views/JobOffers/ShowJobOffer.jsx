@@ -69,6 +69,7 @@ const ShowJobOffer = () => {
   const [loading, setLoading] = useState(true) // Controla estado de carga
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
+  const [files, setFiles] = useState([])
 
   const columnasDocuments = [
     { key: 'FCTM_document_name', encabezado: 'Nombre'},
@@ -174,6 +175,87 @@ const ShowJobOffer = () => {
     setIsEditing(false)
   }
 
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files)
+
+    if (selectedFiles.length > 10) {
+      showAlert("Solo puedes subir un máximo de 10 documentos", "error")
+      return
+    }
+
+    setFiles(selectedFiles)
+  }
+
+ const handleUploadDocs = async () => {
+    if (files.length === 0) {
+      showAlert("Debes seleccionar al menos un archivo", "error")
+      return
+    }
+
+    if (files.length > 10) {
+      showAlert("No puedes subir más de 10 archivos a la vez", "error")
+      return
+    }
+
+    const formData = new FormData()
+
+    files.forEach(file => {
+      formData.append("documents", file)
+
+      formData.append("FCTM_document_name", file.name)
+      formData.append("FCTM_document_type", "GENERAL")
+      formData.append("FCTM_document_url", file.name)
+    })
+
+    formData.append(
+      "FCTM_document_created_by",
+      "000000000000000000000000"
+    )
+
+    formData.append("jobOfferId", id)
+    const res = await sendRequest("POST", formData, "/documents")
+    console.log(res)
+
+    if (res.success) {
+      showAlert("Documentos subidos correctamente", "success")
+      setFiles([])
+
+       // ─── Extraer los IDs de los documentos recién creados ───
+    const newDocumentIds = Array.isArray(res.data)
+      ? res.data.map(doc => doc._id)
+      : [res.data._id] // en caso de que solo devuelva un documento
+
+    // ─── Unir con los documentos ya existentes en la oferta ───
+    const updatedDocuments = [
+      ...(data.FCTM_documents || []),
+      ...newDocumentIds
+    ]
+
+    // ─── Hacer PATCH para actualizar la oferta con los nuevos documentos ───
+    const patchRes = await sendRequest(
+      "PATCH",
+      { FCTM_documents: updatedDocuments },
+      `/joboffers/${id}`
+    )
+
+    if (patchRes.success) {
+      showAlert("Oferta actualizada con los documentos correctamente", "success")
+
+      // Actualizamos estado local para reflejar los cambios
+      setData(prev => ({
+        ...prev,
+        FCTM_documents: updatedDocuments
+      }))
+    } else {
+      showAlert("Error actualizando la oferta: " + patchRes.message, "error")
+    }
+
+      fetchJobOffer()
+    } else {
+      showAlert(res.message, "error")
+    }
+  }
+
   useEffect(() => {
     fetchJobOffer()
   }, [fetchJobOffer])
@@ -199,6 +281,28 @@ const ShowJobOffer = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
+
+      {isEditing && (
+  <div className="card p-3 mt-3">
+
+    <h5>Adjuntar Documentos</h5>
+
+    <input
+      type="file"
+      multiple
+      className="form-control"
+      onChange={handleFileChange}
+    />
+
+    <button
+      className="btn btn-primary mt-2"
+      onClick={handleUploadDocs}
+    >
+      Adjuntar Docs.
+    </button>
+
+  </div>
+)}
 
       {documentData.length === 0 ? (
         <h4>Oferta sin documentos</h4>
