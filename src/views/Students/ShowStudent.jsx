@@ -114,6 +114,26 @@ const ShowStudent = () => {
       setIsEditing(false)
     }
 
+    // AITANA
+    const handleDeleteDocument = async (docId) => {
+      // Usamos el showAlert que ya tenéis importado para el confirm
+      const result = await showAlert("¿Estás seguro de que quieres eliminar este CV?", "question", {
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+      });
+
+      if (result.isConfirmed) {
+        const res = await sendRequest("DELETE", null, `/students/${id}/documents/${docId}`);
+        if (res.success) {
+          showAlert("Documento eliminado correctamente", "success");
+          fetchStudent(); // Recargamos los datos para que desaparezca de la tabla
+        } else {
+          showAlert(res.message, "error");
+        }
+      }
+    };
+
     useEffect(() => {
       fetchStudent()
     }, [fetchStudent])
@@ -164,6 +184,60 @@ const ShowStudent = () => {
             onChange={handleChange}
           />
 
+          {/* SECCIÓN DE AITANA: Tabla de documentos */}
+          <div className="mt-4 p-4 bg-white border rounded shadow-sm">
+            <h3 className="mb-3">Currículums Vitae Adjuntos</h3>
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Descarga</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.FCTM_documents && data.FCTM_documents.length > 0 ? (
+                    data.FCTM_documents
+                      .sort((a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date))
+                      .map((doc) => (
+                        <tr key={doc._id}>
+                          <td>{doc.FCTM_document_name}</td>
+                          <td>{doc.FCTM_document_type}</td>
+                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td>
+                          <td>
+                            <a 
+                              href={doc.FCTM_document_url} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="btn btn-link btn-sm"
+                            >
+                              Descargar
+                            </a>
+                          </td>
+                          <td>
+                            <button 
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDeleteDocument(doc._id)}
+                            >
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="text-center text-muted">
+                        No hay currículums disponibles.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
     </div>
   )
