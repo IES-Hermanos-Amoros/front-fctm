@@ -136,17 +136,36 @@ const ShowJobOffer = () => {
     setLoading(false)
   }, [id])
 
-  const handleDelete = async id => {
+const handleDelete = async (docId) => {
   const confirmado = await confirmation('¿Seguro que quieres eliminar este documento?')
   if (!confirmado) return
-    const res = await sendRequest('DELETE', undefined, `/documents/${id}`)
-    if (res.success) {
-      showAlert('Documento eliminado correctamente', 'success')
+
+  const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
+
+  if (res.success) {
+    const updatedDocuments = data.FCTM_documents.filter(item => item !== docId)
+    const patchRes = await sendRequest(
+      "PATCH",
+      { FCTM_documents: updatedDocuments },
+      `/joboffers/${id}` 
+    )
+
+    if (patchRes.success) {
+      showAlert('Documento eliminado y oferta actualizada', 'success')
+
+      setData(prev => ({
+        ...prev,
+        FCTM_documents: updatedDocuments
+      }))
+
       fetchJobOffer()
     } else {
-      showAlert(res.message, 'error')
+      showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
     }
+  } else {
+    showAlert(res.message, 'error')
   }
+}
 
   // Guardar cambios FCTM_
   const handleSave = async () => {
@@ -186,52 +205,64 @@ const ShowJobOffer = () => {
     setFiles(selectedFiles)
   }
 
- const handleUploadDocs = async () => {
-    if (files.length === 0) {
-      showAlert("Debes seleccionar al menos un archivo", "error")
-      return
-    }
+const handleUploadDocs = async () => {
+  if (files.length === 0) {
+    showAlert("Debes seleccionar al menos un archivo", "error")
+    return
+  }
 
-    if (files.length > 10) {
-      showAlert("No puedes subir más de 10 archivos a la vez", "error")
-      return
-    }
+  if (files.length > 10) {
+    showAlert("No puedes subir más de 10 archivos a la vez", "error")
+    return
+  }
 
-    const formData = new FormData()
+  const formData = new FormData()
 
+  if (files.length === 1) {
+    // --- MANTENEMOS TU CÓDIGO ORIGINAL (UN SOLO ARCHIVO) ---
+    const file = files[0]
+    formData.append("documents", file)
+    formData.append("FCTM_document_name", file.name)
+    formData.append("FCTM_document_type", "GENERAL")
+    formData.append("FCTM_document_url", file.name)
+    formData.append("FCTM_document_created_by", "000000000000000000000000")
+  } else {
+    // --- LÓGICA PARA MÚLTIPLES ARCHIVOS ---
     files.forEach(file => {
-      formData.append("documents", file)
-
-      formData.append("FCTM_document_name", file.name)
-      formData.append("FCTM_document_type", "GENERAL")
-      formData.append("FCTM_document_url", file.name)
+      // Usamos "files" porque tu router dice: upload.array("files", 10)
+      formData.append("files", file)
     })
 
-    formData.append(
-      "FCTM_document_created_by",
-      "000000000000000000000000"
-    )
+    // IMPORTANTE: Tu backend en 'insertManyDocuments' busca estas claves exactas:
+    // FCTM_document_type: datos?.type || "GENERAL"
+    // FCTM_document_created_by: datos?.createdBy
+    formData.append("type", "GENERAL")
+    formData.append("createdBy", "000000000000000000000000")
+    
+    // Nota: 'FCTM_document_name' y 'FCTM_document_url' se llenan en el backend 
+    // usando 'file.originalname' y 'file.filename'. Al usar la clave "files", 
+    // esos campos dejarán de dar error de "required".
+  }
 
-    formData.append("jobOfferId", id)
-    const res = await sendRequest("POST", formData, "/documents")
-    console.log(res)
+  formData.append("jobOfferId", id)
 
-    if (res.success) {
-      showAlert("Documentos subidos correctamente", "success")
-      setFiles([])
+  // Ruta dinámica: si es uno va a /documents, si son varios a /documents/upload
+  const url = files.length === 1 ? "/documents" : "/documents"
+  const res = await sendRequest("POST", formData, url)
 
-       // ─── Extraer los IDs de los documentos recién creados ───
+  if (res.success) {
+    showAlert("Documentos subidos correctamente", "success")
+    setFiles([])
+
     const newDocumentIds = Array.isArray(res.data)
       ? res.data.map(doc => doc._id)
-      : [res.data._id] // en caso de que solo devuelva un documento
+      : [res.data._id]
 
-    // ─── Unir con los documentos ya existentes en la oferta ───
     const updatedDocuments = [
       ...(data.FCTM_documents || []),
       ...newDocumentIds
     ]
 
-    // ─── Hacer PATCH para actualizar la oferta con los nuevos documentos ───
     const patchRes = await sendRequest(
       "PATCH",
       { FCTM_documents: updatedDocuments },
@@ -239,22 +270,18 @@ const ShowJobOffer = () => {
     )
 
     if (patchRes.success) {
-      showAlert("Oferta actualizada con los documentos correctamente", "success")
-
-      // Actualizamos estado local para reflejar los cambios
+      showAlert("Oferta actualizada correctamente", "success")
       setData(prev => ({
         ...prev,
         FCTM_documents: updatedDocuments
       }))
-    } else {
-      showAlert("Error actualizando la oferta: " + patchRes.message, "error")
     }
-
-      fetchJobOffer()
-    } else {
-      showAlert(res.message, "error")
-    }
+    fetchJobOffer()
+  } else {
+    // Mostramos el error detallado que devuelve el backend
+    showAlert(res.data?.err || res.message, "error")
   }
+}
 
   useEffect(() => {
     fetchJobOffer()
