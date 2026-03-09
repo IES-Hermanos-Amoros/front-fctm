@@ -219,7 +219,6 @@ const handleUploadDocs = async () => {
   const formData = new FormData()
 
   if (files.length === 1) {
-    // --- MANTENEMOS TU CÓDIGO ORIGINAL (UN SOLO ARCHIVO) ---
     const file = files[0]
     formData.append("documents", file)
     formData.append("FCTM_document_name", file.name)
@@ -227,28 +226,24 @@ const handleUploadDocs = async () => {
     formData.append("FCTM_document_url", file.name)
     formData.append("FCTM_document_created_by", "000000000000000000000000")
   } else {
-    // --- LÓGICA PARA MÚLTIPLES ARCHIVOS ---
     files.forEach(file => {
-      // Usamos "files" porque tu router dice: upload.array("files", 10)
       formData.append("files", file)
     })
 
-    // IMPORTANTE: Tu backend en 'insertManyDocuments' busca estas claves exactas:
-    // FCTM_document_type: datos?.type || "GENERAL"
-    // FCTM_document_created_by: datos?.createdBy
-    formData.append("type", "GENERAL")
-    formData.append("createdBy", "000000000000000000000000")
-    
-    // Nota: 'FCTM_document_name' y 'FCTM_document_url' se llenan en el backend 
-    // usando 'file.originalname' y 'file.filename'. Al usar la clave "files", 
-    // esos campos dejarán de dar error de "required".
+    const nombresCombinados = files.map(f => f.name).join(", ")
+
+    formData.append("FCTM_document_type", "GENERAL") 
+    formData.append("FCTM_document_name", nombresCombinados)
+    formData.append("FCTM_document_url", nombresCombinados)
+    formData.append("FCTM_document_created_by", "000000000000000000000000")
+    formData.append("userId", "000000000000000000000000")
   }
 
   formData.append("jobOfferId", id)
 
-  // Ruta dinámica: si es uno va a /documents, si son varios a /documents/upload
-  const url = files.length === 1 ? "/documents" : "/documents"
-  const res = await sendRequest("POST", formData, url)
+  const endpoint = files.length === 1 ? "/documents" : "/documents"
+  
+  const res = await sendRequest("POST", formData, endpoint)
 
   if (res.success) {
     showAlert("Documentos subidos correctamente", "success")
@@ -271,14 +266,10 @@ const handleUploadDocs = async () => {
 
     if (patchRes.success) {
       showAlert("Oferta actualizada correctamente", "success")
-      setData(prev => ({
-        ...prev,
-        FCTM_documents: updatedDocuments
-      }))
+      setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }))
     }
     fetchJobOffer()
   } else {
-    // Mostramos el error detallado que devuelve el backend
     showAlert(res.data?.err || res.message, "error")
   }
 }
