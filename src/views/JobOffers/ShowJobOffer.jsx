@@ -216,46 +216,56 @@ const handleUploadDocs = async () => {
     return
   }
 
-  const formData = new FormData()
+  // Usaremos un array para recolectar todos los IDs creados
+  let allNewIds = []
 
   if (files.length === 1) {
+    // --- TU CÓDIGO ORIGINAL (UN SOLO ARCHIVO) ---
+    const formData = new FormData()
     const file = files[0]
     formData.append("documents", file)
     formData.append("FCTM_document_name", file.name)
     formData.append("FCTM_document_type", "GENERAL")
     formData.append("FCTM_document_url", file.name)
     formData.append("FCTM_document_created_by", "000000000000000000000000")
+    formData.append("jobOfferId", id)
+
+    const res = await sendRequest("POST", formData, "/documents")
+    if (res.success) {
+      allNewIds = Array.isArray(res.data) ? res.data.map(doc => doc._id) : [res.data._id]
+    } else {
+      showAlert(res.message, "error")
+      return
+    }
   } else {
-    files.forEach(file => {
-      formData.append("files", file)
-    })
+    // --- LÓGICA PARA VARIOS ARCHIVOS (SEPARADOS) ---
+    // Iteramos sobre cada archivo para enviar peticiones individuales
+    for (const file of files) {
+      const formData = new FormData()
+      
+      // Mantenemos tu estructura exacta por cada archivo
+      formData.append("documents", file) 
+      formData.append("FCTM_document_type", "GENERAL") 
+      formData.append("FCTM_document_name", file.name)
+      formData.append("FCTM_document_url", file.name)
+      formData.append("FCTM_document_created_by", "000000000000000000000000")
+      formData.append("userId", "000000000000000000000000")
+      formData.append("jobOfferId", id)
 
-    const nombresCombinados = files.map(f => f.name).join(", ")
-
-    formData.append("FCTM_document_type", "GENERAL") 
-    formData.append("FCTM_document_name", nombresCombinados)
-    formData.append("FCTM_document_url", nombresCombinados)
-    formData.append("FCTM_document_created_by", "000000000000000000000000")
-    formData.append("userId", "000000000000000000000000")
+      // Enviamos a la ruta estándar que ya te funciona bien
+      const res = await sendRequest("POST", formData, "/documents")
+      
+      if (res.success) {
+        const idCreated = Array.isArray(res.data) ? res.data[0]._id : res.data._id
+        allNewIds.push(idCreated)
+      }
+    }
   }
 
-  formData.append("jobOfferId", id)
-
-  const endpoint = files.length === 1 ? "/documents" : "/documents"
-  
-  const res = await sendRequest("POST", formData, endpoint)
-
-  if (res.success) {
-    showAlert("Documentos subidos correctamente", "success")
-    setFiles([])
-
-    const newDocumentIds = Array.isArray(res.data)
-      ? res.data.map(doc => doc._id)
-      : [res.data._id]
-
+  if (allNewIds.length > 0) {
     const updatedDocuments = [
       ...(data.FCTM_documents || []),
-      ...newDocumentIds
+      ...allNewIds
     ]
 
     const patchRes = await sendRequest(
@@ -265,12 +275,14 @@ const handleUploadDocs = async () => {
     )
 
     if (patchRes.success) {
-      showAlert("Oferta actualizada correctamente", "success")
-      setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }))
+      showAlert("Documentos subidos y separados correctamente", "success")
+      setData(prev => ({
+        ...prev,
+        FCTM_documents: updatedDocuments
+      }))
+      setFiles([])
     }
     fetchJobOffer()
-  } else {
-    showAlert(res.data?.err || res.message, "error")
   }
 }
 
