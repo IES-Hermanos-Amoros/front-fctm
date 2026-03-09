@@ -114,6 +114,26 @@ const ShowStudent = () => {
       setIsEditing(false)
     }
 
+    
+    //AINHOA
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        //formData para el envío de archivos
+        const formData = new FormData();
+        //enviar el archivo dentro del campo FCTM_documents
+        formData.append("FCTM_documents", file); 
+
+        //enviar el archivo al servidor para subirlo
+        const res = await sendRequest("POST", formData, `/students/${id}/documents`);
+
+        if (res.success) {
+            //recargar los datos para que el nuevo CV aparezca
+            fetchStudent(); 
+        }
+    };
+
     // AITANA
     const handleDeleteDocument = async (docId) => {
       // Usamos el showAlert que ya tenéis importado para el confirm
@@ -183,6 +203,23 @@ const ShowStudent = () => {
             onCancel={handleCancel}
             onChange={handleChange}
           />
+
+          {/* AINHOA: Adjuntar currículum vitae */}
+          {isEditing && (
+            <div className="mt-3 p-4 bg-white border rounded shadow-sm">
+              <label className="form-label fw-bold">Adjuntar Currículum Vitae</label>
+              <div className="d-flex gap-2">
+                <input 
+                  type="file" 
+                  className="form-control" 
+                  onChange={handleFileChange} 
+                />
+                <button type="button" className="btn btn-warning">
+                  Adjuntar CV
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* SECCIÓN DE AITANA: Tabla de documentos */}
           <div className="mt-4 p-4 bg-white border rounded shadow-sm">
