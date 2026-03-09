@@ -27,6 +27,7 @@ const SAO_fields = [
   { key: "SAO_student_visibleCompanies", label: "Student visible companies", type: "text" }
 ]
 
+
 //CAROLINA
 const FCTM_fields = [
   { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
@@ -114,24 +115,24 @@ const ShowStudent = () => {
       setIsEditing(false)
     }
 
-    
+const [selectedFile, setSelectedFile] = useState(null);
+
     //AINHOA
-    const handleFileChange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const handleFileUpload = async () => {
+      if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
 
-        //formData para el envío de archivos
-        const formData = new FormData();
-        //enviar el archivo dentro del campo FCTM_documents
-        formData.append("FCTM_documents", file); 
+      const formData = new FormData();
+      // El backend espera 'documents' para el array de archivos
+      formData.append("documents", selectedFile); 
 
-        //enviar el archivo al servidor para subirlo
-        const res = await sendRequest("POST", formData, `/students/${id}/documents`);
+      // El 'true' al final es vital para que sendRequest envíe el archivo correctamente
+      const res = await sendRequest("POST", formData, `/students/${id}/documents`, true);
 
-        if (res.success) {
-            //recargar los datos para que el nuevo CV aparezca
-            fetchStudent(); 
-        }
+      if (res.success) {
+        showAlert("CV subido con éxito", "success");
+        setSelectedFile(null);
+        fetchStudent(); 
+      }
     };
 
     // AITANA
@@ -212,9 +213,13 @@ const ShowStudent = () => {
                 <input 
                   type="file" 
                   className="form-control" 
-                  onChange={handleFileChange} 
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
                 />
-                <button type="button" className="btn btn-warning">
+                <button 
+                  type="button" 
+                  className="btn-editar" 
+                  onClick={handleFileUpload}
+                >
                   Adjuntar CV
                 </button>
               </div>
@@ -243,22 +248,14 @@ const ShowStudent = () => {
                         <tr key={doc._id}>
                           <td>{doc.FCTM_document_name}</td>
                           <td>{doc.FCTM_document_type}</td>
-                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td>
+                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td> {/* Fecha antes */}
                           <td>
-                            <a 
-                              href={doc.FCTM_document_url} 
-                              target="_blank" 
-                              rel="noreferrer"
-                              className="btn btn-link btn-sm"
-                            >
-                              Descargar
+                            <a href={doc.FCTM_document_url} target="_blank" rel="noreferrer" className="text-primary">
+                              Descarga
                             </a>
                           </td>
                           <td>
-                            <button 
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleDeleteDocument(doc._id)}
-                            >
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDocument(doc._id)}>
                               Eliminar
                             </button>
                           </td>
