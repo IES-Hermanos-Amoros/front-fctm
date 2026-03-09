@@ -115,7 +115,7 @@ const ShowStudent = () => {
       setIsEditing(false)
     }
 
-const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     //AINHOA
     const handleFileUpload = async () => {
