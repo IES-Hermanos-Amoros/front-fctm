@@ -5,35 +5,35 @@ import Dashboard from './Dashboard'
 import AppRouter from '../routes/AppRouter'
 import { useLocation } from 'react-router-dom'
 
-
 function MainDashboard() {
-
   const location = useLocation()
   const pageTitle = getPageTitle(location.pathname)
 
   function getPageTitle(pathname) {
     const routes = {
       '/': 'Inicio',
+      '/auth/login': 'Iniciar Sesión',
+      '/auth/password-setup': 'Configurar Contraseña',
       '/users': 'Usuarios',
       '/students': 'Alumnos',
       '/joboffers': 'Ofertas de Trabajo',
-      '/documents': 'Documentos',      
+      '/documents': 'Documentos',
       '/dummy': 'Datos Dummy de Ejemplo',
       '/actions': 'Acciones',
       '/fcts': 'FCTs',
       '/reviews': 'Reseñas',
       '/sinc/empresas': 'Sincronizar Empresas con SAO',
       '/sinc/alumnos': 'Sincronizar Alumnos con SAO',
-      '/sinc/profesores': "Sincronizar Profesores - Administradores con SAO",
-      '/sinc/fcts':'Sincronizar FCTs'
+      '/sinc/profesores': 'Sincronizar Profesores - Administradores con SAO',
+      '/sinc/fcts': 'Sincronizar FCTs',
     }
     return routes[pathname] || 'Panel'
   }
 
   return (
-    <main id='main' className='main'>
-        <PageTitle page={pageTitle} />
-        <AppRouter />
+    <main id="main" className="main">
+      <PageTitle page={pageTitle} />
+      <AppRouter />
     </main>
   )
 }
