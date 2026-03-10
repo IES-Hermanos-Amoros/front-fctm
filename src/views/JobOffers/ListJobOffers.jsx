@@ -24,20 +24,37 @@ const ListJobOffers = () => {
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
-  const columnas = useMemo(
+const columnas = useMemo(
     () => [
       { key: 'FCTM_job_title', encabezado: 'Título' },
-      { key: 'FCTM_job_status', encabezado: 'Estado' },
+
       {
         key: 'FCTM_job_start_date',
-        encabezado: 'Fecha Inicio',
+        encabezado: 'Fec.Ini',
         render: row => formatDate(row.FCTM_job_start_date),
       },
+
       {
         key: 'FCTM_job_end_date',
-        encabezado: 'Fecha Cierre',
+        encabezado: 'Fec.Fin',
         render: row => formatDate(row.FCTM_job_end_date),
       },
+
+{
+      key: 'empresa',
+      encabezado: 'Empresa',
+      // Intentamos mostrar organización, si no existe, el nombre
+      render: row => row.empresa?.SAO_organization || row.empresa?.SAO_name || '-',
+    },
+
+    {
+      key: 'localidad',
+      encabezado: 'Localidad',
+      render: row => row.empresa?.SAO_company_city || '-',
+    },
+
+      { key: 'FCTM_job_status', encabezado: 'Estado' },
+
       {
         key: '__show',
         encabezado: 'Ver',
@@ -45,12 +62,12 @@ const ListJobOffers = () => {
           <button
             className="btn btn-sm btn-outline-primary"
             onClick={() => navigate(`/jobOffers/${row._id}`)}
-            title="Ver oferta"
           >
             <i className="bi bi-search"></i>
           </button>
         ),
       },
+
       {
         key: '__delete',
         encabezado: 'Eliminar',
@@ -58,7 +75,6 @@ const ListJobOffers = () => {
           <button
             className="btn btn-sm btn-outline-danger"
             onClick={() => handleDelete(row._id)}
-            title="Eliminar oferta"
           >
             <i className="bi bi-trash"></i>
           </button>
@@ -66,7 +82,7 @@ const ListJobOffers = () => {
       },
     ],
     [navigate]
-  )
+  );
 
   const handleDelete = async id => {
     const confirmado = await confirmation('¿Seguro que quieres eliminar esta oferta?')
