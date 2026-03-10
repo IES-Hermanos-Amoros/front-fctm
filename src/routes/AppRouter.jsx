@@ -4,13 +4,13 @@ import { Routes, Route } from 'react-router-dom'
 import Home from '../components/Dashboard'
 import ListDummy from '../views/Dummy/ListDummy'
 import ListDocuments from '../views/Documents/ListDocuments'
-import ListJobOffers from "../views/JobOffers/ListJobOffers"
+import ListJobOffers from '../views/JobOffers/ListJobOffers'
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
-import ShowDummy from "../views/Dummy/ShowDummy"
-import ShowStudent from "../views/Students/ShowStudent"
-import ShowCompany from "../views/Companies/ShowCompany"
-import ShowJobOffer from "../views/JobOffers/ShowJobOffer"
+import ShowDummy from '../views/Dummy/ShowDummy'
+import ShowStudent from '../views/Students/ShowStudent'
+import ShowCompany from '../views/Companies/ShowCompany'
+import ShowJobOffer from '../views/JobOffers/ShowJobOffer'
 import NewDummy from '../views/Dummy/NewDummy'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
@@ -20,8 +20,8 @@ import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
 
-
-// Importa más vistas...
+import Login from '../views/auth/Login'
+import PasswordSetup from '../views/auth/PasswordSetup'
 
 export default function AppRouter() {
   return (
@@ -46,6 +46,9 @@ export default function AppRouter() {
       <Route path="/dummy/new" element={<NewDummy />} />
       <Route path="/dummy/:id" element={<ShowDummy />} />
 
+      {/* Rutas de autenticación */}
+      <Route path="/auth/login" element={<Login />} />
+      <Route path="/auth/password-setup" element={<PasswordSetup />} />
 
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
