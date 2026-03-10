@@ -22,12 +22,22 @@ import ListCompanies from '../views/Companies/ListCompanies'
 import VerifyEmailPage from '../views/Dummy/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 
+import Login from '../views/Auth/Login'
+import PasswordSetup from '../views/Auth/PasswordSetup'
+
 // Importa más vistas...
 
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+
+      <Route path="/dashboard" element={<Home />} />
+
+      {/* Rutas de autenticación */}
+      <Route path="/" element={<Login />} />
+      <Route path="/auth/password-setup" element={<PasswordSetup />} />
+
+
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
       <Route path="/joboffers" element={<ListJobOffers />} />
