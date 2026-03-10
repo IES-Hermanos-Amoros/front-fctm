@@ -216,11 +216,8 @@ const handleUploadDocs = async () => {
     return
   }
 
-  // Usaremos un array para recolectar todos los IDs creados
   let allNewIds = []
-
   if (files.length === 1) {
-    // --- TU CÓDIGO ORIGINAL (UN SOLO ARCHIVO) ---
     const formData = new FormData()
     const file = files[0]
     formData.append("documents", file)
@@ -238,12 +235,9 @@ const handleUploadDocs = async () => {
       return
     }
   } else {
-    // --- LÓGICA PARA VARIOS ARCHIVOS (SEPARADOS) ---
-    // Iteramos sobre cada archivo para enviar peticiones individuales
     for (const file of files) {
       const formData = new FormData()
       
-      // Mantenemos tu estructura exacta por cada archivo
       formData.append("documents", file) 
       formData.append("FCTM_document_type", "GENERAL") 
       formData.append("FCTM_document_name", file.name)
@@ -252,7 +246,6 @@ const handleUploadDocs = async () => {
       formData.append("userId", "000000000000000000000000")
       formData.append("jobOfferId", id)
 
-      // Enviamos a la ruta estándar que ya te funciona bien
       const res = await sendRequest("POST", formData, "/documents")
       
       if (res.success) {
@@ -275,7 +268,7 @@ const handleUploadDocs = async () => {
     )
 
     if (patchRes.success) {
-      showAlert("Documentos subidos y separados correctamente", "success")
+      showAlert("Documentos subidos correctamente", "success")
       setData(prev => ({
         ...prev,
         FCTM_documents: updatedDocuments
