@@ -19,7 +19,7 @@ import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
 import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
-import VerifyEmailPage from '../views/Dummy/VerifyEmailPage'
+import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 
 import Login from '../views/Auth/Login'

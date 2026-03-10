@@ -22,7 +22,7 @@ const VerifyEmailPage = () => {
           setMessage(res.data.message || 'Correo verificado correctamente.');
 
           // Redirigir al login después de 3s
-          setTimeout(() => navigate('/login'), 3000);
+          setTimeout(() => navigate('/'), 3000);
         } else {
           setStatus('error');
           setMessage(res.data.message || 'Error al verificar el correo');
