@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
@@ -30,6 +30,10 @@ const jobOfferFields = [
 
 const NewJobOffer = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const companyId = location.state?.companyId || null
+  const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
+
   const [data, setData] = useState({
     FCTM_job_title: '',
     FCTM_job_description: '',
@@ -72,9 +76,10 @@ const NewJobOffer = () => {
       )
       return
     }
-    const res = await sendRequest('POST', data, '/joboffers')
+    const payload = companyId ? { ...data, companyId } : data
+    const res = await sendRequest('POST', payload, '/joboffers')
     if (res.success) {
-      navigate('/joboffers')
+      navigate(returnPath)
     } else {
       showAlert(res.message, 'error')
     }
@@ -84,7 +89,7 @@ const NewJobOffer = () => {
     <section className="dashboard section">
       <ShowHeader
         title="Nueva Oferta de Trabajo"
-        onBack={() => navigate('/joboffers')}
+        onBack={() => navigate(returnPath)}
       />
       <ShowEditableForm
         formTitle="Alta de Oferta de Trabajo"
@@ -94,7 +99,7 @@ const NewJobOffer = () => {
         isEditing={true}
         hideEditButton={true}
         onSave={handleSave}
-        onCancel={() => navigate('/joboffers')}
+        onCancel={() => navigate(returnPath)}
         onChange={handleChange}
       />
     </section>
