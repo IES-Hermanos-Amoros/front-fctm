@@ -11,7 +11,7 @@ const NewJobOffer = () => {
   // ENUM STORE 
   const cargarEnums = useEnumStore((state) => state.cargarEnums)
   const getEnumArray = useEnumStore((state) => state.getEnumArray)
-  const enums = useEnumStore((state) => state.enums) // fuerza re-render cuando llegan los enums
+  const enums = useEnumStore((state) => state.enums) 
 
   useEffect(() => {
     cargarEnums()
