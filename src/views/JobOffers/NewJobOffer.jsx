@@ -34,11 +34,13 @@ const NewJobOffer = () => {
   const companyId = location.state?.companyId || null
   const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
 
+  const today = new Date().toISOString().split("T")[0]
+
   const [data, setData] = useState({
     FCTM_job_title: '',
     FCTM_job_description: '',
     FCTM_job_requirements: '',
-    FCTM_job_start_date: '',
+    FCTM_job_start_date: today,
     FCTM_job_end_date: '',
     FCTM_job_observations: '',
     FCTM_job_salary: '',
@@ -62,7 +64,6 @@ const NewJobOffer = () => {
       !data.FCTM_job_title ||
       !data.FCTM_job_description ||
       !data.FCTM_job_start_date ||
-      !data.FCTM_job_end_date ||
       !data.FCTM_job_status
     ) {
       showAlert('Por favor, completa todos los campos obligatorios.', 'error')
