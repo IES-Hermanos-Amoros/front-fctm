@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 import ShowHeader from '../../components/Show/ShowHeader'
@@ -9,19 +9,30 @@ const NewJobOffer = () => {
   const navigate = useNavigate()
 
   // ENUM STORE 
-  const cargarEnums = useEnumStore((state) => state.cargarEnums)
+  //const cargarEnums = useEnumStore((state) => state.cargarEnums)
+  const enums = useEnumStore((state) => state.enums);
   const getEnumArray = useEnumStore((state) => state.getEnumArray)
-  const enums = useEnumStore((state) => state.enums) 
+  //const enums = useEnumStore((state) => state.enums) 
 
-  useEffect(() => {
+  /*useEffect(() => {
     cargarEnums()
-  }, [])
+  }, [])*/
 
   // === ENUM REAL DEL BACKEND ===
-  const jobStatusOptions = getEnumArray("JOB_STATUS")?.map(item => ({
+  /*const jobStatusOptions = getEnumArray("JOB_STATUS")?.map(item => ({
     _id: item,
     nombre: item
-  })) || []
+  })) || []*/
+   // Los datos ya están ahí o llegarán en cuanto App.jsx termine la petición
+  const jobStatusOptions = useMemo(() => {
+    const statusArray = getEnumArray("JOB_STATUS");
+    console.log("Status Array en NewJobOffer:", statusArray); // Verás como primero es [] y luego llega con datos
+    
+    return statusArray.map(item => ({
+      _id: item,
+      nombre: item
+    }));
+  }, [enums, getEnumArray]);
 
   // === CAMPOS DEL FORMULARIO ===
   const jobOfferFields = [

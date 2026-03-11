@@ -43,13 +43,17 @@ const columnas = useMemo(
 {
       key: 'empresa',
       encabezado: 'Empresa',
+      // accessorFn permite que el buscador global encuentre el texto
+      accessorFn: row => row.empresa?.SAO_name || '',
       // Intentamos mostrar organización, si no existe, el nombre
-      render: row => row.empresa?.SAO_organization || row.empresa?.SAO_name || '-',
+      render: row => row.empresa?.SAO_name || '-',
     },
 
     {
       key: 'localidad',
       encabezado: 'Localidad',
+      // Accedemos a la propiedad anidada para que sea indexable
+      accessorFn: row => row.empresa?.SAO_company_city || '',
       render: row => row.empresa?.SAO_company_city || '-',
     },
 
