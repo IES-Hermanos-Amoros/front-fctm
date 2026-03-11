@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert,normalizeFromApi, normalizeToApi,pickFCTMFields } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -50,13 +50,16 @@ const normalizationConfig = [
   }
 ];
 
-//  Configuración de Columnas 
-const columnasOfertas = [
-  { key: "FCTM_job_title", encabezado: "Título" },
-  { key: "FCTM_job_start_date", encabezado: "Fec. Ini" },
-  { key: "FCTM_job_end_date", encabezado: "Fec. Fin" },
-  { key: "FCTM_job_status", encabezado: "Estado" },
-];
+const formatDateDDMMYYYY = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+};
 
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
@@ -162,6 +165,64 @@ const ShowCompany = () => {
     fetchCompany();
   }, [fetchCompany]);
 
+  const handleDeleteJobOffer = useCallback(async (jobOfferId) => {
+    const confirmed = await confirmation("¿Seguro que quieres eliminar esta oferta de trabajo?");
+    if (!confirmed) return;
+
+    const res = await sendRequest(
+      "DELETE",
+      undefined,
+      `/joboffers/${jobOfferId}?companyId=${encodeURIComponent(id)}`
+    );
+
+    if (res.success) {
+      await fetchCompany();
+    } else {
+      showAlert(res.message || "Error al eliminar oferta", "error");
+    }
+  }, [id, fetchCompany]);
+
+  const columnasOfertas = useMemo(() => ([
+    { key: "FCTM_job_title", encabezado: "Título" },
+    {
+      key: "FCTM_job_start_date",
+      encabezado: "Fec. Ini",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_job_start_date)
+    },
+    {
+      key: "FCTM_job_end_date",
+      encabezado: "Fec. Fin",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_job_end_date)
+    },
+    { key: "FCTM_job_status", encabezado: "Estado" },
+    {
+      key: "__show",
+      encabezado: "Ver",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => navigate(`/joboffers/${row._id}`, { state: { companyId: id } })}
+          title="Ver oferta"
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Eliminar",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDeleteJobOffer(row._id)}
+          title="Eliminar oferta"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ]), [navigate, id, handleDeleteJobOffer]);
+
   const handleSave = async () => {
     /*const payload = {
       FCTM_company_category: data.FCTM_company_category ? [data.FCTM_company_category] : [], 
@@ -247,9 +308,9 @@ const ShowCompany = () => {
       >
         <button
           className="btn btn-primary"
-          onClick={() => navigate('/offers/new', { state: { companyId: id } })}
+          onClick={() => navigate('/joboffers/new', { state: { companyId: id } })}
         >
-          Añadir Oferta
+          Nueva Oferta de Trabajo
         </button>
       </ListCRUD>
     </section>

@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
 import { sendRequest, confirmation, showAlert } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
-const jobStatusTypes = [
-  { _id: 'ACTIVA', nombre: 'ACTIVA' },
-  { _id: 'CERRADA', nombre: 'CERRADA' },
-  { _id: 'EN PROGRESO', nombre: 'EN PROGRESO' },
-]
+import useEnumStore from '../../store/enumStore'
 
+//CAMPOS DEL FORMULARIO
 const jobOfferFields = [
   { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
   { key: 'FCTM_job_description', label: 'Descripción', type: 'textarea', required: true },
@@ -23,7 +20,7 @@ const jobOfferFields = [
     key: 'FCTM_job_status',
     label: 'Estado',
     type: 'select',
-    options: jobStatusTypes,
+    options: [],
     optionValue: '_id',
     optionLabel: 'nombre',
   },
@@ -32,27 +29,22 @@ const jobOfferFields = [
 
 const formatDateForInput = value => {
   if (!value) return ''
-
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString().slice(0, 10)
   }
-
   if (typeof value === 'string') {
     const isoDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})/)
     if (isoDateMatch) return isoDateMatch[1]
-
     const parsedDate = new Date(value)
     if (!Number.isNaN(parsedDate.getTime())) {
       return parsedDate.toISOString().slice(0, 10)
     }
   }
-
   return value
 }
 
 const normalizeJobOfferDates = jobOffer => {
   if (!jobOffer) return jobOffer
-
   return {
     ...jobOffer,
     FCTM_job_start_date: formatDateForInput(jobOffer.FCTM_job_start_date),
@@ -63,6 +55,25 @@ const normalizeJobOfferDates = jobOffer => {
 const ShowJobOffer = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const companyId = location.state?.companyId || null
+  const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
+
+  //ENUM STORE
+  const cargarEnums = useEnumStore((state) => state.cargarEnums)
+  const getEnumArray = useEnumStore((state) => state.getEnumArray)
+  const enums = useEnumStore((state) => state.enums) 
+  // Cargar enums
+  useEffect(() => {
+    cargarEnums()
+  }, [])
+
+  const jobStatusOptions = getEnumArray("JOB_STATUS")?.map(item => ({
+    _id: item,
+    nombre: item
+  })) || []
+
+  jobOfferFields.find(f => f.key === "FCTM_job_status").options = jobStatusOptions
 
   const [data, setData] = useState(null) // Datos del JobOffer cargado desde API
   const [documentData, setDocumentData] = useState([]) //Datos del Documents cargado desde API
@@ -104,7 +115,6 @@ const ShowJobOffer = () => {
     }
   ]
 
-  // Cargar el JobOffer por ID
   const fetchJobOffer = useCallback(async () => {
     setLoading(true)
 
@@ -113,8 +123,7 @@ const ShowJobOffer = () => {
     if (res.success) {
       const normalizedData = normalizeJobOfferDates(res.data)
       setData(normalizedData)
-      setOriginalData(normalizedData) // snapshot original
-      console.log(res.data)
+      setOriginalData(normalizedData)
     } else {
       console.error('Error al cargar el joboffers:', res.message)
     }
@@ -181,7 +190,6 @@ const handleDelete = async (docId) => {
     }
   }
 
-  // Actualizar campos FCTM_ en estado local
   const handleChange = (field, value) => {
     setData(prev => ({
       ...prev,
@@ -190,7 +198,7 @@ const handleDelete = async (docId) => {
   }
 
   const handleCancel = () => {
-    setData(originalData) // restauramos valores
+    setData(originalData)
     setIsEditing(false)
   }
 
@@ -290,7 +298,7 @@ const handleUploadDocs = async () => {
     <section className="dashboard section">
       <ShowHeader
         title={`Ficha de ${data?.FCTM_job_title || 'JobOffer'}`}
-        onBack={() => navigate('/joboffers')}
+        onBack={() => navigate(returnPath)}
       />
 
       <ShowEditableForm
@@ -306,26 +314,26 @@ const handleUploadDocs = async () => {
       />
 
       {isEditing && (
-  <div className="card p-3 mt-3">
+        <div className="card p-3 mt-3">
 
-    <h5>Adjuntar Documentos</h5>
+          <h5>Adjuntar Documentos</h5>
 
-    <input
-      type="file"
-      multiple
-      className="form-control"
-      onChange={handleFileChange}
-    />
+          <input
+            type="file"
+            multiple
+            className="form-control"
+            onChange={handleFileChange}
+          />
 
-    <button
-      className="btn btn-primary mt-2"
-      onClick={handleUploadDocs}
-    >
-      Adjuntar Docs.
-    </button>
+          <button
+            className="btn btn-primary mt-2"
+            onClick={handleUploadDocs}
+          >
+            Adjuntar Docs.
+          </button>
 
-  </div>
-)}
+        </div>
+      )}
 
       {documentData.length === 0 ? (
         <h4>Oferta sin documentos</h4>

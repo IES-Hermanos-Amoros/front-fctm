@@ -16,7 +16,7 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
 
         console.log(method)
         console.log(url);
-        //console.log(params);
+        console.log(params);
 
         const response = await axios({
             method,
@@ -64,12 +64,22 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
                 error.response.data?.msg ||
                 error.response.data?.message ||
                 error.response.data?.error ||
-                error.response.data?.error?.message;
+                error.response.data?.error?.message ||
+                error.response.data?.err ||
+                error.response.data?.err?.message;
+            
+            //console.log("backendMsg:", backendMsg);
+            
+                // Obtén mensaje genérico según el código HTTP
+            const genericMsg = httpStatusMessages[error.response.status] || "Error inesperado del servidor";
 
-            res.message =
+            // Combina el genérico con el detalle del backend si existe
+            res.message = backendMsg ? `${genericMsg}:\n ${backendMsg}` : genericMsg;
+
+            /*res.message =
                 backendMsg ||
                 httpStatusMessages[error.response.status] ||
-                "Error inesperado del servidor";
+                "Error inesperado del servidor";*/
 
             res.data = error.response.data;
         }
