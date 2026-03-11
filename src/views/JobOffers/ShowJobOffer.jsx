@@ -6,12 +6,9 @@ import ShowHeader from '../../components/Show/ShowHeader'
 import ShowReadonlyForm from '../../components/Show/ShowReadonlyForm'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
-const jobStatusTypes = [
-  { _id: 'ACTIVA', nombre: 'ACTIVA' },
-  { _id: 'CERRADA', nombre: 'CERRADA' },
-  { _id: 'EN PROGRESO', nombre: 'EN PROGRESO' },
-]
+import useEnumStore from '../../store/enumStore'
 
+//CAMPOS DEL FORMULARIO
 const jobOfferFields = [
   { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
   { key: 'FCTM_job_description', label: 'Descripción', type: 'textarea', required: true },
@@ -23,7 +20,7 @@ const jobOfferFields = [
     key: 'FCTM_job_status',
     label: 'Estado',
     type: 'select',
-    options: jobStatusTypes,
+    options: [],
     optionValue: '_id',
     optionLabel: 'nombre',
   },
@@ -32,27 +29,22 @@ const jobOfferFields = [
 
 const formatDateForInput = value => {
   if (!value) return ''
-
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
     return value.toISOString().slice(0, 10)
   }
-
   if (typeof value === 'string') {
     const isoDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})/)
     if (isoDateMatch) return isoDateMatch[1]
-
     const parsedDate = new Date(value)
     if (!Number.isNaN(parsedDate.getTime())) {
       return parsedDate.toISOString().slice(0, 10)
     }
   }
-
   return value
 }
 
 const normalizeJobOfferDates = jobOffer => {
   if (!jobOffer) return jobOffer
-
   return {
     ...jobOffer,
     FCTM_job_start_date: formatDateForInput(jobOffer.FCTM_job_start_date),
@@ -67,12 +59,27 @@ const ShowJobOffer = () => {
   const companyId = location.state?.companyId || null
   const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
 
-  const [data, setData] = useState(null) // Datos del JobOffer cargado desde API
-  const [loading, setLoading] = useState(true) // Controla estado de carga
-  const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
+  //ENUM STORE
+  const cargarEnums = useEnumStore((state) => state.cargarEnums)
+  const getEnumArray = useEnumStore((state) => state.getEnumArray)
+  const enums = useEnumStore((state) => state.enums) 
+  // Cargar enums
+  useEffect(() => {
+    cargarEnums()
+  }, [])
+
+  const jobStatusOptions = getEnumArray("JOB_STATUS")?.map(item => ({
+    _id: item,
+    nombre: item
+  })) || []
+
+  jobOfferFields.find(f => f.key === "FCTM_job_status").options = jobStatusOptions
+
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
   const [originalData, setOriginalData] = useState(null)
 
-  // Cargar el JobOffer por ID
   const fetchJobOffer = useCallback(async () => {
     setLoading(true)
 
@@ -81,8 +88,7 @@ const ShowJobOffer = () => {
     if (res.success) {
       const normalizedData = normalizeJobOfferDates(res.data)
       setData(normalizedData)
-      setOriginalData(normalizedData) // snapshot original
-      console.log(res.data)
+      setOriginalData(normalizedData)
     } else {
       console.error('Error al cargar el joboffers:', res.message)
     }
@@ -90,7 +96,6 @@ const ShowJobOffer = () => {
     setLoading(false)
   }, [id])
 
-  // Guardar cambios FCTM_
   const handleSave = async () => {
     const res = await sendRequest('PATCH', data, `/joboffers/${id}`)
 
@@ -104,7 +109,6 @@ const ShowJobOffer = () => {
     }
   }
 
-  // Actualizar campos FCTM_ en estado local
   const handleChange = (field, value) => {
     setData(prev => ({
       ...prev,
@@ -113,7 +117,7 @@ const ShowJobOffer = () => {
   }
 
   const handleCancel = () => {
-    setData(originalData) // restauramos valores
+    setData(originalData)
     setIsEditing(false)
   }
 
@@ -142,7 +146,6 @@ const ShowJobOffer = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
-
     </section>
   )
 }
