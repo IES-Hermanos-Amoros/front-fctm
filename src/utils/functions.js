@@ -454,3 +454,47 @@ export const stringToColor = (str) => {
   const h = Math.abs(hash) % 360;
   return `hsl(${h}, 70%, 85%)`; 
 };
+
+
+export const formatDateDDMMYYYY = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+};
+
+export const formatDateDDMMYYYYHHmm = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  
+  return date.toLocaleString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false // Fuerza el formato de 24 horas
+  }).replace(",", ""); // Opcional: elimina la coma que separa fecha y hora en algunos navegadores
+};
+
+/**
+ * Genera la URL base del backend combinando el protocolo y el host de entorno.
+ * @returns {string} URL completa (ej: https://api.tuweb.com)
+ */
+export const getBackendHost = () => {
+    const host = import.meta.env.VITE_BASE_URL_BACKEND || '';
+    // Intentamos obtener el protocolo, con un fallback a 'https' si la constante no existe
+    const protocol = typeof __DEV_SERVER_PROTOCOL__ !== 'undefined' 
+        ? __DEV_SERVER_PROTOCOL__ 
+        : 'https';
+
+    // Aseguramos que el protocolo termine en ://
+    //const formattedProtocol = protocol.endsWith('://') ? protocol : `${protocol}://`;
+    
+    return `${protocol}${host}`;
+};

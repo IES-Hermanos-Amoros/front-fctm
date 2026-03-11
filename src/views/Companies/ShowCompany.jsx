@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -50,7 +50,7 @@ const normalizationConfig = [
   }
 ];
 
-const formatDateDDMMYYYY = (value) => {
+/*const formatDateDDMMYYYY = (value) => {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
@@ -59,7 +59,7 @@ const formatDateDDMMYYYY = (value) => {
     month: "2-digit",
     year: "numeric"
   });
-};
+};*/
 
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },

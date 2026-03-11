@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { sendRequest, confirmation, showAlert } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 
@@ -81,6 +81,8 @@ const ShowJobOffer = () => {
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
   const [files, setFiles] = useState([])
+  
+  const hostAPI = getBackendHost()
 
   const columnasDocuments = [
     { key: 'FCTM_document_name', encabezado: 'Nombre'},
@@ -89,17 +91,20 @@ const ShowJobOffer = () => {
       key: 'FCTM_document_url', 
       encabezado: 'Descarga',
       render: (row) => {
-        if (!row) return "No disponible"
+          if (!row) return "No disponible"
 
-        const url = row.FCTM_document_url
-        return (
-          <a href={url} target="_blank" rel="noopener noreferrer">
-            {url}
-          </a>
-        )
-      }
+          const url = row.FCTM_document_url
+          return (
+            <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
+              <i className="bi bi-download"></i> {/* Icono de descarga */}
+            </a>
+          )
+        }
     },
-    { key: 'FCTM_inserted_date', encabezado: 'Fecha '},
+    { key: 'FCTM_inserted_date', 
+        encabezado: 'Fecha ',
+        render: (row) => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
+    },
     { 
       key: '__delete', 
       encabezado: 'Eliminar',
@@ -230,7 +235,7 @@ const handleUploadDocs__OLD = async () => {
     const file = files[0]
     formData.append("documents", file)
     formData.append("FCTM_document_name", file.name)
-    formData.append("FCTM_document_type", "GENERAL")
+    formData.append("FCTM_document_type", "OTRO")
     formData.append("FCTM_document_url", file.name)
     formData.append("FCTM_document_created_by", "000000000000000000000000")
     formData.append("jobOfferId", id)
@@ -247,7 +252,7 @@ const handleUploadDocs__OLD = async () => {
       const formData = new FormData()
       
       formData.append("documents", file) 
-      formData.append("FCTM_document_type", "GENERAL") 
+      formData.append("FCTM_document_type", "OTRO") 
       formData.append("FCTM_document_name", file.name)
       formData.append("FCTM_document_url", file.name)
       formData.append("FCTM_document_created_by", "000000000000000000000000")

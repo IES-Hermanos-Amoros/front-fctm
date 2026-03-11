@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import { sendRequest,confirmation, showAlert,formatDateDDMMYYYYHHmm,getBackendHost } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import ListCRUD from "../../components/List/ListCRUD";
+
 
 //MIRIAM
 const SAO_fields = [
@@ -55,6 +57,44 @@ const ShowStudent = () => {
     const [loading,setLoading] = useState(true)
     const [isEditing,setIsEditing] = useState(false)
     const [originalData,setOriginalData] = useState(null)
+
+    const hostAPI = getBackendHost()
+
+    const columnasDocuments = [
+      { key: 'FCTM_document_name', encabezado: 'Nombre'},
+      { key: 'FCTM_document_type', encabezado: 'Tipo'},
+      { 
+        key: 'FCTM_document_url', 
+        encabezado: 'Descarga',
+        render: (row) => {
+          if (!row) return "No disponible"
+
+          const url = row.FCTM_document_url
+          return (
+            <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
+              <i className="bi bi-download"></i> {/* Icono de descarga */}
+            </a>
+          )
+        }
+      },
+      { key: 'FCTM_inserted_date', 
+        encabezado: 'Fecha ',
+        render: (row) => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
+      },
+      { 
+        key: '__delete', 
+        encabezado: 'Eliminar',
+        render: row => (
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() => handleDeleteDocument(row._id)}
+            title="Eliminar Documento"
+          >
+            <i className="bi bi-trash"></i>
+          </button>
+        ),
+      }
+    ]
 
     // Cargar el estudiante por ID
     const fetchStudent = useCallback(async () => {
@@ -143,7 +183,7 @@ const ShowStudent = () => {
       formData.append("files", selectedFile); 
       
       // Agregamos metadata si la necesitas
-      formData.append("FCTM_document_type", "CURRICULUM");
+      formData.append("type", "CURRÍCULUM VITAE");
       formData.append("userId", id);
 
       // CAMBIO: Usamos el endpoint correcto que tiene el middleware de multer
@@ -162,21 +202,44 @@ const ShowStudent = () => {
     // AITANA
     const handleDeleteDocument = async (docId) => {
       // Usamos el showAlert que ya tenéis importado para el confirm
-      const result = await showAlert("¿Estás seguro de que quieres eliminar este CV?", "question", {
+      /*const result = await showAlert("¿Estás seguro de que quieres eliminar este CV?", "question", {
         showCancelButton: true,
         confirmButtonText: "Sí, eliminar",
         cancelButtonText: "Cancelar"
-      });
+      });*/
+      const confirmado = await confirmation('¿Seguro que quieres eliminar este CV?')
+      if (!confirmado) return
 
-      if (result.isConfirmed) {
-        const res = await sendRequest("DELETE", null, `/students/${id}/documents/${docId}`);
-        if (res.success) {
-          showAlert("Documento eliminado correctamente", "success");
-          fetchStudent(); // Recargamos los datos para que desaparezca de la tabla
+      //const res = await sendRequest("DELETE", null, `/students/${id}/documents/${docId}`);
+      const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
+
+      if (res.success) {
+        const updatedDocuments = data.FCTM_documents.filter(item => item !== docId)
+        const patchRes = await sendRequest(
+          "PATCH",
+          { FCTM_documents: updatedDocuments },
+          `/students/${id}` 
+        )
+
+        if (patchRes.success) {
+          showAlert('Documento eliminado y alumno actualizado', 'success')
+
+          setData(prev => ({
+            ...prev,
+            FCTM_documents: updatedDocuments
+          }))
+
+          fetchStudent()
         } else {
-          showAlert(res.message, "error");
+          showAlert('Error actualizando el alumno: ' + patchRes.message, 'error')
         }
+
+        //showAlert("Documento eliminado correctamente", "success");
+        //fetchStudent(); // Recargamos los datos para que desaparezca de la tabla
+      } else {
+        showAlert(res.message, "error");
       }
+      
     };
 
     useEffect(() => {
@@ -231,6 +294,37 @@ const ShowStudent = () => {
 
           {/* AINHOA: Adjuntar currículum vitae */}
           {isEditing && (
+            <div className="card p-3 mt-3">
+
+              <h5>Adjuntar Currículum Vitae</h5>
+
+              <input
+                type="file"
+                className="form-control"
+                onChange={(e) => setSelectedFile(e.target.files[0])}
+              />
+
+              <button
+                className="btn btn-primary mt-2"
+                onClick={handleFileUpload}
+              >
+                Subir
+              </button>
+
+            </div>
+          )}
+
+          {data.FCTM_documents.length === 0 ? (
+            <h4>Todavía no se ha adjuntado un Currículum Vitae (pulsa en "Editar" para subir tu CV)</h4>
+          ) : (
+            <ListCRUD 
+              title="Currículums Vitae Adjuntos"
+              datos={data.FCTM_documents}
+              columnas={columnasDocuments}          
+            />
+          )}
+
+          {/*isEditing && (
             <div className="mt-3 p-4 bg-white border rounded shadow-sm">
               <label className="form-label fw-bold">Adjuntar Currículum Vitae</label>
               <div className="d-flex gap-2">
@@ -248,10 +342,10 @@ const ShowStudent = () => {
                 </button>
               </div>
             </div>
-          )}
+          )*/}
 
           {/* SECCIÓN DE AITANA: Tabla de documentos */}
-          <div className="mt-4 p-4 bg-white border rounded shadow-sm">
+          {/*<div className="mt-4 p-4 bg-white border rounded shadow-sm">
             <h3 className="mb-3">Currículums Vitae Adjuntos</h3>
             <div className="table-responsive">
               <table className="table table-hover">
@@ -272,7 +366,7 @@ const ShowStudent = () => {
                         <tr key={doc._id}>
                           <td>{doc.FCTM_document_name}</td>
                           <td>{doc.FCTM_document_type}</td>
-                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td> {/* Fecha antes */}
+                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td>
                           <td>
                             <a href={doc.FCTM_document_url} target="_blank" rel="noreferrer" className="text-primary">
                               Descarga
@@ -295,7 +389,7 @@ const ShowStudent = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div>*/}
         </section>
     </div>
   )
