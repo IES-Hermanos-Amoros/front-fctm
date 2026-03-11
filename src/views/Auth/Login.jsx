@@ -25,10 +25,25 @@ const Login = () => {
     console.log('res data de auth/login: ', res.data)
 
     if (res.success && res.data?.status === 'SUCCESS') {
-      console.log('TODO HA IDO GENIAL')
+      console.log('TODO HA IDO GENIAL... ', res.data)
       setLoading(false)
 
-      navigate('/companies')
+      switch (res.data.user.profile) {
+        case 'ADMINISTRADOR':
+          navigate('/administrators/' + res.data.user._id)
+          break
+        case 'PROFESOR':
+          navigate('/teachers/' + res.data.user._id)
+          break
+        case 'ALUMNO':
+          navigate('/students/' + res.data.user._id)
+          break
+        case 'EMPRESA':
+          navigate('/companies/' + res.data.user._id)
+          break
+        default:
+          navigate('/companies')
+      }
 
       return
     }
