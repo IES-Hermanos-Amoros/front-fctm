@@ -118,7 +118,7 @@ const ShowStudent = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     //AINHOA
-    const handleFileUpload = async () => {
+    const handleFileUpload__OLD = async () => {
       if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
 
       const formData = new FormData();
@@ -132,6 +132,30 @@ const ShowStudent = () => {
         showAlert("CV subido con éxito", "success");
         setSelectedFile(null);
         fetchStudent(); 
+      }
+    };
+
+    const handleFileUpload = async () => {
+      if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
+
+      const formData = new FormData();
+      // CAMBIO: El backend espera 'files' para el array de archivos
+      formData.append("files", selectedFile); 
+      
+      // Agregamos metadata si la necesitas
+      formData.append("FCTM_document_type", "CURRICULUM");
+      formData.append("userId", id);
+
+      // CAMBIO: Usamos el endpoint correcto que tiene el middleware de multer
+      const res = await sendRequest("POST", formData, `/documents/upload`);
+
+      if (res.success) {
+        showAlert("CV subido con éxito", "success");
+        setSelectedFile(null);
+        fetchStudent(); // Recargamos para ver el nuevo CV en la tabla
+      } else {
+        // Si res.message no llega, capturamos el posible error de servidor
+        showAlert(res.message || "Error al subir el CV", "error");
       }
     };
 

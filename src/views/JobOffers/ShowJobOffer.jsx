@@ -213,7 +213,7 @@ const handleDelete = async (docId) => {
     setFiles(selectedFiles)
   }
 
-const handleUploadDocs = async () => {
+const handleUploadDocs__OLD = async () => {
   if (files.length === 0) {
     showAlert("Debes seleccionar al menos un archivo", "error")
     return
@@ -284,6 +284,47 @@ const handleUploadDocs = async () => {
       setFiles([])
     }
     fetchJobOffer()
+  }
+}
+
+
+const handleUploadDocs = async () => {
+  if (files.length === 0) {
+    showAlert("Debes seleccionar al menos un archivo", "error")
+    return
+  }
+
+  const formData = new FormData()
+  
+  // 1. Cambia 'documents' por 'files' para que coincida con el middleware: upload.array("files", 10)
+  for (const file of files) {
+    formData.append("files", file)
+  }
+
+  // 2. Agrega los datos adicionales al formData (Multer los recibirá en req.body)
+  formData.append("FCTM_document_type", "GENERAL")
+  formData.append("jobOfferId", id)
+  // Nota: No envíes createdBy aquí si lo asignas en el backend desde req.user.id
+
+  // 3. ¡IMPORTANTE! Llama a la ruta /documents/upload
+  const res = await sendRequest("POST", formData, "/documents/upload")
+
+  if (res.success) {
+    showAlert("Documentos subidos correctamente", "success")
+    
+    // 4. Actualiza la oferta con los nuevos IDs
+    const newDocIds = Array.isArray(res.data) ? res.data.map(d => d._id) : [res.data._id]
+    const updatedDocuments = [...(data.FCTM_documents || []), ...newDocIds]
+    
+    const patchRes = await sendRequest("PATCH", { FCTM_documents: updatedDocuments }, `/joboffers/${id}`)
+    
+    if (patchRes.success) {
+      setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }))
+      setFiles([])
+      fetchJobOffer()
+    }
+  } else {
+    showAlert(res.message, "error")
   }
 }
 
