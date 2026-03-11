@@ -19,14 +19,25 @@ import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
 import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
-import VerifyEmailPage from '../views/Dummy/VerifyEmailPage'
+import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
+import ShowAdmin from '../views/Administrators/ShowAdmin'
+
+import Login from '../views/Auth/Login'
+import PasswordSetup from '../views/Auth/PasswordSetup'
 
 // Importa más vistas...
 
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+
+      <Route path="/dashboard" element={<Home />} />
+
+      {/* Rutas de autenticación */}
+      <Route path="/" element={<Login />} />
+      <Route path="/auth/password-setup" element={<PasswordSetup />} />
+
+
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
       <Route path="/joboffers" element={<ListJobOffers />} />
@@ -34,6 +45,7 @@ export default function AppRouter() {
       <Route path="/joboffers/:id" element={<ShowJobOffer />} />
       <Route path="/companies" element={<ListCompanies />} />
       <Route path="/companies/:id" element={<ShowCompany />} />
+      <Route path="/administrators/:id" element={<ShowAdmin />} />
 
       <Route path="/students" element={<ListStudents />} />
       <Route path="/students/:id" element={<ShowStudent />} />

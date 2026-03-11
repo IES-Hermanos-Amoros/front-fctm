@@ -14,6 +14,10 @@ import MainDashboard from './components/MainDashboard';
 import Footer from './components/Footer';
 import BackToTop from './components/BackToTop';
 
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import PrivateLayout from './layouts/PrivateLayout';
+
+
 function App() {
   return (
   <>

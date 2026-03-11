@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 
 import ShowHeader from '../../components/Show/ShowHeader'
@@ -55,6 +55,9 @@ const normalizeJobOfferDates = jobOffer => {
 const ShowJobOffer = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+  const companyId = location.state?.companyId || null
+  const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
 
   //ENUM STORE
   const cargarEnums = useEnumStore((state) => state.cargarEnums)
@@ -129,7 +132,7 @@ const ShowJobOffer = () => {
     <section className="dashboard section">
       <ShowHeader
         title={`Ficha de ${data?.FCTM_job_title || 'JobOffer'}`}
-        onBack={() => navigate('/joboffers')}
+        onBack={() => navigate(returnPath)}
       />
 
       <ShowEditableForm

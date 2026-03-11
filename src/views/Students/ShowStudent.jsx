@@ -27,6 +27,7 @@ const SAO_fields = [
   { key: "SAO_student_visibleCompanies", label: "Student visible companies", type: "text" }
 ]
 
+
 //CAROLINA
 const FCTM_fields = [
   { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
@@ -114,6 +115,46 @@ const ShowStudent = () => {
       setIsEditing(false)
     }
 
+    const [selectedFile, setSelectedFile] = useState(null);
+
+    //AINHOA
+    const handleFileUpload = async () => {
+      if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
+
+      const formData = new FormData();
+      // El backend espera 'documents' para el array de archivos
+      formData.append("documents", selectedFile); 
+
+      // El 'true' al final es vital para que sendRequest envíe el archivo correctamente
+      const res = await sendRequest("POST", formData, `/students/${id}/documents`, true);
+
+      if (res.success) {
+        showAlert("CV subido con éxito", "success");
+        setSelectedFile(null);
+        fetchStudent(); 
+      }
+    };
+
+    // AITANA
+    const handleDeleteDocument = async (docId) => {
+      // Usamos el showAlert que ya tenéis importado para el confirm
+      const result = await showAlert("¿Estás seguro de que quieres eliminar este CV?", "question", {
+        showCancelButton: true,
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+      });
+
+      if (result.isConfirmed) {
+        const res = await sendRequest("DELETE", null, `/students/${id}/documents/${docId}`);
+        if (res.success) {
+          showAlert("Documento eliminado correctamente", "success");
+          fetchStudent(); // Recargamos los datos para que desaparezca de la tabla
+        } else {
+          showAlert(res.message, "error");
+        }
+      }
+    };
+
     useEffect(() => {
       fetchStudent()
     }, [fetchStudent])
@@ -164,6 +205,73 @@ const ShowStudent = () => {
             onChange={handleChange}
           />
 
+          {/* AINHOA: Adjuntar currículum vitae */}
+          {isEditing && (
+            <div className="mt-3 p-4 bg-white border rounded shadow-sm">
+              <label className="form-label fw-bold">Adjuntar Currículum Vitae</label>
+              <div className="d-flex gap-2">
+                <input 
+                  type="file" 
+                  className="form-control" 
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                />
+                <button 
+                  type="button" 
+                  className="btn-editar" 
+                  onClick={handleFileUpload}
+                >
+                  Adjuntar CV
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* SECCIÓN DE AITANA: Tabla de documentos */}
+          <div className="mt-4 p-4 bg-white border rounded shadow-sm">
+            <h3 className="mb-3">Currículums Vitae Adjuntos</h3>
+            <div className="table-responsive">
+              <table className="table table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Fecha</th>
+                    <th>Descarga</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.FCTM_documents && data.FCTM_documents.length > 0 ? (
+                    data.FCTM_documents
+                      .sort((a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date))
+                      .map((doc) => (
+                        <tr key={doc._id}>
+                          <td>{doc.FCTM_document_name}</td>
+                          <td>{doc.FCTM_document_type}</td>
+                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td> {/* Fecha antes */}
+                          <td>
+                            <a href={doc.FCTM_document_url} target="_blank" rel="noreferrer" className="text-primary">
+                              Descarga
+                            </a>
+                          </td>
+                          <td>
+                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDocument(doc._id)}>
+                              Eliminar
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="text-center text-muted">
+                        No hay currículums disponibles.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </section>
     </div>
   )

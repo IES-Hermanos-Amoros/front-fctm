@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
@@ -43,12 +43,17 @@ const NewJobOffer = () => {
       optionLabel: 'nombre',
     },
   ]
+  const location = useLocation()
+  const companyId = location.state?.companyId || null
+  const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
+
+  const today = new Date().toISOString().split("T")[0]
 
   const [data, setData] = useState({
     FCTM_job_title: '',
     FCTM_job_description: '',
     FCTM_job_requirements: '',
-    FCTM_job_start_date: '',
+    FCTM_job_start_date: today,
     FCTM_job_end_date: '',
     FCTM_job_observations: '',
     FCTM_job_salary: '',
@@ -70,7 +75,6 @@ const NewJobOffer = () => {
       !data.FCTM_job_title ||
       !data.FCTM_job_description ||
       !data.FCTM_job_start_date ||
-      !data.FCTM_job_end_date ||
       !data.FCTM_job_status
     ) {
       showAlert('Por favor, completa todos los campos obligatorios.', 'error')
@@ -82,9 +86,11 @@ const NewJobOffer = () => {
       return
     }
 
-    const res = await sendRequest('POST', data, '/joboffers')
+    //const res = await sendRequest('POST', data, '/joboffers')
+    const payload = companyId ? { ...data, companyId } : data
+    const res = await sendRequest('POST', payload, '/joboffers')
     if (res.success) {
-      navigate('/joboffers')
+      navigate(returnPath)
     } else {
       showAlert(res.message, 'error')
     }
@@ -94,7 +100,7 @@ const NewJobOffer = () => {
     <section className="dashboard section">
       <ShowHeader
         title="Nueva Oferta de Trabajo"
-        onBack={() => navigate('/joboffers')}
+        onBack={() => navigate(returnPath)}
       />
 
       <ShowEditableForm
@@ -105,7 +111,7 @@ const NewJobOffer = () => {
         isEditing={true}
         hideEditButton={true}
         onSave={handleSave}
-        onCancel={() => navigate('/joboffers')}
+        onCancel={() => navigate(returnPath)}
         onChange={handleChange}
       />
     </section>
