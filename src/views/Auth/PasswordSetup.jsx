@@ -1,17 +1,20 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { sendRequest, showAlert } from '../../utils/functions'
-import '../../components/card.css'
+import { sendRequest, showAlert, validateStrongPassword } from '../../utils/functions'
+import './auth.css'
 
 const PasswordSetup = () => {
   const location = useLocation()
   const navigate = useNavigate()
+
   const saoData = location.state?.saoData || {}
   const userIdMongo = location.state?.userIdMongo || null
-  // Prioridad: SAO_email > FCTM_contact_email > email
+
   const initialEmail =
     saoData.SAO_email || saoData.FCTM_contact_email || saoData.email || ''
+
   const [email, setEmail] = useState(initialEmail)
+  const [emailRep, setEmailRep] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [newPasswordRep, setNewPasswordRep] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,8 +22,13 @@ const PasswordSetup = () => {
   const handleSubmit = async e => {
     e.preventDefault()
 
-    if (!newPassword || !newPasswordRep || !email) {
+    if (!newPassword || !newPasswordRep || !email || !emailRep) {
       showAlert('Todos los campos son obligatorios', 'error')
+      return
+    }
+
+    if(!validateStrongPassword(newPassword)) {
+      showAlert('La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial', 'error')
       return
     }
 
@@ -29,22 +37,32 @@ const PasswordSetup = () => {
       return
     }
 
+    if (email !== emailRep) {
+      showAlert('Los emails no coinciden', 'error')
+      return
+    }
+
+    if(!userIdMongo) {
+      showAlert('Error: No se ha podido identificar al usuario. Por favor, inicia sesión de nuevo.', 'error')
+      navigate('/')
+      return
+    }
+
     setLoading(true)
 
     const res = await sendRequest(
       'POST',
       {
-        userId: userIdMongo,//saoData.SAO_id,
+        userId: userIdMongo,
         newPassword,
         newPasswordRep,
         email,
+        emailRep
       },
       '/auth/complete-first-login'
     )
 
     setLoading(false)
-
-    //console.log(res)
 
     if (res.success && res.data?.status === 'SUCCESS') {
       showAlert('Contraseña actualizada correctamente', 'success')
@@ -55,53 +73,97 @@ const PasswordSetup = () => {
     ) {
       showAlert(res.data.err, 'error')
     } else {
-      //showAlert(res.message || 'Error al actualizar contraseña', 'error')
       showAlert(res.message || 'Error al actualizar contraseña', 'success')
     }
   }
 
   return (
-    <div className="card login-card">
-      <form onSubmit={handleSubmit} className="card-body">
-        <h2 className="card-title">Configurar nueva contraseña</h2>
-        <div className="form-group">
-          <label>Nueva contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            value={newPassword}
-            onChange={e => setNewPassword(e.target.value)}
-            required
-          />
+    <div className="auth-wrapper">
+
+      <div className="card auth-card">
+
+        <div className="auth-header">
+          <i className="bi bi-key auth-logo"></i>
+          <h2 className="auth-title">Completar Registro</h2>
         </div>
-        <div className="form-group">
-          <label>Repetir contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            value={newPasswordRep}
-            onChange={e => setNewPasswordRep(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Email de contacto</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="btn btn-primary btn-block"
-          disabled={loading}
-        >
-          {loading ? 'Guardando...' : 'Guardar'}
-        </button>
-      </form>
+
+        <form onSubmit={handleSubmit} className="auth-body">
+
+          <div className="auth-group">
+            <label>Nueva contraseña</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-lock auth-input-icon"></i>
+
+              <input
+                type="password"
+                className="auth-input"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="auth-group">
+            <label>Repetir contraseña</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-shield-lock auth-input-icon"></i>
+              <input
+                type="password"
+                className="auth-input"
+                value={newPasswordRep}
+                onChange={e => setNewPasswordRep(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="auth-group">
+            <label>Email de contacto</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-envelope auth-input-icon"></i>
+
+              <input
+                type="email"
+                className="auth-input"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="auth-group">
+            <label>Repetir Email</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-shield-lock auth-input-icon"></i>
+
+              <input
+                type="email"
+                className="auth-input"
+                value={emailRep}
+                onChange={e => setEmailRep(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="auth-btn"
+            disabled={loading}
+          >
+            {loading ? 'Guardando...' : 'Guardar'}
+          </button>
+
+        </form>
+
+      </div>
+
     </div>
   )
 }

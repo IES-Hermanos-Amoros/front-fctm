@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sendRequest } from '../../utils/functions';
-import axios from 'axios'
+import './auth.css';
 
 const VerifyEmailPage = () => {
   const { emailToken } = useParams();
@@ -37,22 +37,34 @@ const VerifyEmailPage = () => {
   }, [emailToken, navigate]);
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '100px' }}>
-      {status === 'loading' && <p>⏳ Verificando tu correo...</p>}
-      {status === 'success' && (
-        <>
-          <h2>✅ Correo verificado</h2>
-          <p>{message}</p>
-          <p>Redirigiendo al login...</p>
-        </>
-      )}
-      {status === 'error' && (
-        <>
-          <h2>❌ Error</h2>
-          <p>{message}</p>
-          <p>Por favor, intenta de nuevo o contacta con soporte.</p>
-        </>
-      )}
+    <div className="auth-wrapper">
+
+      <div className="card auth-card auth-verify-card">
+
+        {status === 'loading' && (
+          <div className="auth-body auth-center">
+            <p className="auth-loading">⏳ Verificando tu correo...</p>
+          </div>
+        )}
+
+        {status === 'success' && (
+          <div className="auth-body auth-center">
+            <h2 className="auth-title">Correo verificado ✅</h2>
+            <p className="auth-message">{message}</p>
+            <p className="auth-note">Redirigiendo al login...</p>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div className="auth-body auth-center">
+            <h2 className="auth-title">Error ❌</h2>
+            <p className="auth-message">{message}</p>
+            <p className="auth-note">Por favor, intenta de nuevo o contacta con soporte.</p>
+          </div>
+        )}
+
+      </div>
+
     </div>
   );
 };

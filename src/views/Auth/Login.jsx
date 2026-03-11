@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
-import '../../components/card.css'
+import './auth.css'
 
 const Login = () => {
   const [username, setUsername] = useState('')
@@ -15,7 +15,6 @@ const Login = () => {
     if (!username || !password) {
       console.log('NO HAY USERNAME O PASSWORD')
       showAlert('Por favor, rellene todos los campos', 'error')
-
       return
     }
 
@@ -23,7 +22,7 @@ const Login = () => {
 
     const res = await sendRequest('POST', { username, password }, '/auth/login')
 
-    console.log("res data de auth/login: ", res.data)
+    console.log('res data de auth/login: ', res.data)
 
     if (res.success && res.data?.status === 'SUCCESS') {
       console.log('TODO HA IDO GENIAL')
@@ -43,6 +42,7 @@ const Login = () => {
       console.log(
         'EL LOGIN ES CORRECTO, PERO HAY QUE REGISTRARSE POR PRIMERA VEZ'
       )
+
       const saoRes = await sendRequest(
         'POST',
         { username, password },
@@ -51,9 +51,7 @@ const Login = () => {
 
       if (!saoRes.success) {
         setLoading(false)
-
         showAlert(saoRes.message || 'Error autenticando con SAO', 'error')
-
         return
       }
 
@@ -66,9 +64,7 @@ const Login = () => {
 
         if (!regRes.success) {
           setLoading(false)
-
           showAlert(regRes.message || 'Error registrando usuario', 'error')
-
           return
         }
 
@@ -82,9 +78,11 @@ const Login = () => {
       if (['SAO_REQUIRED', 'FIRST_LOGIN'].includes(res.data.status)) {
         setLoading(false)
 
-        //console.log("saoRes:", saoRes)
-        const userIdMongo = res.data.userId;
-        navigate('/auth/password-setup', { state: { saoData: saoRes.data, userIdMongo } })
+        const userIdMongo = res.data.userId
+
+        navigate('/auth/password-setup', {
+          state: { saoData: saoRes.data, userIdMongo },
+        })
 
         return
       }
@@ -96,41 +94,69 @@ const Login = () => {
   }
 
   return (
-    <div className="card login-card">
-      <form onSubmit={handleSubmit} className="card-body">
-        <h2 className="card-title">Iniciar sesión</h2>
-        <div className="form-group">
-          <label>Usuario</label>
-          <input
-            type="text"
-            className="form-control"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            required
-          />
+    <div className="auth-wrapper">
+
+      <div className="card auth-card">
+
+        <div className="auth-header">
+          <i className="bi bi-shield-lock auth-logo"></i>
+          <h2 className="auth-title">Acceso FCT Manager</h2>
         </div>
-        <div className="form-group">
-          <label>Contraseña</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="btn btn-primary btn-block"
-          disabled={loading}
-        >
-          {loading ? 'Entrando...' : 'Entrar'}
-        </button>
-        <p className="mt-3 text-muted" style={{ fontSize: '0.95em' }}>
-          Si es la primera vez que accede, deberá autenticarse con sus
-          credenciales de SAO FCT
-        </p>
-      </form>
+
+        <form onSubmit={handleSubmit} className="auth-body">
+
+          <div className="auth-group">
+            <label>Usuario</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-person auth-input-icon"></i>
+
+              <input
+                type="text"
+                className="auth-input"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="auth-group">
+            <label>Contraseña</label>
+
+            <div className="auth-input-group">
+              <i className="bi bi-lock auth-input-icon"></i>
+
+              <input
+                type="password"
+                className="auth-input"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="auth-btn"
+            disabled={loading}
+          >
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+
+          <div className="auth-links">
+            <a href="#">¿Olvidaste la contraseña?</a>
+          </div>
+
+          <p className="auth-footer">
+            Si es la primera vez que accede, deberá autenticarse con sus credenciales de SAO FCT
+          </p>
+
+        </form>
+
+      </div>
+
     </div>
   )
 }

@@ -498,3 +498,10 @@ export const getBackendHost = () => {
     
     return `${protocol}${host}`;
 };
+
+export const validateStrongPassword = (password) => {
+  const strongPasswordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._\-#])[A-Za-z\d@$!%*?&._\-#]{8,}$/;
+
+  return strongPasswordRegex.test(password);
+};

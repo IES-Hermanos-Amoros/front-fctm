@@ -18,6 +18,9 @@ import BackToTop from './components/BackToTop';
 import useEnumStore from './store/enumStore';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from "./views/Auth/Login"
+import VerifyEmailPage from "./views/Auth/VerifyEmailPage"
+import PasswordSetup from "./views/Auth/PasswordSetup"
 import PrivateLayout from './layouts/PrivateLayout';
 
 
@@ -31,6 +34,21 @@ function App() {
   }, [cargarEnums]);
 
   return (
+      <Routes>
+
+        {/* RUTAS PUBLICAS */}
+        <Route path="/" element={<Login />} />
+        <Route path="/auth/password-setup" element={<PasswordSetup />} />
+        <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} /> 
+
+
+        {/* RUTAS PRIVADAS */}
+        <Route path="/*" element={<PrivateLayout />} />
+
+      </Routes>
+  )
+
+  /*return (
   <>
     <Header />
     <SideBar />
@@ -38,7 +56,7 @@ function App() {
     <Footer />
     <BackToTop />
   </>
-  );
+  );*/
 }
 
 export default App;

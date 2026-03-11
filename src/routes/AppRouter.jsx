@@ -34,8 +34,8 @@ export default function AppRouter() {
       <Route path="/dashboard" element={<Home />} />
 
       {/* Rutas de autenticación */}
-      <Route path="/" element={<Login />} />
-      <Route path="/auth/password-setup" element={<PasswordSetup />} />
+      {/*<Route path="/" element={<Login />} />
+      <Route path="/auth/password-setup" element={<PasswordSetup />} />*/}
 
 
       <Route path="/documents" element={<ListDocuments />} />
@@ -57,8 +57,6 @@ export default function AppRouter() {
       <Route path="/dummy" element={<ListDummy />} />
       <Route path="/dummy/new" element={<NewDummy />} />
       <Route path="/dummy/:id" element={<ShowDummy />} />
-
-      <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} /> 
 
       {/* Más rutas */}
       <Route path="*" element={<NotFound />} />
