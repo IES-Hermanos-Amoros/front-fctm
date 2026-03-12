@@ -39,6 +39,7 @@ function App() {
         {/* RUTAS PUBLICAS */}
         <Route path="/" element={<Login />} />
         <Route path="/auth/password-setup" element={<PasswordSetup />} />
+        <Route path="/verify-email-info" element={<VerifyEmailPage mensajeInformativo={true} />}/>
         <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} /> 
 
 

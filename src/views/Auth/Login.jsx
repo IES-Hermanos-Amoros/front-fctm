@@ -7,6 +7,7 @@ const Login = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [buttonText, setButtonText] = useState('Entrando...')
   const navigate = useNavigate()
 
   const handleSubmit = async e => {
@@ -58,6 +59,7 @@ const Login = () => {
         'EL LOGIN ES CORRECTO, PERO HAY QUE REGISTRARSE POR PRIMERA VEZ'
       )
 
+      setButtonText('Autenticando con SAO...')
       const saoRes = await sendRequest(
         'POST',
         { username, password },
@@ -71,6 +73,8 @@ const Login = () => {
       }
 
       if (res.data.status === 'SAO_NEWUSER_FCTM_REQUIRED') {
+        setButtonText('Insertando Usuario...')
+        console.log('REGISTRANDO USUARIO DESDE SAO... ', saoRes.data)
         const regRes = await sendRequest(
           'POST',
           saoRes.data,
@@ -83,9 +87,11 @@ const Login = () => {
           return
         }
 
+        const userIdMongo = regRes.data.userId
         setLoading(false)
 
-        navigate('/auth/password-setup', { state: { saoData: regRes.data } })
+        console.log('REGISTRO DESDE SAO COMPLETADO. REDIRIGIENDO A COMPLETAR PRIMER LOGIN... ', saoRes.data)
+        navigate('/auth/password-setup', { state: { saoData: saoRes.data, userIdMongo } })
 
         return
       }
@@ -157,7 +163,7 @@ const Login = () => {
             className="auth-btn"
             disabled={loading}
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? buttonText : 'Entrar'}
           </button>
 
           <div className="auth-links">

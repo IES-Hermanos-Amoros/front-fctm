@@ -34,7 +34,7 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
         res.message = response.data.msg ?? response.data.message ?? "Operación exitosa";
 
         if (method !== "GET" && res.message) {
-            showAlert(res.message, "success");
+            await showAlert(res.message, "success");
         }
 
         if (redir) {
@@ -247,7 +247,7 @@ export const sendRequestOLD = async(method,params,url,redir='',token=true)=>{
 
 export function showAlert(msg, iconImage, focusElem=""){
     const MySwal = withReactContent(Swal)
-    MySwal.fire({
+    return MySwal.fire({
         title:msg,
         icon:iconImage,
         buttonsStyling:true

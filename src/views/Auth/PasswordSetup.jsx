@@ -64,16 +64,9 @@ const PasswordSetup = () => {
 
     setLoading(false)
 
-    if (res.success && res.data?.status === 'SUCCESS') {
-      showAlert('Contraseña actualizada correctamente', 'success')
-      navigate('/')
-    } else if (
-      res.data.err ===
-      'La contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial'
-    ) {
-      showAlert(res.data.err, 'error')
-    } else {
-      showAlert(res.message || 'Error al actualizar contraseña', 'success')
+    if (res.data?.status === 'EMAIL_VERIFICATION_REQUIRED') {
+      //showAlert('Contraseña actualizada correctamente', 'success')
+      navigate('/verify-email-info')
     }
   }
 
