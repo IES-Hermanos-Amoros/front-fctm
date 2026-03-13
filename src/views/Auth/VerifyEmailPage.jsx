@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { sendRequest } from '../../utils/functions';
 import './auth.css';
 
 const VerifyEmailPage = ({ mensajeInformativo = false }) => {
   const { emailToken } = useParams();
+  const location = useLocation()
   const navigate = useNavigate();
 
   const [status, setStatus] = useState('loading'); // loading | success | error | info
   const [message, setMessage] = useState('');
+
+  const emailContacto = location.state?.emailContacto || ""
 
   useEffect(() => {
 
@@ -16,7 +19,7 @@ const VerifyEmailPage = ({ mensajeInformativo = false }) => {
     if (mensajeInformativo) {
       setStatus('info');
       setMessage(
-        'Se ha enviado un correo a su email de contacto recién configurado para completar la validación del registro.\nA continuación, por favor revise su bandeja de entrada y siga las instrucciones del correo para verificar su email.'
+        `Se ha enviado un correo a su email de contacto recién configurado (${emailContacto}) para completar la validación del registro.\nA continuación, por favor revise su bandeja de entrada y siga las instrucciones del correo para verificar su email.`
       );
       return;
     }

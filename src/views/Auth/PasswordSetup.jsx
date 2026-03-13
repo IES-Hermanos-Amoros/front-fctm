@@ -66,7 +66,7 @@ const PasswordSetup = () => {
 
     if (res.data?.status === 'EMAIL_VERIFICATION_REQUIRED') {
       //showAlert('Contraseña actualizada correctamente', 'success')
-      navigate('/verify-email-info')
+      navigate('/verify-email-info', { state: { emailContacto: email } })
     }
   }
 
