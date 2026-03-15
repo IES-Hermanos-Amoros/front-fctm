@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest } from '../../utils/functions';
+import { sendRequest,stringToColor } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ReactTableTanstack from '../../components/ReactTableTanstack';
 
@@ -16,7 +16,7 @@ const ListCompanies = () => {
         { key: 'SAO_name', encabezado: 'Nombre' },
         { key: 'SAO_company_FCT_Number', encabezado: 'Nº Convenio FE' },
         { key: 'SAO_company_city', encabezado: 'Localidad' },
-        {
+        /*{
             key: 'FCTM_company_category',
             encabezado: 'Familia',
             render: row => {
@@ -34,7 +34,41 @@ const ListCompanies = () => {
                 // Si no hay familia
                 return 'Sin familia';
             }
-        },
+        },*/
+        { key: "FCTM_company_category",
+              encabezado: "Familias Profesionales",
+              // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
+              accessorFn: (row) => 
+                row.FCTM_company_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
+              
+              // Esta función le dice a la tabla qué PINTAR en pantalla (tus chips)
+              render: (row) => (
+                <div className="d-flex flex-wrap gap-1">
+                  {row.FCTM_company_category?.length > 0 ? (
+                    row.FCTM_company_category.map((cat) => {
+                      // Generamos el color basado en el nombre de la categoría
+                      const bgColor = stringToColor(cat.FCTM_category_name);
+                      
+                      return (
+                        <span 
+                          key={cat._id} 
+                          className="badge rounded-pill text-dark" // Quitamos bg-info
+                          style={{ 
+                            backgroundColor: bgColor, // Color dinámico
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          {cat.FCTM_category_name}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="text-muted small">Sin categorías</span>
+                  )}
+                </div>
+              )
+            },
         // Columna de acción (ver ficha)
         {
             key: "__show",
