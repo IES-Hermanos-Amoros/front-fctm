@@ -245,7 +245,7 @@ export const sendRequestOLD = async(method,params,url,redir='',token=true)=>{
 }
 
 
-export function showAlert(msg, iconImage, focusElem=""){
+export function showAlertOLD(msg, iconImage, focusElem=""){
     const MySwal = withReactContent(Swal)
     return MySwal.fire({
         title:msg,
@@ -254,8 +254,29 @@ export function showAlert(msg, iconImage, focusElem=""){
     })
 }
 
+export function showAlert(msg, icon = "success") {
 
-export const confirmation = async (title = "¿Seguro que quieres eliminar este dato?") => {
+    const MySwal = withReactContent(Swal)
+
+    return MySwal.fire({
+
+        title: msg,
+        icon,
+
+        confirmButtonText: "Aceptar",
+
+        buttonsStyling: false,
+
+        customClass: {
+            popup: "fctm-modal",
+            confirmButton: "fctm-btn"
+        }
+
+    })
+}
+
+
+export const confirmationOLD = async (title = "¿Seguro que quieres eliminar este dato?") => {
   const alert = Swal.mixin({ buttonsStyling: true });
 
   const result = await alert.fire({
@@ -269,19 +290,31 @@ export const confirmation = async (title = "¿Seguro que quieres eliminar este d
   return result.isConfirmed; // 👉 DEVUELVE true o false
 };
 
-export const confirmationOLD = async(name,url,redir)=>{
-    const alert= Swal.mixin({buttonsStyling:true})
-    alert.fire({
-        title:"Seguro que desea eliminar '" + name + "'?",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonText: '<i class="fa-solid fa-check"></i> Sí, elminar',
-        cancelButtonText: '<i class="fa-solid fa-ban"></i> Cancelar'
-    }).then((result)=>{
-        if(result.isConfirmed){
-            sendRequest("DELETE",{},url,redir)
-        }
-    })
+export const confirmation = async (
+  title = "¿Seguro que quieres eliminar este dato?"
+) => {
+
+  const result = await Swal.fire({
+
+    title,
+    icon: "question",
+
+    showCancelButton: true,
+
+    confirmButtonText: "Aceptar",
+    cancelButtonText: "Cancelar",
+
+    buttonsStyling: false,
+
+    customClass: {
+      popup: "fctm-modal",
+      confirmButton: "fctm-btn",
+      cancelButton: "fctm-btn-cancel"
+    }
+
+  })
+
+  return result.isConfirmed
 }
 
 /**
