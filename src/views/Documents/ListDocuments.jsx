@@ -132,13 +132,13 @@ const ListDocuments = () => {
 
   return (
     <section className='dashboard section'>
-      <div className="row mb-3">
+      {/*<div className="row mb-3">
         <div className="col-12">
           <button className="btn btn-success" onClick={crearDocumento}>
             Añadir Documento
           </button>
         </div>
-      </div>
+      </div>*/}
 
       <div className="row">
         <div className="col-12">
@@ -150,7 +150,7 @@ const ListDocuments = () => {
               datos={documentos}
               columnas={colDocumentos}
               mobileMode = "card"
-              mostrarCheckBox = {true}
+              mostrarCheckBox = {false}
             />
           )}
         </div>

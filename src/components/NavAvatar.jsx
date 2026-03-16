@@ -1,7 +1,18 @@
 import React from 'react';
 import profileImg from '../images/user.jpg'
+import { useNavigate } from 'react-router-dom';
 
 function NavAvatar() {
+  const navigate = useNavigate();
+
+  const goProfile = () => {
+    navigate("/administrators/69aebd4c4c4a0e60d9d0d2d4")
+  }
+
+  const logout = () => {
+    navigate("/")
+  }
+
   return (
     <li className="nav-item dropdown pe-3">
         <a
@@ -10,30 +21,31 @@ function NavAvatar() {
             data-bs-toggle="dropdown"
         >
             <img src={profileImg} alt="Profile" className="rounded-circle" />
-            <span className="d-none d-lg-block dropdown-toggle ps-2">HA</span>
+            <span className="d-none d-lg-block dropdown-toggle ps-2">Username</span>
         </a>
 
         <ul className="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li className="dropdown-header">
-                <h6>HA</h6>
-                <span>IT Student</span>
+                <h6>Username</h6>
+                <span>Profile</span>
             </li>
             <li>
                 <hr className="dropdown-divider" />
             </li>
             <li>
-                <a
+                <button
                     className="dropdown-item d-flex align-items-center"
-                    href="users-profile.html"
+                    onClick={goProfile}
                 >
                     <i className="bi bi-person"></i>
-                    <span>My Profile</span>
-                </a>
-            </li>
+                    <span>Perfil</span>
+                </button>
+
+                </li>
             <li>
                 <hr className="dropdown-divider" />
             </li>
-            <li>
+            {/*<li>
                 <a
                     className="dropdown-item d-flex align-items-center"
                     href="users-profile.html"
@@ -57,12 +69,15 @@ function NavAvatar() {
             </li>
             <li>
                 <hr className="dropdown-divider" />
-            </li>
+            </li>*/}
             <li>
-                <a className="dropdown-item d-flex align-items-center" href="#">
+                <button
+                    className="dropdown-item d-flex align-items-center"
+                    onClick={logout}
+                >
                     <i className="bi bi-box-arrow-right"></i>
                     <span>Sign Out</span>
-                </a>
+                </button>
             </li>
         </ul>
     </li>

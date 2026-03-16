@@ -65,14 +65,14 @@ const columnas = useMemo(
         render: row => (
           <button
             className="btn btn-sm btn-outline-primary"
-            onClick={() => navigate(`/jobOffers/${row._id}`)}
+            onClick={() => navigate(`/jobOffers/${row._id}`, { state: { readOnly: true } })}
           >
             <i className="bi bi-search"></i>
           </button>
         ),
       },
 
-      {
+      /*{
         key: '__delete',
         encabezado: 'Eliminar',
         render: row => (
@@ -83,7 +83,7 @@ const columnas = useMemo(
             <i className="bi bi-trash"></i>
           </button>
         ),
-      },
+      },*/
     ],
     [navigate]
   );
@@ -134,12 +134,12 @@ const columnas = useMemo(
               columnas={columnas}       
         >
           {/* Botón de acción que ListCRUD recibe como children */}
-          <button
+          {/*<button
             className="btn btn-success mb-3"
             onClick={() => navigate('/jobOffers/new')}
           >
             Nueva Oferta
-          </button>
+          </button>*/}
 
          
         </ListCRUD>

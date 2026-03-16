@@ -458,3 +458,86 @@ h6 {
   color: var(--text-color) !important;
 
 }
+
+/* =========================
+PROFILE DROPDOWN APPLE STYLE
+========================= */
+
+.dropdown-menu.profile {
+
+  background: var(--card-bg);
+
+  border-radius: 10px;
+
+  border: 1px solid var(--bs-border-color);
+
+  box-shadow: 0 10px 25px rgba(1, 41, 112, 0.15);
+
+  padding: 8px 0;
+
+  min-width: 220px;
+
+}
+
+
+/* items */
+
+.dropdown-menu.profile .dropdown-item {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 8px 14px;
+
+  color: var(--text-color) !important;
+
+  border-radius: 6px;
+
+  transition: 0.15s;
+
+}
+
+
+/* HOVER FIX DEFINITIVO */
+
+.dropdown-menu.profile .dropdown-item:hover,
+.dropdown-menu.profile .dropdown-item:focus {
+
+  background: var(--primary) !important;
+
+  color: white !important;
+
+}
+
+
+/* icon */
+
+.dropdown-menu.profile .dropdown-item i {
+
+  font-size: 16px;
+
+}
+
+
+
+/* DARK MODE */
+
+[data-bs-theme="dark"] .dropdown-menu.profile {
+
+  background: var(--card-bg);
+
+  border: 1px solid var(--bs-border-color);
+
+}
+
+
+[data-bs-theme="dark"] .dropdown-menu.profile .dropdown-item:hover {
+
+  background: var(--primary) !important;
+
+  color: white !important;
+
+}

@@ -11,7 +11,7 @@ function Header() {
       {/* {logo} */}
       <Logo />
       {/* {search bar) */}
-      <SearchBar />
+      {/*<SearchBar />*/}
       {/* {nav} */}
       <Nav />
       {/* {dark mode} */}

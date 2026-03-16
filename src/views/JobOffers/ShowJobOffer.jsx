@@ -56,6 +56,7 @@ const ShowJobOffer = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
+  const readOnly = location.state?.readOnly || false
   const companyId = location.state?.companyId || null
   const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
 
@@ -105,7 +106,8 @@ const ShowJobOffer = () => {
         encabezado: 'Fecha ',
         render: (row) => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
     },
-    { 
+    // Solo mostrar botón eliminar si readOnly es false
+    ...(!readOnly ? [{
       key: '__delete', 
       encabezado: 'Eliminar',
       render: row => (
@@ -116,8 +118,8 @@ const ShowJobOffer = () => {
         >
           <i className="bi bi-trash"></i>
         </button>
-      ),
-    }
+      )
+    }] : [])
   ]
 
   const fetchJobOffer = useCallback(async () => {
@@ -352,14 +354,15 @@ const handleUploadDocs = async () => {
         formId="ftcmForm"
         data={data}
         fields={jobOfferFields}
-        isEditing={isEditing}
+        isEditing={isEditing && !readOnly}   // si readOnly, nunca permitir editar
         onEdit={() => setIsEditing(true)}
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={readOnly}  // Si readOnly es true, ocultamos el botón de editar
       />
 
-      {isEditing && (
+      {isEditing && !readOnly && (
         <div className="card p-3 mt-3">
 
           <h5>Adjuntar Documentos</h5>
