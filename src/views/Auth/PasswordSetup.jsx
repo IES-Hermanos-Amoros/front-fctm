@@ -1,7 +1,8 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { sendRequest, showAlert, validateStrongPassword } from '../../utils/functions'
-import './auth.css'
+//import "../../styles/auth.css"
+
 
 const PasswordSetup = () => {
   const location = useLocation()

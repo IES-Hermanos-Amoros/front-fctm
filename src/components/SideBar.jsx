@@ -15,7 +15,7 @@ return (
                 </a>
             </li>*/}
 
-            <li className='nav-heading'>FCT Manager</li>
+            <li className='nav-heading'>F.E. Manager</li>
                 {navList.map(nav=>(
                     <NavItem key={nav._id} nav={nav}/>
                 ))}

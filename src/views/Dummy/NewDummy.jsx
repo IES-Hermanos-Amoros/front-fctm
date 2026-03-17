@@ -123,7 +123,7 @@ const NewDummy = () => {
       />
 
       <ShowEditableForm
-        formTitle="Información FCT Manager"
+        formTitle="Información F.E. Manager"
         formId="fctmForm"
         data={data}
         fields={FCTM_fields}

@@ -9,12 +9,10 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
 
-import './App.css';
-import Header from './components/Header';
-import SideBar from './components/SideBar';
-import MainDashboard from './components/MainDashboard';
-import Footer from './components/Footer';
-import BackToTop from './components/BackToTop';
+
+//import './App.css';
+import './styles/app.css'
+
 import useEnumStore from './store/enumStore';
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';

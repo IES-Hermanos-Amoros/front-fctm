@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
-import './auth.css'
+//import "../../styles/auth.css"
 
 const Login = () => {
   const [username, setUsername] = useState('')
@@ -121,7 +121,7 @@ const Login = () => {
 
         <div className="auth-header">
           <i className="bi bi-shield-lock auth-logo"></i>
-          <h2 className="auth-title">Acceso FCT Manager</h2>
+          <h2 className="auth-title">Acceso F.E. Manager</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-body">

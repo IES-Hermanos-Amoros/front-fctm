@@ -189,3 +189,78 @@
   }
 
 }
+
+
+/* ============================= */
+/* DARK MODE AUTH */
+/* ============================= */
+[data-bs-theme='dark'] .auth-wrapper {
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--second) 100%
+  );
+}
+
+[data-bs-theme='dark'] .auth-card {
+  background: var(--card-bg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+  border: none;
+}
+
+[data-bs-theme='dark'] .auth-logo,
+[data-bs-theme='dark'] .auth-title {
+  color: var(--second);
+}
+
+[data-bs-theme='dark'] .auth-body {
+  color: var(--text-color);
+}
+
+[data-bs-theme='dark'] .auth-group label {
+  color: var(--text-color);
+}
+
+[data-bs-theme='dark'] .auth-input {
+  background: var(--bgcolor);
+  color: var(--text-color);
+  border: 1px solid var(--bs-border-color);
+}
+
+[data-bs-theme='dark'] .auth-input:focus {
+  border-color: var(--second);
+  box-shadow: 0 0 0 2px rgba(113,127,245,0.3);
+}
+
+[data-bs-theme='dark'] .auth-btn {
+  background: var(--second);
+  color: #fff;
+}
+
+[data-bs-theme='dark'] .auth-btn:hover {
+  background: var(--primary);
+}
+
+[data-bs-theme='dark'] .auth-links a {
+  color: var(--second);
+}
+
+[data-bs-theme='dark'] .auth-links a:hover {
+  color: var(--primary);
+}
+
+[data-bs-theme='dark'] .auth-footer {
+  color: #aab7cf;
+}
+
+[data-bs-theme='dark'] .auth-status {
+  color: var(--text-color);
+}
+
+[data-bs-theme='dark'] .auth-success {
+  color: #2ecc71;
+}
+
+[data-bs-theme='dark'] .auth-error {
+  color: #e74c3c;
+}

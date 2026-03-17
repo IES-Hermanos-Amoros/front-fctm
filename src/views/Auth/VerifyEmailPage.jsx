@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { sendRequest } from '../../utils/functions';
-import './auth.css';
+//import "../../styles/auth.css"
+
 
 const VerifyEmailPage = ({ mensajeInformativo = false }) => {
   const { emailToken } = useParams();

@@ -1,0 +1,31 @@
+.fctm-modal {
+  background: var(--card-bg) !important;
+  color: var(--text-color) !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--bs-border-color) !important;
+  padding: 20px !important;
+  animation: fctmFadeIn 0.25s ease;
+}
+
+.fctm-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.fctm-btn:hover {
+  background: var(--second);
+}
+
+.fctm-btn-cancel {
+  background: #6c757d;
+  color: #fff;
+}
+
+.fctm-btn-cancel:hover {
+  background: #5a6268;
+}
