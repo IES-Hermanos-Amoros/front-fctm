@@ -1,31 +1,32 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { sendRequest } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
-import ReactTableTanstack from '../../components/ReactTableTanstack'
+import ListCRUD from '../../components/List/ListCRUD'
+
 
 const ListStudents = () => {
 
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const navigate = useNavigate()
 
-  const fetchData = async () => {
-    setLoading(true)
+    // Fetch de alumnos
+  const fetchData = useCallback(async () => {
+      setLoading(true);
+      setError(null);
+      try {
+          const res = await sendRequest('GET', null, '/students');
+          if (res.success) setStudents(res.data);
+          else setError(res.message || 'Error al cargar alumnos');
+      } catch (err) {
+          setError(err.message || 'Error al cargar alumnos');
+      } finally {
+          setLoading(false);
+      }
+  }, []);
 
-    const res = await sendRequest("GET", null, "/students/")
-
-    setLoading(false)
-
-    if (res.success) {
-      setStudents(res.data)
-    } else {
-      console.error("Error al cargar alumnos:", res.message)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [])
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const colStudents = [
     { key: "SAO_username", encabezado: "NIA" },
@@ -51,26 +52,22 @@ const ListStudents = () => {
   }
 
   return (
-    <section className='dashboard section'>
-
-      <div className="row">
-        <div className="col-12">
-          {loading ? (
-            <p>Cargando alumnos...</p>
-          ) : (
-            <ReactTableTanstack
-              tableTitle='Listado de Alumnos'
-              datos={students}
-              columnas={colStudents}
-              mobileMode="card"
-              mostrarCheckBox={false}  
-            />
-            
-          )}
-        </div>
-      </div>
-
-    </section>
+    <>            
+            {loading && <p>Cargando alumnos...</p>}
+            {!loading && error && <p className="text-danger">{error}</p>}
+            {!loading && !error && students.length === 0 && (
+                <p className="text-muted">No hay alumno disponibles</p>
+            )}
+            {!loading && !error && students.length > 0 && (                
+                <ListCRUD
+                  title="Listado de Alumnos"
+                  datos={students}
+                  columnas={colStudents}
+                  tableId="alumnos"                          
+                >                          
+                </ListCRUD>
+            )}
+        </>
   )
 }
 

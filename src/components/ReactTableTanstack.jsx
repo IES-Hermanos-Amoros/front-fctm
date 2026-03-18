@@ -29,6 +29,10 @@ const ReactTableTanstack = ({
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  /*useEffect(() => {
+    console.log('Estado de selectedIds actualizado:', Array.from(selectedIds))
+  }, [selectedIds])*/
+
   const toggleRow = id =>
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
 
@@ -37,6 +41,9 @@ const ReactTableTanstack = ({
       const newSet = new Set(prev)
       if (newSet.has(id)) newSet.delete(id)
       else newSet.add(id)
+
+      console.log("IDs seleccionados actualmente:", [...newSet])
+
       if (onSelectionChange) onSelectionChange([...newSet])
       return newSet
     })

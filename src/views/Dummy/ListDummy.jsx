@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest, confirmation, showAlert, stringToColor } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
-import ReactTableTanstack from '../../components/ReactTableTanstack';
-import ListCRUD from "../../components/List/ListCRUD"
+import ListCRUD from "../../components/List/ListCRUD";
 
 const ListDummy = () => {
-  const [data, setData] = useState([]); // Datos de la tabla
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const navigate = useNavigate();
 
   // =======================
@@ -22,34 +20,30 @@ const ListDummy = () => {
     { key: "FCTM_dummy_observations", encabezado: "Observaciones" },
     { key: "FCTM_dummy_other_contact", encabezado: "Otro Contacto" },
     { key: "FCTM_dummy_description", encabezado: "Descripción" },
-    { key: "FCTM_dummy_type", encabezado: "Tipo de Dato" },
-    { key: "FCTM_category",
+    {
+      key: "FCTM_dummy_type",
+      encabezado: "Tipo de Dato",
+      filterType: "select",
+      filterOptions: ["A", "B", "C"],
+    },
+    {
+      key: "FCTM_category",
       encabezado: "Familias Profesionales",
-      // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
-      accessorFn: (row) => 
-        row.FCTM_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
-      
-      // Esta función le dice a la tabla qué PINTAR en pantalla (tus chips)
-      render: (row) => (
+      accessorFn: row => row.FCTM_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
+      render: row => (
         <div className="d-flex flex-wrap gap-1">
           {row.FCTM_category?.length > 0 ? (
             row.FCTM_category.map((cat) => {
-              // Generamos el color basado en el nombre de la categoría
               const bgColor = stringToColor(cat.FCTM_category_name);
-              
               return (
-                <span 
-                  key={cat._id} 
-                  className="badge rounded-pill text-dark" // Quitamos bg-info
-                  style={{ 
-                    backgroundColor: bgColor, // Color dinámico
-                    border: '1px solid rgba(0,0,0,0.1)',
-                    fontSize: '0.75rem'
-                  }}
+                <span
+                  key={cat._id}
+                  className="badge rounded-pill text-dark"
+                  style={{ backgroundColor: bgColor, border: '1px solid rgba(0,0,0,0.1)', fontSize: '0.75rem' }}
                 >
                   {cat.FCTM_category_name}
                 </span>
-              );
+              )
             })
           ) : (
             <span className="text-muted small">Sin categorías</span>
@@ -57,12 +51,10 @@ const ListDummy = () => {
         </div>
       )
     },
-
-    // Columna de acción (ver ficha)
     {
       key: "__show",
       encabezado: "Ver",
-      render: (row) => (
+      render: row => (
         <button
           className="btn btn-sm btn-outline-primary"
           onClick={() => navigate(`/dummy/${row._id}`)}
@@ -72,11 +64,10 @@ const ListDummy = () => {
         </button>
       )
     },
-    // Columna de eliminar
     {
       key: "__delete",
       encabezado: "Eliminar",
-      render: (row) => (
+      render: row => (
         <button
           className="btn btn-sm btn-outline-danger"
           onClick={() => handleDelete(row._id)}
@@ -88,28 +79,15 @@ const ListDummy = () => {
     }
   ], [navigate]);
 
-
   // =======================
   // ELIMINAR DATO
   // =======================
-  const handleDelete = async (id) => {
-    /*const confirmado = window.confirm("¿Seguro que quieres eliminar este dato?");
-    if (!confirmado) return;*/
-    const confirmado = await confirmation(
-      "¿Seguro que quieres eliminar este dato?"
-    );
-
+  const handleDelete = async id => {
+    const confirmado = await confirmation("¿Seguro que quieres eliminar este dato?");
     if (!confirmado) return;
-
     const res = await sendRequest("DELETE", undefined, `/dummy/${id}`);
-    console.log(res)
-    if (res.success) {
-      //alert("Dato eliminado");
-      fetchData(); // recargamos tabla
-    } else {
-      //alert("Error al eliminar el dato");
-      showAlert(res.message,"error")
-    }
+    if (res.success) fetchData();
+    else showAlert(res.message,"error");
   };
 
   // =======================
@@ -136,52 +114,27 @@ const ListDummy = () => {
   // =======================
   return (
     <>
-      {/*<div className="row mb-3">
-        <div className="col-12">
+      {loading && <p>Cargando datos...</p>}
+      {!loading && error && <p className="text-danger">{error}</p>}
+      {!loading && !error && data.length === 0 && <p className="text-muted">No hay datos disponibles</p>}
+      {!loading && !error && data.length > 0 && (
+        <ListCRUD
+          title="Datos Dummy CRUD"
+          datos={data}
+          columnas={columnas}
+          tableId="dummy"
+          mostrarCheckBox
+        >
           <button
             className="btn btn-success"
             onClick={() => navigate('/dummy/new')}
           >
             Añadir Dato
           </button>
-        </div>
-      </div>*/}
-
-      {loading && <p>Cargando datos...</p>}
-      {!loading && error && <p className="text-danger">{error}</p>}
-      {!loading && !error && data.length === 0 && (
-        <p className="text-muted">No hay datos disponibles</p>
-      )}
-      {!loading && !error && data.length > 0 && (
-
-        <ListCRUD
-              title={"Datos Dummy CRUD"}
-              datos={data}
-              columnas={columnas}                  
-        >
-                {/* Children */}
-                <button
-              className="btn btn-success"
-              onClick={() => navigate('/dummy/new')}
-            >
-              Añadir Dato
-            </button>
         </ListCRUD>
-
-        
-      )}        
+      )}
     </>
   );
 };
 
 export default ListDummy;
-
-/*
-<ReactTableTanstack
-              tableTitle="Datos Dummy"
-              datos={data}
-              columnas={columnas}
-              mobileMode="card"
-              mostrarCheckBox={true}
-            />
-*/

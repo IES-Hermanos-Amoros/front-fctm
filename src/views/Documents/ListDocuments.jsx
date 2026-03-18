@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useCallback, useMemo} from 'react'
 import { sendRequest } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import "./ListDocuments.css"
-import ReactTableTanstack from '../../components/ReactTableTanstack'
+import ListCRUD from "../../components/List/ListCRUD";
+
 
 let documentosOLD = [
     { _id: 1,
@@ -38,27 +39,27 @@ const ListDocuments = () => {
 
   const [documentos, setDocumentos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [nextId, setNextId] = useState(4); // Para simular ID incremental
   const navigate = useNavigate();
 
 
 
 
-     const fetchData = async () => {            
-    
-            setLoading(true);            
-                
-            const res = await sendRequest("GET", null, "/documents/");
-    
-            setLoading(false);
-    
-            if (res.success) {
-                setDocumentos(res.data);                    
-    
-            } else {                
-                console.error("Error al cargar datos:", res.message);
-            }
-        };
+     // Fetch de empresas
+      const fetchData = useCallback(async () => {
+          setLoading(true);
+          setError(null);
+          try {
+              const res = await sendRequest('GET', null, '/documents');
+              if (res.success) setDocumentos(res.data);
+              else setError(res.message || 'Error al cargar documentos');
+          } catch (err) {
+              setError(err.message || 'Error al cargar documentos');
+          } finally {
+              setLoading(false);
+          }
+      }, []);
 
     /*const getDocumentsFetch = async() => {
          setLoading(true);
@@ -106,10 +107,7 @@ const ListDocuments = () => {
     }
   };
 
-    useEffect(() => {
-      //getDocuments();
-      fetchData()
-    }, []);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
     
   const colDocumentos = [
@@ -131,31 +129,22 @@ const ListDocuments = () => {
   }
 
   return (
-    <section className='dashboard section'>
-      {/*<div className="row mb-3">
-        <div className="col-12">
-          <button className="btn btn-success" onClick={crearDocumento}>
-            Añadir Documento
-          </button>
-        </div>
-      </div>*/}
-
-      <div className="row">
-        <div className="col-12">
-          {loading ? (
-            <p>Cargando documentos...</p>
-          ) : (
-            <ReactTableTanstack
-              tableTitle='Gestión Documental'
-              datos={documentos}
-              columnas={colDocumentos}
-              mobileMode = "card"
-              mostrarCheckBox = {false}
-            />
-          )}
-        </div>
-      </div>
-    </section>
+    <>            
+            {loading && <p>Cargando documentos...</p>}
+            {!loading && error && <p className="text-danger">{error}</p>}
+            {!loading && !error && documentos.length === 0 && (
+                <p className="text-muted">No hay documentos disponibles</p>
+            )}
+            {!loading && !error && documentos.length > 0 && (                
+                <ListCRUD
+                  title="Gestión Documental"
+                  datos={documentos}
+                  columnas={colDocumentos}
+                  tableId="documentos"                          
+                >                          
+                </ListCRUD>
+            )}
+        </>
 );
 }
 

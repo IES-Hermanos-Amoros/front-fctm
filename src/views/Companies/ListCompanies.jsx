@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest,stringToColor } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
-import ReactTableTanstack from '../../components/ReactTableTanstack';
+//import ReactTableTanstack from '../../components/ReactTableTanstack';
+import ListCRUD from "../../components/List/ListCRUD";
+
 
 const ListCompanies = () => {
     const [data, setData] = useState([]);
@@ -103,22 +105,22 @@ const ListCompanies = () => {
     useEffect(() => { fetchData(); }, [fetchData]);
 
     return (
-        <div>
-            <h2>Empresas</h2>
+        <>            
             {loading && <p>Cargando empresas...</p>}
             {!loading && error && <p className="text-danger">{error}</p>}
             {!loading && !error && data.length === 0 && (
                 <p className="text-muted">No hay empresas disponibles</p>
             )}
-            {!loading && !error && data.length > 0 && (
-                <ReactTableTanstack
-                    tableTitle="Listado de Empresas"
-                    datos={data}
-                    columnas={columnas}
-                    mobileMode="card"
-                />
+            {!loading && !error && data.length > 0 && (                
+                <ListCRUD
+                  title="Listado de Empresas"
+                  datos={data}
+                  columnas={columnas}
+                  tableId="empresas"                          
+                >                          
+                </ListCRUD>
             )}
-        </div>
+        </>
     );
 };
 
