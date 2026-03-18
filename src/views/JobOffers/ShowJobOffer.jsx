@@ -8,6 +8,11 @@ import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
 import useEnumStore from '../../store/enumStore'
 
+const SAO_FIELDS = [
+  { key: "empresa_nombre", label: "Empresa", type: "text" },
+  { key: "empresa_ciudad", label: "Ciudad / Ubicación", type: "text" }
+];
+
 //CAMPOS DEL FORMULARIO
 const jobOfferFields = [
   { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
@@ -128,7 +133,17 @@ const ShowJobOffer = () => {
     const res = await sendRequest('GET', null, `/joboffers/${id}`)
 
     if (res.success) {
-      const normalizedData = normalizeJobOfferDates(res.data)
+      let normalizedData = normalizeJobOfferDates(res.data)
+
+      // 2. Aplanamos los datos de la empresa para que ShowEditableForm los lea
+      if (res.data.empresa) {
+        normalizedData = {
+          ...normalizedData,
+          empresa_nombre: res.data.empresa.SAO_name,
+          empresa_ciudad: res.data.empresa.SAO_company_city
+        }
+      }
+
       setData(normalizedData)
       setOriginalData(normalizedData)
     } else {
@@ -188,7 +203,15 @@ const handleDelete = async (docId) => {
     const res = await sendRequest('PATCH', data, `/joboffers/${id}`)
 
     if (res.success) {
-      const normalizedData = normalizeJobOfferDates(res.data)
+      let normalizedData = normalizeJobOfferDates(res.data)
+      // 2. Aplanamos los datos de la empresa para que ShowEditableForm los lea
+      if (res.data.empresa) {
+        normalizedData = {
+          ...normalizedData,
+          empresa_nombre: res.data.empresa.SAO_name,
+          empresa_ciudad: res.data.empresa.SAO_company_city
+        }
+      }
       setData(normalizedData)
       setOriginalData(normalizedData)
       setIsEditing(false)
@@ -348,6 +371,14 @@ const handleUploadDocs = async () => {
         title={`Ficha de ${data?.FCTM_job_title || 'JobOffer'}`}
         onBack={() => navigate(returnPath)}
       />
+
+      <ShowEditableForm
+              formTitle="Información de SAO"
+              formId="jobOfferSaoForm"
+              data={data}
+              fields={SAO_FIELDS}
+              hideEditButton={true}
+            />
 
       <ShowEditableForm
         formTitle="Información de la Oferta de Trabajo"

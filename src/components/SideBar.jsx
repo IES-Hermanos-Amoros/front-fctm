@@ -67,6 +67,39 @@ return (
                     </li>
                 </ul>
             </li>
+            <li className="nav-item">
+                <a
+                    className="nav-link collapsed"
+                    data-bs-target="#components-nav-validations"
+                    data-bs-toggle="collapse"
+                    href="#"
+                >
+                    <i className="bi bi-menu-button-wide"></i>
+                    <span>Validaciones</span>
+                    <i className="bi bi-chevron-down ms-auto"></i>
+                </a>
+
+                <ul
+                    id="components-nav-validations"
+                    className="nav-content collapse"
+                    data-bs-parent="#sidebar-nav"
+                >
+                    <li>                       
+                        <NavLink
+                                to="/administrators/validate/reviews">
+                                
+                            <i className="bi bi-circle"></i>
+                            <span>Reseñas</span>
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink to="/administrators/validate/skills">
+                            <i className="bi bi-circle"></i>
+                            <span>Aptitudes</span>
+                        </NavLink>
+                    </li>
+                </ul>
+            </li>
 
             {/*
             <li className="nav-item">

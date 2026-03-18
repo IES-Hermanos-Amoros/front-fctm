@@ -3,9 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert,normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
-import ShowReadonlyForm from "../../components/Show/ShowReadonlyForm";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
+import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 
 //TEMPORAL hasta el uso de Zustand (y creación de maestros en el API)
@@ -188,6 +188,16 @@ const ShowDummy = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      {/* --- NUEVA SECCIÓN DE CONTRASEÑA --- */}
+      <SectionChangePassword 
+        isEditing={isEditing} 
+        onChange={( pwdData) => {
+          // Aquí podríamos manejar el estado de la contraseña o enviarlo directamente al guardar
+          // Por ejemplo, podríamos almacenarlo en un estado local y luego incluirlo en el payload de handleSave
+          console.log("Datos de contraseña modificados:", pwdData);
+        }}
       />
 
       <ListCRUD 

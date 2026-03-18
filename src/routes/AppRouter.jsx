@@ -22,8 +22,9 @@ import ListCompanies from '../views/Companies/ListCompanies'
 import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 
-import Login from '../views/Auth/Login'
-import PasswordSetup from '../views/Auth/PasswordSetup'
+
+import ValidateReviews from '../views/Administrators/ValidateReviews'
+import ValidateSkills from '../views/Administrators/ValidateSkills'
 
 // Importa más vistas...
 
@@ -46,6 +47,8 @@ export default function AppRouter() {
       <Route path="/companies" element={<ListCompanies />} />
       <Route path="/companies/:id" element={<ShowCompany />} />
       <Route path="/administrators/:id" element={<ShowAdmin />} />
+      <Route path="/administrators/validate/reviews" element={<ValidateReviews />} />
+      <Route path="/administrators/validate/skills" element={<ValidateSkills />} />
 
       <Route path="/students" element={<ListStudents />} />
       <Route path="/students/:id" element={<ShowStudent />} />
