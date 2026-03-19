@@ -9,6 +9,36 @@ const ListDummy = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // NUEVO: Estado para controlar los IDs seleccionados desde el padre
+  const [selectedIds, setSelectedIds] = useState([]);
+
+  // NUEVO: Función para acción masiva (ejemplo: cambiar tipo a "OTRO")
+  const handleBulkUpdate = async () => {
+    if (selectedIds.length === 0) return showAlert("No hay registros seleccionados", "warning");
+    
+    const confirmado = await confirmation(`¿Cambiar tipo a 'OTRO' para ${selectedIds.length} registros?`);
+    if (!confirmado) return;
+
+    // Aquí llamarías a tu API: sendRequest("PATCH", { ids: selectedIds, type: "OTRO" }, "/dummy/bulk-update")
+    // Preparamos el payload con los IDs y el nuevo valor
+      const payload = {
+        ids: selectedIds, // El array de strings que ya tienes
+        updates: { FCTM_dummy_type: "OTRO" } // El campo que quieres cambiar
+      };
+
+      // Endpoint dedicado: /dummy/bulk-update
+      const res = await sendRequest("PATCH", payload, "/dummy/bulk-update");
+
+        if (res.success) {
+        showAlert("Registros actualizados correctamente", "success");
+        setSelectedIds([]); // Limpiamos la selección
+        fetchData();        // Recargamos la tabla para ver los cambios
+      } else {
+        showAlert(res.message, "error");
+      }
+  };
+
+
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
@@ -109,6 +139,10 @@ const ListDummy = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  useEffect(() => {
+    console.log("IDs seleccionados: ", selectedIds);
+  }, [selectedIds]);
+
   // =======================
   // RENDER
   // =======================
@@ -124,13 +158,25 @@ const ListDummy = () => {
           columnas={columnas}
           tableId="dummy"
           mostrarCheckBox
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
         >
-          <button
-            className="btn btn-success"
-            onClick={() => navigate('/dummy/new')}
-          >
-            Añadir Dato
-          </button>
+          {/* ENVOLVEMOS LOS BOTONES EN UN DIV CON GAP */}
+          <div className="d-flex gap-2 mb-2"> 
+            <button
+              className="btn btn-success"
+              onClick={() => navigate('/dummy/new')}
+            >
+              <i className="bi bi-plus-lg me-1"></i> Añadir Dato
+            </button>
+
+            {/* BOTÓN DE ACCIÓN MASIVA: Solo se muestra o habilita si hay selección */}
+            {selectedIds.length > 0 && (
+              <button className="btn btn-warning" onClick={handleBulkUpdate}>
+                <i className="bi bi-pencil-square me-1"></i> Cambiar Tipo ({selectedIds.length})
+              </button>
+            )}
+          </div>
         </ListCRUD>
       )}
     </>

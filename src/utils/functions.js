@@ -293,29 +293,23 @@ export const confirmationOLD = async (title = "¿Seguro que quieres eliminar est
 export const confirmation = async (
   title = "¿Seguro que quieres eliminar este dato?"
 ) => {
-
   const result = await Swal.fire({
-
     title,
     icon: "question",
-
     showCancelButton: true,
-
     confirmButtonText: "Aceptar",
     cancelButtonText: "Cancelar",
-
     buttonsStyling: false,
-
     customClass: {
       popup: "fctm-modal",
       confirmButton: "fctm-btn",
-      cancelButton: "fctm-btn-cancel"
+      cancelButton: "fctm-btn-cancel",
+      actions: "swal2-actions" // <--- Forzamos la clase del contenedor
     }
+  });
 
-  })
-
-  return result.isConfirmed
-}
+  return result.isConfirmed;
+};
 
 /**
  * Solicita username y password mediante SweetAlert2.

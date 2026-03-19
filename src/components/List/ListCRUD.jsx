@@ -8,6 +8,8 @@ const ListCRUD = ({
   tableProps = {}, // por si luego quieres pasar algo extra
   mobileMode = "card",
   mostrarCheckBox = false,
+  selectedIds = [], // NUEVA PROP
+  onSelectionChange, // NUEVA PROP
   children, // para botones externos si quieres
 }) => {
   return (
@@ -27,6 +29,8 @@ const ListCRUD = ({
             columnas={columnas}
             mobileMode={mobileMode}
             mostrarCheckBox={mostrarCheckBox}
+            selectedIds={selectedIds} // PASAR AL HIJO
+            onSelectionChange={onSelectionChange} // PASAR AL HIJO
             {...tableProps}
           />
         </div>

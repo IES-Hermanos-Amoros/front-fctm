@@ -14,13 +14,15 @@ const ReactTableTanstack = ({
   columnas = [],
   mobileMode = 'card', // 'collapse' | 'card'
   mostrarCheckBox = false,
-  onSelectionChange = null, // callback opcional
+  selectedIds = [], // RECIBIR DE PROPS
+  onSelectionChange = null,
 }) => {
   const [globalFilter, setGlobalFilter] = useState('')
   const [expandedRows, setExpandedRows] = useState({})
   const [isMobile, setIsMobile] = useState(false)
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
-  const [selectedIds, setSelectedIds] = useState(new Set())
+  //ELIMINADO --> Ahora seleccionamos los Ids del padre
+  //const [selectedIds, setSelectedIds] = useState(new Set())
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -36,7 +38,7 @@ const ReactTableTanstack = ({
   const toggleRow = id =>
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
 
-  const toggleSelection = id => {
+  /*const toggleSelection = id => {
     setSelectedIds(prev => {
       const newSet = new Set(prev)
       if (newSet.has(id)) newSet.delete(id)
@@ -47,25 +49,19 @@ const ReactTableTanstack = ({
       if (onSelectionChange) onSelectionChange([...newSet])
       return newSet
     })
-  }
+  }*/
+  // MODIFICADO: Adaptar la lógica de toggle para que use el callback del padre
+  const toggleSelection = id => {
+    if (!onSelectionChange) return;
+    
+    const newSelection = selectedIds.includes(id)
+      ? selectedIds.filter(item => item !== id)
+      : [...selectedIds, id];
+    
+    onSelectionChange(newSelection);
+  };
 
-  /* =======================
-     COLUMNAS
-  ======================= */
-  /*const cols = [
-    ...(mostrarCheckBox
-      ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
-      : []),
-    ...columnas.map(col => ({
-      accessorKey: col.key !== "__actions" ? col.key : undefined, // columnas normales
-      id: col.key,
-      header: col.encabezado,
-      cell: info =>
-        col.render
-          ? col.render(info.row.original) // usa render si existe
-          : info.getValue(),
-    })),
-  ]*/
+  
   const cols = [
     ...(mostrarCheckBox
       ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
@@ -115,7 +111,8 @@ const ReactTableTanstack = ({
           <div className="cardsContainer">
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
-              const selected = selectedIds.has(row.original._id)
+              //const selected = selectedIds.has(row.original._id)
+              const selected = selectedIds.includes(row.original._id);
 
               let longPressTimer = null
               const handleMouseDown = () => {
@@ -184,10 +181,43 @@ const ReactTableTanstack = ({
         />
 
         <table className="table">
-          <thead>
+          {/*<thead>
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id}>
                 {mostrarCheckBox && <th><input type="checkbox" disabled /></th>}
+                {hg.headers.map(h => (
+                  <th key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</th>
+                ))}
+              </tr>
+            ))}
+          </thead>*/}
+          <thead>
+            {table.getHeaderGroups().map(hg => (
+              <tr key={hg.id}>
+                {mostrarCheckBox && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      // El checkbox maestro está marcado si todos los de la página están en selectedIds
+                      checked={
+                        table.getPaginationRowModel().rows.length > 0 &&
+                        table.getPaginationRowModel().rows.every(row => selectedIds.includes(row.original._id))
+                      }
+                      onChange={(e) => {
+                        const idsPagina = table.getPaginationRowModel().rows.map(r => r.original._id);
+                        if (e.target.checked) {
+                          // Añadir los de la página que no estén ya
+                          const nuevosIds = [...new Set([...selectedIds, ...idsPagina])];
+                          onSelectionChange(nuevosIds);
+                        } else {
+                          // Quitar solo los de la página actual
+                          const nuevosIds = selectedIds.filter(id => !idsPagina.includes(id));
+                          onSelectionChange(nuevosIds);
+                        }
+                      }}
+                    />
+                  </th>
+                )}
                 {hg.headers.map(h => (
                   <th key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</th>
                 ))}
@@ -198,7 +228,8 @@ const ReactTableTanstack = ({
           <tbody>
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
-              const selected = selectedIds.has(row.original._id)
+              //const selected = selectedIds.has(row.original._id)
+              const selected = selectedIds.includes(row.original._id);
 
               return (
                 <Fragment key={row.id}>
