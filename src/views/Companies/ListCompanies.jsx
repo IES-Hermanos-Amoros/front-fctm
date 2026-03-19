@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest,stringToColor } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
-//import ReactTableTanstack from '../../components/ReactTableTanstack';
 import ListCRUD from "../../components/List/ListCRUD";
 
 

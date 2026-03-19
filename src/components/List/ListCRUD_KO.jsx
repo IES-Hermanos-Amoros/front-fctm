@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ReactTableTanstack from "../ReactTableTanstack";
+import ReactTableTanstack from "./ReactTableTanstack";
 import DataGridToolbar from "../DataGridToolbar";
 
 const ListCRUD = ({

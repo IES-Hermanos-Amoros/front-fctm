@@ -1,5 +1,5 @@
 import React from "react";
-import ReactTableTanstack from "../ReactTableTanstack";
+import ReactTableTanstack from "./ReactTableTanstack";
 
 const ListCRUD = ({
   title = "",

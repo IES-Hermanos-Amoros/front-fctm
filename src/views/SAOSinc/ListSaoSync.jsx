@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { sendRequest, promptCredentials } from '../../utils/functions';
-import ReactTableTanstack from '../../components/ReactTableTanstack';
+import ReactTableTanstack from '../../components/List/ReactTableTanstack';
 import CircularProgress from '../../components/CircularProgress';
 import useSocketProgress from '../../hooks/useSocketProgress';
 import "./ListSaoSync.css";
