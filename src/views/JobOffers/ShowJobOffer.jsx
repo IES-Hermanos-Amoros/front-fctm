@@ -13,7 +13,7 @@ const SAO_FIELDS = [
   { key: "empresa_ciudad", label: "Ciudad / Ubicación", type: "text" }
 ];
 
-// ⭐⭐⭐ NUEVO: SKILLS ESTÁTICAS (Familias Profesionales) ⭐⭐⭐
+// SKILLS ESTÁTICAS (Familias Profesionales)
 const skillOptions = [
   { _id: "69a82074499df1aec1d2477e", FCTM_skill_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
   { _id: "69a82074499df1aec1d2477f", FCTM_skill_name: "DESARROLLO DE APLICACIONES WEB" },
@@ -24,7 +24,7 @@ const skillOptions = [
   { _id: "69a82074499df1aec1d24784", FCTM_skill_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
 ];
 
-// ⭐⭐⭐ NUEVO: Normalización de SKILLS (Familias Profesionales) ⭐⭐⭐
+// Normalización de SKILLS (Familias Profesionales)
 const normalizationConfig = [
   {
     field: "FCTM_skills",
@@ -53,7 +53,7 @@ const jobOfferFields = [
     optionLabel: 'nombre',
   },
 
-  // ⭐⭐⭐ NUEVO: Familias Profesionales = SKILLS ⭐⭐⭐
+  // Campo de Familias Profesionales (SKILLS) con opciones estáticas
   {
     key: "FCTM_skills",
     label: "Familias Profesionales",
@@ -178,7 +178,7 @@ const ShowJobOffer = () => {
         }
       }
 
-      // ⭐⭐⭐ NUEVO: Normalizar SKILLS (Familias Profesionales) ⭐⭐⭐
+      // Normalizamos las SKILLS para que el select-multi las muestre correctamente
       normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
 
       setData(normalizedData)
@@ -238,13 +238,13 @@ const handleDelete = async (docId) => {
   // Guardar cambios FCTM_
   const handleSave = async () => {
 
-    // ⭐⭐⭐ NUEVO: Normalizar SKILLS antes de enviar ⭐⭐⭐
+    // Normalizar SKILLS antes de enviar 
     const payload = normalizeToApi(data, normalizationConfig)
 
     const res = await sendRequest('PATCH', payload, `/joboffers/${id}`)
     
 
-    // ⭐⭐⭐ NUEVO: Reconstruir objetos SKILLS después de guardar ⭐⭐⭐
+    // Reconstruir objetos SKILLS después de guardar
     if (res.success) {
       let normalizedData = {
         ...res.data,
@@ -254,7 +254,7 @@ const handleDelete = async (docId) => {
       }
 
 
-      // ⭐⭐⭐ NUEVO: Normalizar SKILLS de nuevo para el estado ⭐⭐⭐
+      // Normalizar SKILLS de nuevo para el estado después de reconstruirlos, para que el formulario los muestre correctamente
       normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
 
       setData(normalizedData)

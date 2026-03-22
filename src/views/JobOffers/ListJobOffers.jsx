@@ -67,7 +67,7 @@ const ListJobOffers = () => {
 
       { key: 'FCTM_job_status', encabezado: 'Estado' },
 
-      // ⭐⭐⭐ NUEVO: Familias Profesionales (SKILLS) — EXACTO COMO DUMMY ⭐⭐⭐
+      // Familias Profesionales (SKILLS) 
       {
         key: "FCTM_skills",
         encabezado: "Familias Profesionales",
@@ -129,7 +129,7 @@ const ListJobOffers = () => {
       const res = await sendRequest('GET', null, '/jobOffers')
 
       if (res.success) {
-        // ⭐⭐⭐ NUEVO: Reconstruir SKILLS igual que Dummy ⭐⭐⭐
+        // Normalizamos los datos para asegurar que FCTM_skills siempre sea un array de objetos con FCTM_skill_name
         const normalized = res.data.map(item => ({
           ...item,
           FCTM_skills: Array.isArray(item.FCTM_skills)
