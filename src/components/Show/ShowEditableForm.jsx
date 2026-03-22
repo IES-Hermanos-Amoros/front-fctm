@@ -1,6 +1,6 @@
 import React from "react";
 import Select from "react-select";
-
+import CreatableSelect from "react-select/creatable";
 
 const ShowEditableForm = ({
   formTitle,
@@ -130,6 +130,82 @@ const ShowEditableForm = ({
                         placeholder={`Selecciona ${label}...`}
                         closeMenuOnSelect={false}
                         isDisabled={!isEditing}
+                        menuPortalTarget={document.body}
+                        menuPosition="fixed"
+                        styles={{
+                          menuPortal: base => ({ ...base, zIndex: 9999 })
+                        }}
+                      />
+                    );
+                  }
+
+                  if (type === "select-multi-creatable") {
+
+                    const selectOptions = options.map(opt => ({
+                      value: opt[optionValue],
+                      label: opt[optionLabel],
+                      original: opt
+                    }));
+
+                    const value = (data[key] || []).map(v => {
+
+                      // ya viene de react-select
+                      if (v.value && v.label) return v;
+
+                      // viene del backend
+                      if (v[optionValue]) {
+                        return {
+                          value: v[optionValue],
+                          label: v[optionLabel],
+                          original: v
+                        };
+                      }
+
+                      // string nueva
+                      if (typeof v === "string") {
+                        return {
+                          value: v,
+                          label: v
+                        };
+                      }
+
+                      return v;
+
+                    });
+
+                    return (
+                      <CreatableSelect
+                        isMulti
+                        options={selectOptions}
+                        value={value}
+                        isDisabled={!isEditing}
+                        placeholder={`Selecciona ${label}...`}
+                        closeMenuOnSelect={false}
+
+                        onChange={(selected) => {
+
+                          const parsed = selected.map(s => {
+
+                            // existente
+                            if (s.original) return s.original;
+
+                            // existente sin original
+                            if (s.value && options.find(o => o[optionValue] === s.value)) {
+                              return options.find(o => o[optionValue] === s.value);
+                            }
+
+                            // nueva skill
+                            return {
+                              [optionLabel]: s.label
+                            };
+
+                          });
+
+                          onChange(key, parsed);
+
+                        }}
+
+                        formatCreateLabel={(input) => `Añadir "${input}"`}
                         menuPortalTarget={document.body}
                         menuPosition="fixed"
                         styles={{

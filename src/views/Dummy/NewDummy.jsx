@@ -166,7 +166,7 @@ const FCTM_fields = [
   {
     key: "FCTM_skills",
     label: "Aptitudes/Tecnologías",
-    type: "select-multi",
+    type: "select-multi-creatable",
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
@@ -194,7 +194,7 @@ const NewDummy = () => {
   };
 
   // Guardar nuevo documento
-  const handleSave = async () => {
+  const handleSaveOLD = async () => {
     const payload = normalizeToApi(data, normalizationConfig);
     console.log("Payload a enviar:", payload);
     const res = await sendRequest("POST", payload, "/dummy");
@@ -205,6 +205,61 @@ const NewDummy = () => {
       showAlert(res.message,"error");
     }
   };
+
+  const handleSave = async () => {
+    try {
+      let skillNames = [];
+      if (data.FCTM_skills) {
+        skillNames = data.FCTM_skills.map(s => {
+          let name = null;
+          if (typeof s === "string") {
+            name = s;
+          }
+          else if (s.label) {
+            name = s.label;
+          }
+          else if (s.FCTM_skill_name) {
+            name = s.FCTM_skill_name;
+          }
+          if (!name) return null;
+          return name.trim().toUpperCase();
+        }).filter(Boolean);
+      }
+      // 🔹 asegurar skills (crear si no existen)
+      const resSkills = await sendRequest(
+        "POST",
+        { names: skillNames },
+        "/skills/ensure"
+      );
+      if (!resSkills.success) {
+        showAlert("Error creando skills", "error");
+        return;
+      }
+      const skillIds = resSkills.data;
+      // 🔹 preparar payload final
+      const payload = {
+        ...data,
+        FCTM_skills: skillIds
+      };
+      const normalized = normalizeToApi(
+        payload,
+        normalizationConfig
+      );
+      const res = await sendRequest(
+        "POST",
+        normalized,
+        "/dummy"
+      );
+      if (res.success) {
+        navigate("/dummy");
+      } else {
+        showAlert(res.message, "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Error guardando", "error");
+    }
+};
 
   return (
     <section className="dashboard section">
