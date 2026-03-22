@@ -207,59 +207,56 @@ const NewDummy = () => {
   };
 
   const handleSave = async () => {
-    try {
-      let skillNames = [];
-      if (data.FCTM_skills) {
-        skillNames = data.FCTM_skills.map(s => {
-          let name = null;
-          if (typeof s === "string") {
-            name = s;
-          }
-          else if (s.label) {
-            name = s.label;
-          }
-          else if (s.FCTM_skill_name) {
-            name = s.FCTM_skill_name;
-          }
-          if (!name) return null;
-          return name.trim().toUpperCase();
-        }).filter(Boolean);
+      try {
+        // 1. Extraer los nombres de las skills del estado actual (mezcla de objetos y strings)
+        let skillNames = [];
+        if (data.FCTM_skills) {
+          skillNames = data.FCTM_skills.map(s => {
+            let name = null;
+            if (typeof s === "string") name = s;
+            else if (s.label) name = s.label;
+            else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+            
+            return name ? name.trim().toUpperCase() : null;
+          }).filter(Boolean);
+        }
+
+        // 2. Asegurar en el Backend (Crea las nuevas y devuelve IDs de todas)
+        const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
+
+        if (!resSkills.success) {
+          showAlert("Error gestionando aptitudes", "error");
+          return;
+        }
+
+        const skillIds = resSkills.data; // Array de ObjectIDs: ["64f...", "64g..."]
+
+        // 3. Normalizar TODO lo demás EXCEPTO las skills
+        // Filtramos la configuración para ignorar FCTM_skills en este paso
+        const configSinSkills = normalizationConfig.filter(conf => conf.field !== "FCTM_skills");
+        
+        // Normalizamos el resto (como Categorías, que sí necesitan el mapeo)
+        const payloadNormalizado = normalizeToApi(data, configSinSkills);
+
+        // 4. Inyectar los IDs finales manualmente al payload
+        const finalPayload = {
+          ...payloadNormalizado,
+          FCTM_skills: skillIds // Metemos los IDs "puros" que nos dio el backend
+        };
+
+        // 5. Guardar el documento Dummy
+        const res = await sendRequest("POST", finalPayload, "/dummy");
+
+        if (res.success) {
+          navigate("/dummy");
+        } else {
+          showAlert(res.message, "error");
+        }
+      } catch (err) {
+        console.error("Error en handleSave:", err);
+        showAlert("Error crítico al guardar", "error");
       }
-      // 🔹 asegurar skills (crear si no existen)
-      const resSkills = await sendRequest(
-        "POST",
-        { names: skillNames },
-        "/skills/ensure"
-      );
-      if (!resSkills.success) {
-        showAlert("Error creando skills", "error");
-        return;
-      }
-      const skillIds = resSkills.data;
-      // 🔹 preparar payload final
-      const payload = {
-        ...data,
-        FCTM_skills: skillIds
-      };
-      const normalized = normalizeToApi(
-        payload,
-        normalizationConfig
-      );
-      const res = await sendRequest(
-        "POST",
-        normalized,
-        "/dummy"
-      );
-      if (res.success) {
-        navigate("/dummy");
-      } else {
-        showAlert(res.message, "error");
-      }
-    } catch (err) {
-      console.error(err);
-      showAlert("Error guardando", "error");
-    }
-};
+    };
 
   return (
     <section className="dashboard section">

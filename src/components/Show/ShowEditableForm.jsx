@@ -140,7 +140,6 @@ const ShowEditableForm = ({
                   }
 
                   if (type === "select-multi-creatable") {
-
                     const selectOptions = options.map(opt => ({
                       value: opt[optionValue],
                       label: opt[optionLabel],
@@ -148,11 +147,9 @@ const ShowEditableForm = ({
                     }));
 
                     const value = (data[key] || []).map(v => {
-
-                      // ya viene de react-select
                       if (v.value && v.label) return v;
 
-                      // viene del backend
+                      // 1. Caso: Objeto con ID (vienen de base de datos)
                       if (v[optionValue]) {
                         return {
                           value: v[optionValue],
@@ -161,18 +158,21 @@ const ShowEditableForm = ({
                         };
                       }
 
-                      // string nueva
-                      if (typeof v === "string") {
+                      // 2. CASO NUEVO: Objeto sin ID pero con nombre (recién creados localmente)
+                      if (v[optionLabel]) {
                         return {
-                          value: v,
-                          label: v
+                          value: v[optionLabel], // Usamos el nombre como value temporal
+                          label: v[optionLabel]
                         };
                       }
 
+                      if (typeof v === "string") {
+                        return { value: v, label: v };
+                      }
+
                       return v;
-
                     });
-
+  
                     return (
                       <CreatableSelect
                         isMulti

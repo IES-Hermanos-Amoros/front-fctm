@@ -1,52 +1,28 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert,normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import SectionChangePassword from "../../components/User/SectionChangePassword";
 
-
-//TEMPORAL hasta el uso de Zustand (y creación de maestros en el API)
+// --- CONSTANTES ---
 const dummyTypes = [
   { "_id": "TEXTO", "nombre": "TEXTO" },
   { "_id": "NUMERO", "nombre": "NUMERO" },
   { "_id": "BOOLEANO", "nombre": "BOOLEANO" },
   { "_id": "OTRO", "nombre": "OTRO" }
-]
+];
 
-//TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
-// Ejemplo de categorías para el multiselect
 const categoryOptions = [
-  {
-    _id: "69a82074499df1aec1d2477e",
-    FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES"
-  },
-  {
-    _id: "69a82074499df1aec1d2477f",
-    FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
-  },
-  {
-    _id: "69a82074499df1aec1d24780",
-    FCTM_category_name: "EDUCACIÓN INFANTIL"
-  },
-  {
-    _id: "69a82074499df1aec1d24781",
-    FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL"
-  },
-  {
-    _id: "69a82074499df1aec1d24782",
-    FCTM_category_name: "INTEGRACIÓN SOCIAL"
-  },
-  {
-    _id: "69a82074499df1aec1d24783",
-    FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA"
-  },
-  {
-    _id: "69a82074499df1aec1d24784",
-    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
-  }
+  { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
+  { _id: "69a82074499df1aec1d2477f", FCTM_category_name: "DESARROLLO DE APLICACIONES WEB" },
+  { _id: "69a82074499df1aec1d24780", FCTM_category_name: "EDUCACIÓN INFANTIL" },
+  { _id: "69a82074499df1aec1d24781", FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
+  { _id: "69a82074499df1aec1d24782", FCTM_category_name: "INTEGRACIÓN SOCIAL" },
+  { _id: "69a82074499df1aec1d24783", FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA" },
+  { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
 ];
 
 const skillOptions = [
@@ -126,8 +102,7 @@ const skillOptions = [
   { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" }
 ];
 
-
-//Qué vamos a normalizar
+// Configuración de normalización
 const normalizationConfig = [
   {
     field: "FCTM_category",
@@ -146,22 +121,22 @@ const normalizationConfig = [
 ];
 
 const SAO_fields = [
-    { key: "SAO_id", label: "SAO ID", type: "text"},
-    { key: "SAO_username", label: "Username:", type: "text" },
-    { key: "SAO_email", label: "Email", type: "email" }
-  ]
+  { key: "SAO_id", label: "SAO ID", type: "text" },
+  { key: "SAO_username", label: "Username:", type: "text" },
+  { key: "SAO_email", label: "Email", type: "email" }
+];
 
 const FCTM_fields = [
-  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea"},
-  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type:"text" },
-  { key: "FCTM_dummy_description", label: "Descripción", type:"text" },
+  { key: "FCTM_dummy_observations", label: "Observaciones", type: "textarea" },
+  { key: "FCTM_dummy_other_contact", label: "Otro contacto", type: "text" },
+  { key: "FCTM_dummy_description", label: "Descripción", type: "text" },
   {
-      key: "FCTM_dummy_type",
-      label: "Tipo",
-      type: "select",
-      options: dummyTypes,
-      optionValue: "_id",
-      optionLabel: "nombre"
+    key: "FCTM_dummy_type",
+    label: "Tipo",
+    type: "select",
+    options: dummyTypes,
+    optionValue: "_id",
+    optionLabel: "nombre"
   },
   {
     key: "FCTM_category",
@@ -174,78 +149,106 @@ const FCTM_fields = [
   {
     key: "FCTM_skills",
     label: "Aptitudes/Tecnologías",
-    type: "select-multi",
+    type: "select-multi-creatable", 
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
   }
-
-]
+];
 
 const columnasDocuments = [
-        {   key:"_id", encabezado: "#"} ,
-        {   key:"FCTM_document_name", encabezado: "Nombre"} ,
-        {   key:"FCTM_document_url", encabezado: "Ruta"},
-        {   key:"FCTM_document_description", encabezado: "Descripción"},
-        {   key:"FCTM_document_type", encabezado: "Tipo Doc."}        
-    ]
+  { key: "_id", encabezado: "#" },
+  { key: "FCTM_document_name", encabezado: "Nombre" },
+  { key: "FCTM_document_url", encabezado: "Ruta" }
+];
 
 const ShowDummy = () => {
-  const { id } = useParams(); // ID obtenido desde la URL /dummy/:id
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState(null); // Datos del dummy cargado desde API
-  const [loading, setLoading] = useState(true); // Controla estado de carga
-  const [isEditing, setIsEditing] = useState(false); // Modo SHOW / EDIT
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
 
-  // Cargar el dummy por ID
+  // --- FUNCIÓN DE CARGA ---
   const fetchDummy = useCallback(async () => {
     setLoading(true);
-
     const res = await sendRequest("GET", null, `/dummy/${id}`);
 
     if (res.success) {
+      // 1. Normalizamos SOLO Categorías (usando una config filtrada)
+      const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
+      const dataNormalizada = normalizeFromApi(res.data, configSoloCategorias);
 
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
-
-      setData(normalized);
-      setOriginalData(normalized); // snapshot original
-      console.log(normalized)
+      // 2. Las skills las dejamos como vienen (objetos de Mongo)
+      // dataNormalizada ya tiene las categorías como {value, label} para el Select
+      // y mantiene FCTM_skills como [{_id, FCTM_skill_name...}]
+      
+      setData(dataNormalizada);
+      setOriginalData(dataNormalizada);
     } else {
-      console.error("Error al cargar el dummy:", res.message);
+      showAlert(res.message, "error");
     }
-
     setLoading(false);
   }, [id]);
 
-  // Guardar cambios FCTM_
+  // --- FUNCIÓN DE GUARDADO ---
   const handleSave = async () => {
+    try {
+      // A. Extraer nombres para asegurar skills (Nuevas + Existentes)
+      let skillNames = [];
+      if (data.FCTM_skills) {
+        skillNames = data.FCTM_skills.map(s => {
+          let name = null;
+          if (typeof s === "string") name = s;
+          else if (s.label) name = s.label;
+          else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+          return name ? name.trim().toUpperCase() : null;
+        }).filter(Boolean);
+      }
 
-    const payload = normalizeToApi(data, normalizationConfig);
+      const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
+      if (!resSkills.success) return showAlert("Error en skills", "error");
 
-    const res = await sendRequest("PUT", payload, `/dummy/${id}`);
+      const skillIds = resSkills.data;
 
-    if (res.success) {
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
-      setData(normalized);
-      setOriginalData(normalized);
-      setIsEditing(false);
-    } else {
-      showAlert(res.message,"error");
+      // B. Normalizar RESTO (Categorías) para ir al API
+      const configSinSkills = normalizationConfig.filter(c => c.field !== "FCTM_skills");
+      const payloadNormalizado = normalizeToApi(data, configSinSkills);
+
+      // C. Payload final con IDs inyectados
+      const finalPayload = {
+        ...payloadNormalizado,
+        FCTM_skills: skillIds
+      };
+
+      const res = await sendRequest("PUT", finalPayload, `/dummy/${id}`);
+
+      if (res.success) {
+        // Al guardar, repetimos la lógica del fetch para que el estado quede limpio
+        const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
+        const dataFinal = normalizeFromApi(res.data, configSoloCategorias);
+        
+        setData(dataFinal);
+        setOriginalData(dataFinal);
+        setIsEditing(false);
+        showAlert("Actualizado!", "success");
+      } else {
+        showAlert(res.message, "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Error crítico", "error");
     }
   };
 
-  // Actualizar campos FCTM_ en estado local
   const handleChange = (field, value) => {
-    setData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleCancel = () => {
-    setData(originalData); // restauramos valores
+    setData(originalData);
     setIsEditing(false);
   };
 
@@ -253,16 +256,12 @@ const ShowDummy = () => {
     fetchDummy();
   }, [fetchDummy]);
 
-  if (loading) return <p>Cargando datos...</p>;
-  if (!data) return <p>No se encontraron datos</p>;
+  if (loading) return <p className="p-5 text-center">Cargando...</p>;
+  if (!data) return <p className="p-5 text-center">Sin datos</p>;
 
   return (
     <section className="dashboard section">
-
-      <ShowHeader 
-        title={`Ficha de ${data?.SAO_username || 'Dummy'}`} 
-        onBack={() => navigate('/dummy')} 
-      />
+      <ShowHeader title={`Ficha de ${data?.SAO_username || 'Dummy'}`} onBack={() => navigate('/dummy')} />
 
       <ShowEditableForm
         formTitle="Información de SAO"
@@ -284,28 +283,10 @@ const ShowDummy = () => {
         onChange={handleChange}
       />
 
-      {/* --- NUEVA SECCIÓN DE CONTRASEÑA --- */}
-      <SectionChangePassword 
-        isEditing={isEditing} 
-        onChange={( pwdData) => {
-          // Aquí podríamos manejar el estado de la contraseña o enviarlo directamente al guardar
-          // Por ejemplo, podríamos almacenarlo en un estado local y luego incluirlo en el payload de handleSave
-          console.log("Datos de contraseña modificados:", pwdData);
-        }}
-      />
+      <SectionChangePassword isEditing={isEditing} onChange={(pwd) => console.log(pwd)} />
 
-      <ListCRUD 
-          title="Datos Dummy Relacionados"
-          datos={data.FCTM_documents}
-          columnas={columnasDocuments}          
-      >
-            {/* Children */}
-                <button
-              className="btn btn-success"
-              onClick={() => navigate('/documents/new')}
-            >
-              Añadir Documento
-            </button>
+      <ListCRUD title="Documentos" datos={data.FCTM_documents || []} columnas={columnasDocuments}>
+        <button className="btn btn-success" onClick={() => navigate('/documents/new')}>Añadir</button>
       </ListCRUD>
     </section>
   );
