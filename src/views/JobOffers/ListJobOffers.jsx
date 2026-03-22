@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { sendRequest, confirmation, showAlert } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert, stringToColor } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
+
+// Opciones estáticas para mostrar columna SKILLS
+const skillOptions = [
+  { _id: "69a82074499df1aec1d2477e", FCTM_skill_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
+  { _id: "69a82074499df1aec1d2477f", FCTM_skill_name: "DESARROLLO DE APLICACIONES WEB" },
+  { _id: "69a82074499df1aec1d24780", FCTM_skill_name: "EDUCACIÓN INFANTIL" },
+  { _id: "69a82074499df1aec1d24781", FCTM_skill_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
+  { _id: "69a82074499df1aec1d24782", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
+  { _id: "69a82074499df1aec1d24783", FCTM_skill_name: "PRODUCCIÓN AGROECOLÓGICA" },
+  { _id: "69a82074499df1aec1d24784", FCTM_skill_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
+];
 
 const ListJobOffers = () => {
   const [data, setData] = useState([])
@@ -24,7 +35,7 @@ const ListJobOffers = () => {
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
-const columnas = useMemo(
+  const columnas = useMemo(
     () => [
       { key: 'FCTM_job_title', encabezado: 'Título' },
 
@@ -40,24 +51,60 @@ const columnas = useMemo(
         render: row => formatDate(row.FCTM_job_end_date),
       },
 
-{
-      key: 'empresa',
-      encabezado: 'Empresa',
-      // accessorFn permite que el buscador global encuentre el texto
-      accessorFn: row => row.empresa?.SAO_name || '',
-      // Intentamos mostrar organización, si no existe, el nombre
-      render: row => row.empresa?.SAO_name || '-',
-    },
+      {
+        key: 'empresa',
+        encabezado: 'Empresa',
+        accessorFn: row => row.empresa?.SAO_name || '',
+        render: row => row.empresa?.SAO_name || '-',
+      },
 
-    {
-      key: 'localidad',
-      encabezado: 'Localidad',
-      // Accedemos a la propiedad anidada para que sea indexable
-      accessorFn: row => row.empresa?.SAO_company_city || '',
-      render: row => row.empresa?.SAO_company_city || '-',
-    },
+      {
+        key: 'localidad',
+        encabezado: 'Localidad',
+        accessorFn: row => row.empresa?.SAO_company_city || '',
+        render: row => row.empresa?.SAO_company_city || '-',
+      },
 
       { key: 'FCTM_job_status', encabezado: 'Estado' },
+
+      // ⭐⭐⭐ NUEVO: Familias Profesionales (SKILLS) — EXACTO COMO DUMMY ⭐⭐⭐
+      {
+        key: "FCTM_skills",
+        encabezado: "Familias Profesionales",
+        accessorFn: row =>
+          Array.isArray(row.FCTM_skills)
+            ? row.FCTM_skills
+                .filter(s => s && s.FCTM_skill_name)
+                .map(s => s.FCTM_skill_name)
+                .join(" ")
+            : "",
+        render: row => (
+          <div className="d-flex flex-wrap gap-1">
+            {Array.isArray(row.FCTM_skills) && row.FCTM_skills.length > 0 ? (
+              row.FCTM_skills
+                .filter(skill => skill && skill.FCTM_skill_name) // ⭐ FILTRAMOS LOS MALOS
+                .map(skill => {
+                  const bgColor = stringToColor(skill.FCTM_skill_name)
+                  return (
+                    <span
+                      key={skill._id}
+                      className="badge rounded-pill text-dark"
+                      style={{
+                        backgroundColor: bgColor,
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        fontSize: '0.75rem'
+                      }}
+                    >
+                      {skill.FCTM_skill_name}
+                    </span>
+                  )
+                })
+            ) : (
+              <span className="text-muted small">Sin familias</span>
+            )}
+          </div>
+        )
+      },
 
       {
         key: '__show',
@@ -71,42 +118,38 @@ const columnas = useMemo(
           </button>
         ),
       },
-
-      /*{
-        key: '__delete',
-        encabezado: 'Eliminar',
-        render: row => (
-          <button
-            className="btn btn-sm btn-outline-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <i className="bi bi-trash"></i>
-          </button>
-        ),
-      },*/
     ],
     [navigate]
-  );
-
-  const handleDelete = async id => {
-    const confirmado = await confirmation('¿Seguro que quieres eliminar esta oferta?')
-    if (!confirmado) return
-    const res = await sendRequest('DELETE', undefined, `/jobOffers/${id}`)
-    if (res.success) {
-      showAlert('Oferta eliminada correctamente', 'success')
-      fetchData()
-    } else {
-      showAlert(res.message, 'error')
-    }
-  }
+  )
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const res = await sendRequest('GET', null, '/jobOffers')
-      if (res.success) setData(res.data)
-      else setError(res.message || 'Error al cargar las ofertas')
+
+      if (res.success) {
+        // ⭐⭐⭐ NUEVO: Reconstruir SKILLS igual que Dummy ⭐⭐⭐
+        const normalized = res.data.map(item => ({
+          ...item,
+          FCTM_skills: Array.isArray(item.FCTM_skills)
+            ? item.FCTM_skills
+                .map(s => {
+                  if (typeof s === "string") {
+                    return skillOptions.find(opt => opt._id === s)
+                  }
+                  if (s && s.FCTM_skill_name) return s
+                  return null
+                })
+                .filter(Boolean)
+            : []
+        }))
+
+        setData(normalized)
+      } else {
+        setError(res.message || 'Error al cargar las ofertas')
+      }
+
     } catch (err) {
       setError(err.message || 'Error al conectar con el servidor')
     } finally {
@@ -129,20 +172,10 @@ const columnas = useMemo(
 
       {!loading && !error && data.length > 0 && (
         <ListCRUD 
-              title={'Gestión de Ofertas de Trabajo'}
-              datos={data}
-              columnas={columnas}       
-        >
-          {/* Botón de acción que ListCRUD recibe como children */}
-          {/*<button
-            className="btn btn-success mb-3"
-            onClick={() => navigate('/jobOffers/new')}
-          >
-            Nueva Oferta
-          </button>*/}
-
-         
-        </ListCRUD>
+          title={'Gestión de Ofertas de Trabajo'}
+          datos={data}
+          columnas={columnas}       
+        />
       )}
     </>
   )

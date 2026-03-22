@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost, normalizeFromApi, normalizeToApi } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 
@@ -13,6 +13,28 @@ const SAO_FIELDS = [
   { key: "empresa_ciudad", label: "Ciudad / Ubicación", type: "text" }
 ];
 
+// ⭐⭐⭐ NUEVO: SKILLS ESTÁTICAS (Familias Profesionales) ⭐⭐⭐
+const skillOptions = [
+  { _id: "69a82074499df1aec1d2477e", FCTM_skill_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
+  { _id: "69a82074499df1aec1d2477f", FCTM_skill_name: "DESARROLLO DE APLICACIONES WEB" },
+  { _id: "69a82074499df1aec1d24780", FCTM_skill_name: "EDUCACIÓN INFANTIL" },
+  { _id: "69a82074499df1aec1d24781", FCTM_skill_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
+  { _id: "69a82074499df1aec1d24782", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
+  { _id: "69a82074499df1aec1d24783", FCTM_skill_name: "PRODUCCIÓN AGROECOLÓGICA" },
+  { _id: "69a82074499df1aec1d24784", FCTM_skill_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
+];
+
+// ⭐⭐⭐ NUEVO: Normalización de SKILLS (Familias Profesionales) ⭐⭐⭐
+const normalizationConfig = [
+  {
+    field: "FCTM_skills",
+    options: skillOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_skill_name",
+    type: "multi"
+  }
+];
+
 //CAMPOS DEL FORMULARIO
 const jobOfferFields = [
   { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
@@ -21,6 +43,7 @@ const jobOfferFields = [
   { key: 'FCTM_job_start_date', label: 'Fecha de inicio', type: 'date', required: true },
   { key: 'FCTM_job_end_date', label: 'Fecha de cierre', type: 'date' },
   { key: 'FCTM_job_salary', label: 'Salario', type: 'text' },
+
   {
     key: 'FCTM_job_status',
     label: 'Estado',
@@ -29,6 +52,17 @@ const jobOfferFields = [
     optionValue: '_id',
     optionLabel: 'nombre',
   },
+
+  // ⭐⭐⭐ NUEVO: Familias Profesionales = SKILLS ⭐⭐⭐
+  {
+    key: "FCTM_skills",
+    label: "Familias Profesionales",
+    type: "select-multi",
+    options: skillOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_skill_name"
+  },
+
   { key: 'FCTM_job_observations', label: 'Observaciones', type: 'textarea' },
 ]
 
@@ -144,6 +178,9 @@ const ShowJobOffer = () => {
         }
       }
 
+      // ⭐⭐⭐ NUEVO: Normalizar SKILLS (Familias Profesionales) ⭐⭐⭐
+      normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
+
       setData(normalizedData)
       setOriginalData(normalizedData)
     } else {
@@ -200,18 +237,26 @@ const handleDelete = async (docId) => {
 
   // Guardar cambios FCTM_
   const handleSave = async () => {
-    const res = await sendRequest('PATCH', data, `/joboffers/${id}`)
 
+    // ⭐⭐⭐ NUEVO: Normalizar SKILLS antes de enviar ⭐⭐⭐
+    const payload = normalizeToApi(data, normalizationConfig)
+
+    const res = await sendRequest('PATCH', payload, `/joboffers/${id}`)
+    
+
+    // ⭐⭐⭐ NUEVO: Reconstruir objetos SKILLS después de guardar ⭐⭐⭐
     if (res.success) {
-      let normalizedData = normalizeJobOfferDates(res.data)
-      // 2. Aplanamos los datos de la empresa para que ShowEditableForm los lea
-      if (res.data.empresa) {
-        normalizedData = {
-          ...normalizedData,
-          empresa_nombre: res.data.empresa.SAO_name,
-          empresa_ciudad: res.data.empresa.SAO_company_city
-        }
+      let normalizedData = {
+        ...res.data,
+        FCTM_skills: res.data.FCTM_skills
+          .map(id => skillOptions.find(opt => opt._id === id))
+          .filter(Boolean)
       }
+
+
+      // ⭐⭐⭐ NUEVO: Normalizar SKILLS de nuevo para el estado ⭐⭐⭐
+      normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
+
       setData(normalizedData)
       setOriginalData(normalizedData)
       setIsEditing(false)
@@ -316,7 +361,6 @@ const handleUploadDocs__OLD = async () => {
     fetchJobOffer()
   }
 }
-
 
 const handleUploadDocs = async () => {
   if (files.length === 0) {
