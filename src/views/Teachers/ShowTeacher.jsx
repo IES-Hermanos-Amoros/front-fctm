@@ -1,9 +1,25 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+
+const CATEGORY_FIELDS_CONFIG = {
+  field: "FCTM_company_category",
+  optionValue: "_id",
+  optionLabel: "FCTM_category_name",
+  type: "multi"
+};
+
+const CATEGORY_FIELD = {
+  key: "FCTM_company_category",
+  label: "Familias Profesionales",
+  type: "select-multi",
+  optionValue: "_id",
+  optionLabel: "FCTM_category_name",
+  options: []
+};
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -40,6 +56,7 @@ const ShowTeacher = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [categoryOptions, setCategoryOptions] = useState([]);
 
   const fetchTeacher = useCallback(async () => {
     if (!id) {
@@ -52,14 +69,15 @@ const ShowTeacher = () => {
     const res = await sendRequest("GET", null, `/teachers/${id}`);
 
     if (res.success) {
-      const normalized = {
-        ...res.data,
+      const normalized = normalizeFromApi(res.data, [CATEGORY_FIELDS_CONFIG]);
+      const dataNormalized = {
+        ...normalized,
         SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
         SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
       };
 
-      setData(normalized);
-      setOriginalData(normalized);
+      setData(dataNormalized);
+      setOriginalData(dataNormalized);
     } else {
       showAlert(res.message, "error");
     }
@@ -67,24 +85,37 @@ const ShowTeacher = () => {
     setLoading(false);
   }, [id]);
 
+  const fetchCategories = useCallback(async () => {
+    const res = await sendRequest("GET", null, "/categories");
+    if (res.success) {
+      setCategoryOptions(res.data);
+      CATEGORY_FIELD.options = res.data;
+    }
+  }, []);
+
   const handleSave = async () => {
+    const configSinSkills = [CATEGORY_FIELDS_CONFIG];
+    const payloadNormalizado = normalizeToApi(data, configSinSkills);
+
     const payload = {
       FCTM_contact_email: data?.FCTM_contact_email || null,
       FCTM_teacher_observations: data?.FCTM_teacher_observations || null,
       FCTM_teacher_other_contact: data?.FCTM_teacher_other_contact || null,
+      ...payloadNormalizado
     };
 
     const res = await sendRequest("PATCH", payload, `/teachers/${id}`);
 
     if (res.success) {
-      const normalized = {
-        ...res.data,
+      const normalized = normalizeFromApi(res.data, [CATEGORY_FIELDS_CONFIG]);
+      const dataNormalized = {
+        ...normalized,
         SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
         SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
       };
 
-      setData(normalized);
-      setOriginalData(normalized);
+      setData(dataNormalized);
+      setOriginalData(dataNormalized);
       setIsEditing(false);
     } else {
       showAlert(res.message, "error");
@@ -105,7 +136,8 @@ const ShowTeacher = () => {
 
   useEffect(() => {
     fetchTeacher();
-  }, [fetchTeacher]);
+    fetchCategories();
+  }, [fetchTeacher, fetchCategories]);
 
   if (loading) return <p>Cargando datos...</p>;
   if (!id) return <p>Falta el id del profesor en la URL.</p>;
@@ -137,6 +169,18 @@ const ShowTeacher = () => {
         formId="teacherFctmForm"
         data={data}
         fields={FCTM_FIELDS}
+        isEditing={isEditing}
+        onEdit={() => setIsEditing(true)}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        onChange={handleChange}
+      />
+
+      <ShowEditableForm
+        formTitle="Familias Profesionales"
+        formId="teacherCategoriesForm"
+        data={data}
+        fields={[CATEGORY_FIELD]}
         isEditing={isEditing}
         onEdit={() => setIsEditing(true)}
         onSave={handleSave}
