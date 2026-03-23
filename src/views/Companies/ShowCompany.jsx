@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Select from "react-select";
-import AsyncCreatableSelect from "react-select/async-creatable";
+import CreatableSelect from "react-select/creatable";
 import {
   sendRequest,
   showAlert,
@@ -36,6 +36,89 @@ const categoryNormalizationConfig = [
   }
 ];
 
+const skillOptions = [
+  { _id: "69bd6bb2e1aa8f195c71c305", FCTM_skill_name: "ADAPTABILIDAD" },
+  { _id: "69bd6bb2e1aa8f195c71c31d", FCTM_skill_name: "ADMINISTRACION DE SISTEMAS" },
+  { _id: "69bd6bb2e1aa8f195c71c339", FCTM_skill_name: "ADOBE ILLUSTRATOR" },
+  { _id: "69bd6bb2e1aa8f195c71c338", FCTM_skill_name: "ADOBE PHOTOSHOP" },
+  { _id: "69bd6bb2e1aa8f195c71c341", FCTM_skill_name: "AGRICULTURA ECOLOGICA" },
+  { _id: "69bd6bb2e1aa8f195c71c320", FCTM_skill_name: "ANGULAR" },
+  { _id: "69bd6bb2e1aa8f195c71c32b", FCTM_skill_name: "ANALISIS DE DATOS" },
+  { _id: "69bd6bb2e1aa8f195c71c32e", FCTM_skill_name: "ATENCION AL CLIENTE" },
+  { _id: "69bd6bb2e1aa8f195c71c322", FCTM_skill_name: "AWS" },
+  { _id: "69bd6bb2e1aa8f195c71c323", FCTM_skill_name: "AZURE" },
+  { _id: "69bd6bb2e1aa8f195c71c344", FCTM_skill_name: "BOTANICA" },
+  { _id: "69bd6bb2e1aa8f195c71c325", FCTM_skill_name: "C#" },
+  { _id: "69bd6bb2e1aa8f195c71c326", FCTM_skill_name: "C++" },
+  { _id: "69bd6bb2e1aa8f195c71c316", FCTM_skill_name: "CIBERSEGURIDAD" },
+  { _id: "69bd6bb2e1aa8f195c71c315", FCTM_skill_name: "CLOUD COMPUTING" },
+  { _id: "69bd6bb2e1aa8f195c71c301", FCTM_skill_name: "COMUNICACION EFECTIVA" },
+  { _id: "69bd6bb2e1aa8f195c71c332", FCTM_skill_name: "CONTENT MARKETING" },
+  { _id: "69bd6bb2e1aa8f195c71c345", FCTM_skill_name: "CONTROL DE PLAGAS" },
+  { _id: "69bd6bb2e1aa8f195c71c308", FCTM_skill_name: "CREATIVIDAD" },
+  { _id: "69bd6bb2e1aa8f195c71c310", FCTM_skill_name: "CSS3" },
+  { _id: "69bd6bb2e1aa8f195c71c329", FCTM_skill_name: "DESARROLLO DE NEGOCIO" },
+  { _id: "69bd6bb2e1aa8f195c71c30b", FCTM_skill_name: "DESARROLLO WEB" },
+  { _id: "69bd6bb2e1aa8f195c71c335", FCTM_skill_name: "DISENO GRAFICO" },
+  { _id: "69bd6bb2e1aa8f195c71c33b", FCTM_skill_name: "DOCENCIA" },
+  { _id: "69bd6bb2e1aa8f195c71c318", FCTM_skill_name: "DOCKER" },
+  { _id: "69bd6bb2e1aa8f195c71c334", FCTM_skill_name: "E-COMMERCE" },
+  { _id: "69bd6bb2e1aa8f195c71c33c", FCTM_skill_name: "E-LEARNING" },
+  { _id: "69bd6bb2e1aa8f195c71c33a", FCTM_skill_name: "EDICION DE VIDEO" },
+  { _id: "69bd6bb2e1aa8f195c71c30a", FCTM_skill_name: "EMPATIA" },
+  { _id: "69bd6bb2e1aa8f195c71c328", FCTM_skill_name: "ESTRATEGIA DE NEGOCIO" },
+  { _id: "69bd6bb2e1aa8f195c71c337", FCTM_skill_name: "FIGMA" },
+  { _id: "69bd6bb2e1aa8f195c71c343", FCTM_skill_name: "GESTION AMBIENTAL" },
+  { _id: "69bd6bb2e1aa8f195c71c327", FCTM_skill_name: "GESTION DE PROYECTOS" },
+  { _id: "69bd6bb2e1aa8f195c71c303", FCTM_skill_name: "GESTION DEL TIEMPO" },
+  { _id: "69bd6bb2e1aa8f195c71c347", FCTM_skill_name: "GESTION FORESTAL" },
+  { _id: "69bd6bb2e1aa8f195c71c317", FCTM_skill_name: "GIT" },
+  { _id: "69bd6bb2e1aa8f195c71c333", FCTM_skill_name: "GOOGLE ANALYTICS" },
+  { _id: "69bd6bb2e1aa8f195c71c309", FCTM_skill_name: "HABLAR EN PUBLICO" },
+  { _id: "69bd6bb2e1aa8f195c71c30f", FCTM_skill_name: "HTML5" },
+  { _id: "69bd6bb2e1aa8f195c71c33e", FCTM_skill_name: "INTEGRACION SOCIAL" },
+  { _id: "69bd6bb2e1aa8f195c71c31a", FCTM_skill_name: "INTELIGENCIA ARTIFICIAL" },
+  { _id: "69bd6bb2e1aa8f195c71c307", FCTM_skill_name: "INTELIGENCIA EMOCIONAL" },
+  { _id: "69bd6bb2e1aa8f195c71c33d", FCTM_skill_name: "INTERVENCION SOCIAL" },
+  { _id: "69bd6bb2e1aa8f195c71c348", FCTM_skill_name: "JARDINERIA" },
+  { _id: "69bd6bb2e1aa8f195c71c30e", FCTM_skill_name: "JAVA" },
+  { _id: "69bd6bb2e1aa8f195c71c30c", FCTM_skill_name: "JAVASCRIPT" },
+  { _id: "69bd6bb2e1aa8f195c71c319", FCTM_skill_name: "KUBERNETES" },
+  { _id: "69bd6bb2e1aa8f195c71c2ff", FCTM_skill_name: "LIDERAZGO" },
+  { _id: "69bd6bb2e1aa8f195c71c31b", FCTM_skill_name: "MACHINE LEARNING" },
+  { _id: "69bd6bb2e1aa8f195c71c32f", FCTM_skill_name: "MARKETING DIGITAL" },
+  { _id: "69bd6bb2e1aa8f195c71c306", FCTM_skill_name: "NEGOCIACION" },
+  { _id: "69bd6bb2e1aa8f195c71c312", FCTM_skill_name: "NODE.JS" },
+  { _id: "69bd6bb2e1aa8f195c71c314", FCTM_skill_name: "NOSQL" },
+  { _id: "69bd6bb2e1aa8f195c71c340", FCTM_skill_name: "ORIENTACION LABORAL" },
+  { _id: "69bd6bb2e1aa8f195c71c342", FCTM_skill_name: "PAISAJISMO" },
+  { _id: "69bd6bb2e1aa8f195c71c304", FCTM_skill_name: "PENSAMIENTO CRITICO" },
+  { _id: "69bd6bb2e1aa8f195c71c324", FCTM_skill_name: "PHP" },
+  { _id: "69bd6bb2e1aa8f195c71c32a", FCTM_skill_name: "PLANIFICACION ESTRATEGICA" },
+  { _id: "69bd6bb2e1aa8f195c71c33f", FCTM_skill_name: "PSICOLOGIA" },
+  { _id: "69bd6bb2e1aa8f195c71c30d", FCTM_skill_name: "PYTHON" },
+  { _id: "69bd6bb2e1aa8f195c71c311", FCTM_skill_name: "REACT" },
+  { _id: "69bd6bb2e1aa8f195c71c32c", FCTM_skill_name: "RECURSOS HUMANOS" },
+  { _id: "69bd6bb2e1aa8f195c71c31e", FCTM_skill_name: "REDES DE COMPUTADORES" },
+  { _id: "69bd6bb2e1aa8f195c71c302", FCTM_skill_name: "RESOLUCION DE PROBLEMAS" },
+  { _id: "69bd6bb2e1aa8f195c71c331", FCTM_skill_name: "SEM" },
+  { _id: "69bd6bb2e1aa8f195c71c330", FCTM_skill_name: "SEO" },
+  { _id: "69bd6bb2e1aa8f195c71c31c", FCTM_skill_name: "SOPORTE TECNICO" },
+  { _id: "69bd6bb2e1aa8f195c71c346", FCTM_skill_name: "SOSTENIBILIDAD" },
+  { _id: "69bd6bb2e1aa8f195c71c313", FCTM_skill_name: "SQL" },
+  { _id: "69bd6bb2e1aa8f195c71c300", FCTM_skill_name: "TRABAJO EN EQUIPO" },
+  { _id: "69bd6bb2e1aa8f195c71c31f", FCTM_skill_name: "TYPESCRIPT" },
+  { _id: "69bd6bb2e1aa8f195c71c336", FCTM_skill_name: "UI/UX" },
+  { _id: "69bd6bb2e1aa8f195c71c32d", FCTM_skill_name: "VENTAS" },
+  { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" },
+  { _id: "67fbdada0bad3c1287004a31", FCTM_skill_name: "AMABILIDAD DE COLOR BIEN" }
+];
+
+const skillSelectOptions = skillOptions.map((skill) => ({
+  value: skill._id,
+  label: skill.FCTM_skill_name
+}));
+
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -59,6 +142,29 @@ const camposSAO = [
   { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
 ];
 
+const normalizeSkillOptionValue = (skill, availableOptions = []) => {
+  if (!skill) return null;
+
+  if (typeof skill === "object") {
+    if (skill.value && skill.label) return skill;
+
+    const label = skill.FCTM_skill_name || skill.label || skill.name || skill.nombre || null;
+    const value = skill._id || skill.value || label;
+
+    return label ? { value, label } : null;
+  }
+
+  const match = availableOptions.find(
+    (option) => option.value === skill || option.label === skill
+  );
+
+  if (match) return match;
+
+  return typeof skill === "string" && skill.trim()
+    ? { value: skill.trim(), label: skill.trim() }
+    : null;
+};
+
 const ShowCompany = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,101 +173,29 @@ const ShowCompany = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
-  const [skillOptions, setSkillOptions] = useState([]);
-  const [skillsLoading, setSkillsLoading] = useState(false);
 
-  const normalizeSkillOption = useCallback((skill) => {
-    if (!skill) return null;
-
-    if (typeof skill === "object") {
-      if (skill.value && skill.label) return skill;
-
-      const label = skill.FCTM_skill_name || skill.label || skill.name || skill.nombre || null;
-      const value = skill._id || skill.value || label;
-
-      return label ? { value, label } : null;
-    }
-
-    const match = skillOptions.find(
-      (option) => option.value === skill || option.label === skill
-    );
-
-    if (match) return match;
-
-    return typeof skill === "string" && skill.trim()
-      ? { value: skill.trim(), label: skill.trim() }
-      : null;
-  }, [skillOptions]);
-
-  const mergeSkillOptions = useCallback((skills = []) => {
-    const normalizedSkills = skills
-      .map(normalizeSkillOption)
-      .filter(Boolean);
-
-    setSkillOptions((prev) => {
-      const merged = new Map();
-
-      [...prev, ...normalizedSkills].forEach((skill) => {
-        const key = String(skill.value || skill.label).toUpperCase();
-        if (!merged.has(key)) {
-          merged.set(key, skill);
-        }
-      });
-
-      return Array.from(merged.values()).sort((a, b) => a.label.localeCompare(b.label, "es"));
-    });
-  }, [normalizeSkillOption]);
+  const normalizeSkillOption = useCallback(
+    (skill, availableOptions = skillSelectOptions) => normalizeSkillOptionValue(skill, availableOptions),
+    []
+  );
 
   const normalizeCompanyData = useCallback((company) => {
     const normalized = normalizeFromApi(company, categoryNormalizationConfig);
     const rawSkills = company?.FCTM_skills ?? company?.FCTM_company_skills ?? [];
     const skillsArray = Array.isArray(rawSkills) ? rawSkills : [rawSkills];
 
-    normalized.FCTM_skills = skillsArray.map(normalizeSkillOption).filter(Boolean);
+    normalized.FCTM_skills = skillsArray
+      .map((skill) => normalizeSkillOptionValue(skill, skillSelectOptions))
+      .filter(Boolean);
 
     return normalized;
-  }, [normalizeSkillOption]);
-
-  const fetchVerifiedSkills = useCallback(async () => {
-    setSkillsLoading(true);
-    const res = await sendRequest("GET", null, "/skills");
-
-    if (res.success) {
-      mergeSkillOptions(res.data || []);
-    }
-
-    setSkillsLoading(false);
-  }, [mergeSkillOptions]);
-
-  const loadSkillOptions = useCallback(async (inputValue) => {
-    const term = inputValue?.trim();
-    const endpoint = term
-      ? `/skills/search?q=${encodeURIComponent(term)}`
-      : "/skills";
-
-    const res = await sendRequest("GET", null, endpoint);
-    if (!res.success) return skillOptions;
-
-    const incomingSkills = (res.data || []).map(normalizeSkillOption).filter(Boolean);
-    const merged = new Map();
-
-    [...skillOptions, ...incomingSkills].forEach((skill) => {
-      const key = String(skill.value || skill.label).toUpperCase();
-      if (!merged.has(key)) {
-        merged.set(key, skill);
-      }
-    });
-
-    return Array.from(merged.values()).sort((a, b) => a.label.localeCompare(b.label, "es"));
-  }, [normalizeSkillOption, skillOptions]);
+  }, []);
 
   const fetchCompany = useCallback(async () => {
     setLoading(true);
     const res = await sendRequest("GET", null, `/companies/${id}`);
 
     if (res.success) {
-      const rawSkills = res.data?.FCTM_skills ?? res.data?.FCTM_company_skills ?? [];
-      mergeSkillOptions(Array.isArray(rawSkills) ? rawSkills : [rawSkills]);
       const normalized = normalizeCompanyData(res.data);
       setData(normalized);
       setOriginalData(normalized);
@@ -170,15 +204,11 @@ const ShowCompany = () => {
     }
 
     setLoading(false);
-  }, [id, mergeSkillOptions, normalizeCompanyData]);
+  }, [id]);
 
   useEffect(() => {
     fetchCompany();
   }, [fetchCompany]);
-
-  useEffect(() => {
-    fetchVerifiedSkills();
-  }, [fetchVerifiedSkills]);
 
   const handleDeleteJobOffer = useCallback(async (jobOfferId) => {
     const confirmed = await confirmation("¿Seguro que quieres eliminar esta oferta de trabajo?");
@@ -362,21 +392,17 @@ const ShowCompany = () => {
 
             <div className="mb-3">
               <label className="form-label">Skills / Tecnologias</label>
-              <AsyncCreatableSelect
-                cacheOptions
-                defaultOptions={skillOptions}
-                loadOptions={loadSkillOptions}
+              <CreatableSelect
+                options={skillSelectOptions}
                 isMulti
                 value={data.FCTM_skills || []}
                 onChange={(selected) => {
                   const nextSkills = selected || [];
                   handleChange("FCTM_skills", nextSkills);
-                  mergeSkillOptions(nextSkills);
                 }}
                 placeholder="Selecciona o crea Skills / Tecnologias..."
                 closeMenuOnSelect={false}
                 isDisabled={!isEditing}
-                isLoading={skillsLoading}
                 menuPortalTarget={document.body}
                 menuPosition="fixed"
                 formatCreateLabel={(inputValue) => `Crear "${inputValue}"`}
