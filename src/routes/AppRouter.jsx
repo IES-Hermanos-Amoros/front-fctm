@@ -9,7 +9,6 @@ import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
 import ShowDummy from "../views/Dummy/ShowDummy"
 import ShowStudent from "../views/Students/ShowStudent"
-import ShowCompany from "../views/Companies/ShowCompany"
 import ShowJobOffer from "../views/JobOffers/ShowJobOffer"
 import NewDummy from '../views/Dummy/NewDummy'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
@@ -44,7 +43,6 @@ export default function AppRouter() {
       <Route path="/joboffers/new" element={<NewJobOffer />} />
       <Route path="/joboffers/:id" element={<ShowJobOffer />} />
       <Route path="/companies" element={<ListCompanies />} />
-      <Route path="/companies/:id" element={<ShowCompany />} />
       <Route path="/administrators/:id" element={<ShowAdmin />} />
 
       <Route path="/students" element={<ListStudents />} />
