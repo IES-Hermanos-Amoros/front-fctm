@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest,stringToColor } from '../../utils/functions';
+import { useNavigate } from 'react-router-dom';
 import ReactTableTanstack from '../../components/ReactTableTanstack';
 
 const ListCompanies = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const getSkillNames = (row) => {
-        const raw = row?.FCTM_company_skills;
+        const raw = row?.FCTM_skills ?? row?.FCTM_company_skills;
         if (!raw) return [];
         if (Array.isArray(raw)) {
             return raw
@@ -55,7 +57,7 @@ const ListCompanies = () => {
                 return 'Sin familia';
             }
         },*/
-        { key: "FCTM_company_skills",
+        { key: "FCTM_skills",
               encabezado: "Skills / Tecnologías",
               // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
               accessorFn: (row) => getSkillNames(row).join(" ") || "",
@@ -90,8 +92,20 @@ const ListCompanies = () => {
                 );
               }
             },
-        // Ver ficha desactivado
-    ], []);
+        {
+            key: "__show",
+            encabezado: "Ver",
+            render: (row) => (
+                <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={() => navigate(`/companies/${row._id}`)}
+                    title="Ver ficha"
+                >
+                    <i className="bi bi-search"></i>
+                </button>
+            )
+        }
+    ], [navigate]);
 
     // Fetch de empresas
     const fetchData = useCallback(async () => {
