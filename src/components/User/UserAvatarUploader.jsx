@@ -1,10 +1,70 @@
-import React from 'react'
+import React, { useState } from 'react'
 
-const UserAvatarUploader = () => {
+const UserAvatarUploader = ({ userId, avatarUrl }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  // 1. Construcción de la URL según requisitos
+  let host = import.meta.env.VITE_BASE_URL_BACKEND;
+  const protocol = window.location.protocol.replace(':', ''); // 'http' o 'https'
+  const defaultImage = "https://via.placeholder.com/120"; // Imagen por defecto
+  
+  const fullUrl = avatarUrl ? `${protocol}://${host}${avatarUrl}` : defaultImage;
+
+  // 2. Manejo del archivo seleccionado
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file)); // Crea preview temporal
+    }
+  };
+
+  // 3. Envío al Backend
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+
+    const formData = new FormData();
+    formData.append('files', selectedFile);
+    formData.append('userId', userId);
+    formData.append('type', 'AVATAR');
+    formData.append('visible_to_profiles', JSON.stringify(["ADMINISTRADOR","PROFESOR","ALUMNO","EMPRESA"]));
+
+    try {
+      // Aquí harías el fetch o axios.post('/documents/upload', formData)
+      console.log("Enviando archivo para el usuario:", userId);
+      // Tras el éxito, podrías limpiar el preview o avisar al usuario
+    } catch (error) {
+      console.error("Error al subir", error);
+    }
+  };
+
   return (
-    <div>TO DO...</div>
-  )
-}
+    <div className="avatar-uploader-container" style={{ textAlign: 'center', padding: '20px' }}>
+      <img 
+        src={previewUrl || fullUrl} 
+        alt="Avatar" 
+        style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover' }} 
+      />
+      
+      <form onSubmit={handleSubmit} style={{ marginTop: '10px' }}>
+        <input 
+          type="file" 
+          onChange={handleFileChange} 
+          accept="image/*"
+          className="form-control" 
+        />
+        <div style={{ marginTop: '10px' }}>
+          <button type="submit" className="btn btn-primary">Guardar Cambios</button>
+          <button type="button" className="btn btn-danger" onClick={() => {setSelectedFile(null); setPreviewUrl(null)}}>
+            Eliminar
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
 
 export default UserAvatarUploader
 
