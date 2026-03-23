@@ -18,6 +18,7 @@ import ListFctsSAO from '../views/SAOSinc/Fcts/ListFctsSAO'
 import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
+import ShowCompany from '../views/Companies/ShowCompany'
 import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 
@@ -43,6 +44,7 @@ export default function AppRouter() {
       <Route path="/joboffers/new" element={<NewJobOffer />} />
       <Route path="/joboffers/:id" element={<ShowJobOffer />} />
       <Route path="/companies" element={<ListCompanies />} />
+      <Route path="/companies/:id" element={<ShowCompany />} />
       <Route path="/administrators/:id" element={<ShowAdmin />} />
 
       <Route path="/students" element={<ListStudents />} />
