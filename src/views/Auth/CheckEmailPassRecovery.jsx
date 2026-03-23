@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
-import './auth.css'
+//import './auth.css'
 
 const CheckEmailPassRecovery = () => {
   const [email, setEmail] = useState('')

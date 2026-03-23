@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { sendRequest, showAlert, validateStrongPassword } from '../../utils/functions'
-import './auth.css'
+//import './auth.css'
 
 const PasswordChange = () => {
   const { token } = useParams()
