@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 //import "../../styles/auth.css"
 
@@ -167,7 +167,7 @@ const Login = () => {
           </button>
 
           <div className="auth-links">
-            <a href="#">¿Olvidaste la contraseña?</a>
+            <Link to="/auth/check-email-recovery">¿Olvidaste la contraseña?</Link>
           </div>
 
           <p className="auth-footer">
