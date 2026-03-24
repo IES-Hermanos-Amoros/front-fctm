@@ -23,11 +23,17 @@ const SAO_FIELDS = [
   { key: "SAO_organization", label: "Organización / Centro", type: "text" },
   { key: "SAO_group", label: "Grupo / Clase", type: "text" },
   { key: "SAO_email", label: "Correo Electrónico", type: "email" },
-  { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" }
+  { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" },
 ];
 
 const FCTM_FIELDS = [
   { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
+  {
+    key: "FCTM_teacher_observations",
+    label: "Observaciones",
+    type: "textarea",
+  },
+  { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
   {
     key: "FCTM_company_category",
     label: "Categorías",
@@ -56,7 +62,7 @@ const toInputDate = (value) => {
   return value.includes("T") ? value.split("T")[0] : value;
 };
 
-const ShowAdmin = () => {
+const ShowTeacher = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -65,7 +71,7 @@ const ShowAdmin = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
 
-  const fetchAdmin = useCallback(async () => {
+  const fetchTeacher = useCallback(async () => {
     if (!id) {
       setLoading(false);
       return;
@@ -73,19 +79,21 @@ const ShowAdmin = () => {
 
     setLoading(true);
 
-    const res = await sendRequest("GET", null, `/administrators/${id}`);
+    const res = await sendRequest("GET", null, `/teachers/${id}`);
 
     if (res.success) {
       /*const normalized = {
         ...res.data,
         SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate)
+        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
       };*/
 
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
-      
-      setData(normalized);
-      setOriginalData(normalized);
+      //const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
+      const dataNormalizada = normalizeFromApi(res.data, normalizationConfig);
+      console.log(dataNormalizada)
+
+      setData(dataNormalizada);
+      setOriginalData(dataNormalizada);
     } else {
       showAlert(res.message, "error");
     }
@@ -95,23 +103,27 @@ const ShowAdmin = () => {
 
   const handleSave = async () => {
     /*const payload = {
-      FCTM_contact_email: data?.FCTM_contact_email || null
+      FCTM_contact_email: data?.FCTM_contact_email || null,
+      FCTM_teacher_observations: data?.FCTM_teacher_observations || null,
+      FCTM_teacher_other_contact: data?.FCTM_teacher_other_contact || null,
     };*/
+
     const fctmOnly = pickFCTMFields(data);
-    const payload = normalizeToApi(fctmOnly, normalizationConfig);
-    console.log("Payload a enviar:", payload);
-    const res = await sendRequest("PATCH", payload, `/administrators/${id}`);
+    const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
+    const res = await sendRequest("PATCH", payloadNormalizado, `/teachers/${id}`);
 
     if (res.success) {
       /*const normalized = {
         ...res.data,
         SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate)
+        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
       };*/
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
 
-      setData(normalized);
-      setOriginalData(normalized);
+      const dataFinal = normalizeFromApi(res.data, normalizationConfig);
+      console.log(dataFinal)
+      
+      setData(dataFinal);
+      setOriginalData(dataFinal);
       setIsEditing(false);
     } else {
       showAlert(res.message, "error");
@@ -121,7 +133,7 @@ const ShowAdmin = () => {
   const handleChange = (field, value) => {
     setData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -131,17 +143,17 @@ const ShowAdmin = () => {
   };
 
   useEffect(() => {
-    fetchAdmin();
-  }, [fetchAdmin]);
+    fetchTeacher();
+  }, [fetchTeacher]);
 
   if (loading) return <p>Cargando datos...</p>;
-  if (!id) return <p>Falta el id del administrador en la URL.</p>;
-  if (!data) return <p>No se encontraron datos del administrador.</p>;
+  if (!id) return <p>Falta el id del profesor en la URL.</p>;
+  if (!data) return <p>No se encontraron datos del profesor.</p>;
 
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Perfil de ${data?.SAO_name || "Administrador"}`}
+        title={`Perfil de ${data?.SAO_name || "Profesor"}`}
         onBack={() => {
           if (window.history.length > 1) {
             navigate(-1);
@@ -153,7 +165,7 @@ const ShowAdmin = () => {
 
       <ShowEditableForm
         formTitle="Información de SAO"
-        formId="adminSaoForm"
+        formId="teacherSaoForm"
         data={data}
         fields={SAO_FIELDS}
         hideEditButton={true}
@@ -161,7 +173,7 @@ const ShowAdmin = () => {
 
       <ShowEditableForm
         formTitle="Datos Adicionales"
-        formId="adminFctmForm"
+        formId="teacherFctmForm"
         data={data}
         fields={FCTM_FIELDS}
         isEditing={isEditing}
@@ -174,4 +186,4 @@ const ShowAdmin = () => {
   );
 };
 
-export default ShowAdmin;
+export default ShowTeacher;
