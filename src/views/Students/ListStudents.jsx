@@ -33,6 +33,30 @@ const ListStudents = () => {
     { key: "SAO_name", encabezado: "Nombre" },
     { key: "SAO_student_city", encabezado: "Localidad" },
     {
+      key: "FCTM_skills",
+      encabezado: "Aptitudes",
+      // accessorFn permite que el buscador global encuentre el texto de las habilidades
+      accessorFn: (row) => 
+        (row.FCTM_skills || []).map(s => s.FCTM_skill_name || s).join(" "),
+      render: (row) => (
+        <div className="d-flex flex-wrap gap-1">
+          {(row.FCTM_skills || []).length > 0 ? (
+            row.FCTM_skills.map((skill, idx) => (
+              <span 
+                key={skill._id || idx} 
+                className="badge rounded-pill bg-light text-dark border"
+                style={{ fontSize: '0.75rem' }}
+              >
+                {skill.FCTM_skill_name || skill}
+              </span>
+            ))
+          ) : (
+            <span className="text-muted small">-</span>
+          )}
+        </div>
+      )
+    },
+    {
       key:"Actions", encabezado:"Acciones",
       render: (row) => (
         <button
