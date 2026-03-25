@@ -103,7 +103,7 @@ const skillOptions = [
 
 const NORMALIZATION_CONFIG = [
   {
-    field: "FCTM_category",
+    field: "FCTM_company_category",
     options: categoryOptions,
     optionValue: "_id",
     optionLabel: "FCTM_category_name",
@@ -215,7 +215,7 @@ const ShowStudent = () => {
         setAvailableSkills(resSkills.data);
       }
 
-      const resCat = await sendRequest("GET", null, "/category");
+      const resCat = await sendRequest("GET", null, "/categories");
       if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
         setAvailableCategories(resCat.data);
       }
@@ -233,7 +233,7 @@ const ShowStudent = () => {
       const combinedSkills = availableSkills.length > 0 ? availableSkills : skillOptions;
       
       const currentConfig = NORMALIZATION_CONFIG.map(c => {
-        if (c.field === "FCTM_category") return { ...c, options: combinedCats };
+        if (c.field === "FCTM_company_category") return { ...c, options: combinedCats };
         if (c.field === "FCTM_skills") return { ...c, options: combinedSkills };
         return c;
       });
@@ -241,7 +241,18 @@ const ShowStudent = () => {
       const dataNormalizada = normalizeFromApi(res.data, currentConfig);
 
       dataNormalizada.FCTM_student_openToWork = String(!!res.data.FCTM_student_openToWork);
-      dataNormalizada.FCTM_category = dataNormalizada.FCTM_category || [];
+      
+      dataNormalizada.FCTM_company_category = (res.data.FCTM_company_category || []).map(catId => {
+        if (typeof catId === 'object') return catId;
+        const found = combinedCats.find(c => c._id === catId);
+        return found ? found : { _id: catId, FCTM_category_name: catId };
+      });
+
+      dataNormalizada.FCTM_skills = (res.data.FCTM_skills || []).map(skillId => {
+        if (typeof skillId === 'object') return skillId;
+        const found = combinedSkills.find(s => s._id === skillId);
+        return found ? found : { _id: skillId, FCTM_skill_name: skillId };
+      });
       
       dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
       dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
@@ -257,7 +268,7 @@ const ShowStudent = () => {
       let skillNames = [];
       if (data.FCTM_skills) {
         skillNames = data.FCTM_skills.map(s => {
-          let name = typeof s === "string" ? s : (s.label || s.FCTM_skill_name);
+          let name = typeof s === "string" ? s : (s.FCTM_skill_name || s.label);
           return name ? name.trim().toUpperCase() : null;
         }).filter(Boolean);
       }
@@ -266,16 +277,17 @@ const ShowStudent = () => {
       if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
       const skillIds = resSkills.data;
-      const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
 
-      const categoryIds = (data.FCTM_category || []).map(c => 
-        typeof c === "object" ? (c.value || c._id) : c
+      const categoryIds = (data.FCTM_company_category || []).map(c => 
+        typeof c === "object" ? (c._id || c.value) : c
       ).filter(Boolean);
+
+      const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
 
       const finalPayload = {
         ...payloadNormalizado,
         FCTM_skills: skillIds,
-        FCTM_category: categoryIds,
+        FCTM_company_category: categoryIds, 
         FCTM_student_openToWork: String(data.FCTM_student_openToWork) === "true"
       };
 
@@ -284,7 +296,7 @@ const ShowStudent = () => {
       if (res.success) {
         showAlert("Estudiante actualizado", "success");
         setIsEditing(false);
-        fetchStudent();
+        fetchStudent(); 
       } else {
         showAlert(res.message, "error");
       }
@@ -358,13 +370,13 @@ const ShowStudent = () => {
   
   // 1. Definimos el campo de categorías
   const CATEGORY_FIELD = {
-    key: "FCTM_category",
+    key: "FCTM_company_category",
     label: "Categorías/Familias Profesionales",
     type: "select-multi-creatable",
     optionValue: "_id",
     optionLabel: "FCTM_category_name",
     options: availableCategories.length > 0 ? availableCategories : categoryOptions
-  };
+  };  
 
   // 2. Construimos el array de campos para el formulario "Datos Adicionales"
   const dynamicFCTMFields = [
@@ -381,7 +393,7 @@ const ShowStudent = () => {
   ];
 
   const filteredFCTMFields = dynamicFCTMFields.filter(field => {
-    const siempreVisibles = ["FCTM_category", "FCTM_skills", "FCTM_student_openToWork"];
+    const siempreVisibles = ["FCTM_company_category", "FCTM_skills", "FCTM_student_openToWork"];
     if (siempreVisibles.includes(field.key)) return true;
     return field.key in data;
   });
