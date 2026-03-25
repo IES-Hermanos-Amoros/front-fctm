@@ -123,7 +123,7 @@ const ShowStudent = () => {
             d => d.FCTM_document_type === "AVATAR"
           );
           if (avatarDoc?.FCTM_document_url) {
-            avatarUrl = hostAPI + avatarDoc.FCTM_document_url;
+            avatarUrl = avatarDoc.FCTM_document_url;
           }
         }
         setAvatarUrl(avatarUrl);

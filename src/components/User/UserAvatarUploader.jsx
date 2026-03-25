@@ -20,8 +20,8 @@ const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
   const host = getBackendHost(); // esto ya trae http:// o https://
   const defaultImage = defaultAvatar//"https://via.placeholder.com/120"; // Imagen por defecto
   
-  //const fullUrl = avatarUrl ? (avatarUrl.startsWith('http') ? avatarUrl : `${host}${avatarUrl}`) : defaultImage;
-  const fullUrl = avatarUrl ? avatarUrl : defaultImage;
+  const fullUrl = avatarUrl ? (avatarUrl.startsWith('http') ? avatarUrl : `${host}${avatarUrl}`) : defaultImage;
+  //const fullUrl = avatarUrl ? avatarUrl : defaultImage;
   console.log("URL del avatar:", fullUrl);
 
   // 2. Manejo del archivo seleccionado

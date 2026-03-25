@@ -159,7 +159,7 @@ const ShowCompany = () => {
       setData(normalized);
       //setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
       setOriginalData(normalized);
-      setAvatarUrl(hostAPI + res.data?.FCTM_documents[0]?.FCTM_document_url || "");
+      setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
 
     } else {
       showAlert("Error al cargar la empresa", "error");

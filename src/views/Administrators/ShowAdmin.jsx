@@ -85,7 +85,7 @@ const ShowAdmin = () => {
       
       setData(normalized);
       setOriginalData(normalized);
-      setAvatarUrl(hostAPI + res.data?.FCTM_documents[0]?.FCTM_document_url || "");
+      setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
 
     } else {
       showAlert(res.message, "error");
