@@ -1,11 +1,132 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost, normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost,normalizeFromApi, normalizeToApi, normalizeFromApi, normalizeToApi } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+const categoryOptions = [
+  { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
+  { _id: "69a82074499df1aec1d2477f", FCTM_category_name: "DESARROLLO DE APLICACIONES WEB" },
+  { _id: "69a82074499df1aec1d24780", FCTM_category_name: "EDUCACIÓN INFANTIL" },
+  { _id: "69a82074499df1aec1d24781", FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
+  { _id: "69a82074499df1aec1d24782", FCTM_category_name: "INTEGRACIÓN SOCIAL" },
+  { _id: "69a82074499df1aec1d24783", FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA" },
+  { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
+];
+
+const skillOptions = [
+  // Soft Skills
+  { _id: "skill_01", FCTM_skill_name: "LIDERAZGO" },
+  { _id: "skill_02", FCTM_skill_name: "TRABAJO EN EQUIPO" },
+  { _id: "skill_03", FCTM_skill_name: "COMUNICACIÓN EFECTIVA" },
+  { _id: "skill_04", FCTM_skill_name: "RESOLUCIÓN DE PROBLEMAS" },
+  { _id: "skill_05", FCTM_skill_name: "GESTIÓN DEL TIEMPO" },
+  { _id: "skill_06", FCTM_skill_name: "PENSAMIENTO CRÍTICO" },
+  { _id: "skill_07", FCTM_skill_name: "ADAPTABILIDAD" },
+  { _id: "skill_08", FCTM_skill_name: "NEGOCIACIÓN" },
+  { _id: "skill_09", FCTM_skill_name: "INTELIGENCIA EMOCIONAL" },
+  { _id: "skill_10", FCTM_skill_name: "CREATIVIDAD" },
+  { _id: "skill_11", FCTM_skill_name: "HABLAR EN PÚBLICO" },
+  { _id: "skill_12", FCTM_skill_name: "EMPATÍA" },
+  
+  // Tecnología / IT
+  { _id: "skill_13", FCTM_skill_name: "DESARROLLO WEB" },
+  { _id: "skill_14", FCTM_skill_name: "JAVASCRIPT" },
+  { _id: "skill_15", FCTM_skill_name: "PYTHON" },
+  { _id: "skill_16", FCTM_skill_name: "JAVA" },
+  { _id: "skill_17", FCTM_skill_name: "HTML5" },
+  { _id: "skill_18", FCTM_skill_name: "CSS3" },
+  { _id: "skill_19", FCTM_skill_name: "REACT" },
+  { _id: "skill_20", FCTM_skill_name: "NODE.JS" },
+  { _id: "skill_21", FCTM_skill_name: "SQL" },
+  { _id: "skill_22", FCTM_skill_name: "NOSQL" },
+  { _id: "skill_23", FCTM_skill_name: "CLOUD COMPUTING" },
+  { _id: "skill_24", FCTM_skill_name: "CIBERSEGURIDAD" },
+  { _id: "skill_25", FCTM_skill_name: "GIT" },
+  { _id: "skill_26", FCTM_skill_name: "DOCKER" },
+  { _id: "skill_27", FCTM_skill_name: "KUBERNETES" },
+  { _id: "skill_28", FCTM_skill_name: "INTELIGENCIA ARTIFICIAL" },
+  { _id: "skill_29", FCTM_skill_name: "MACHINE LEARNING" },
+  { _id: "skill_30", FCTM_skill_name: "SOPORTE TÉCNICO" },
+  { _id: "skill_31", FCTM_skill_name: "ADMINISTRACIÓN DE SISTEMAS" },
+  { _id: "skill_32", FCTM_skill_name: "REDES DE COMPUTADORES" },
+  { _id: "skill_33", FCTM_skill_name: "TYPESCRIPT" },
+  { _id: "skill_34", FCTM_skill_name: "ANGULAR" },
+  { _id: "skill_35", FCTM_skill_name: "VUE.JS" },
+  { _id: "skill_36", FCTM_skill_name: "AWS" },
+  { _id: "skill_37", FCTM_skill_name: "AZURE" },
+  { _id: "skill_38", FCTM_skill_name: "PHP" },
+  { _id: "skill_39", FCTM_skill_name: "C#" },
+  { _id: "skill_40", FCTM_skill_name: "C++" },
+
+  // Gestión y Marketing
+  { _id: "skill_41", FCTM_skill_name: "GESTIÓN DE PROYECTOS" },
+  { _id: "skill_42", FCTM_skill_name: "ESTRATEGIA DE NEGOCIO" },
+  { _id: "skill_43", FCTM_skill_name: "DESARROLLO DE NEGOCIO" },
+  { _id: "skill_44", FCTM_skill_name: "PLANIFICACIÓN ESTRATÉGICA" },
+  { _id: "skill_45", FCTM_skill_name: "ANÁLISIS DE DATOS" },
+  { _id: "skill_46", FCTM_skill_name: "RECURSOS HUMANOS" },
+  { _id: "skill_47", FCTM_skill_name: "VENTAS" },
+  { _id: "skill_48", FCTM_skill_name: "ATENCIÓN AL CLIENTE" },
+  { _id: "skill_49", FCTM_skill_name: "MARKETING DIGITAL" },
+  { _id: "skill_50", FCTM_skill_name: "SEO" },
+  { _id: "skill_51", FCTM_skill_name: "SEM" },
+  { _id: "skill_52", FCTM_skill_name: "CONTENT MARKETING" },
+  { _id: "skill_53", FCTM_skill_name: "GOOGLE ANALYTICS" },
+  { _id: "skill_54", FCTM_skill_name: "E-COMMERCE" },
+
+  // Diseño y Social
+  { _id: "skill_55", FCTM_skill_name: "DISEÑO GRÁFICO" },
+  { _id: "skill_56", FCTM_skill_name: "UI/UX" },
+  { _id: "skill_57", FCTM_skill_name: "FIGMA" },
+  { _id: "skill_58", FCTM_skill_name: "ADOBE PHOTOSHOP" },
+  { _id: "skill_59", FCTM_skill_name: "ADOBE ILLUSTRATOR" },
+  { _id: "skill_60", FCTM_skill_name: "EDICIÓN DE VÍDEO" },
+  { _id: "skill_61", FCTM_skill_name: "DOCENCIA" },
+  { _id: "skill_62", FCTM_skill_name: "E-LEARNING" },
+  { _id: "skill_63", FCTM_skill_name: "INTERVENCIÓN SOCIAL" },
+  { _id: "skill_64", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
+  { _id: "skill_65", FCTM_skill_name: "PSICOLOGÍA" },
+  { _id: "skill_66", FCTM_skill_name: "ORIENTACIÓN LABORAL" },
+
+  // Agro y Medio Ambiente
+  { _id: "skill_67", FCTM_skill_name: "AGRICULTURA ECOLÓGICA" },
+  { _id: "skill_68", FCTM_skill_name: "PAISAJISMO" },
+  { _id: "skill_69", FCTM_skill_name: "GESTIÓN AMBIENTAL" },
+  { _id: "skill_70", FCTM_skill_name: "BOTÁNICA" },
+  { _id: "skill_71", FCTM_skill_name: "CONTROL DE PLAGAS" },
+  { _id: "skill_72", FCTM_skill_name: "SOSTENIBILIDAD" },
+  { _id: "skill_73", FCTM_skill_name: "GESTIÓN FORESTAL" },
+  { _id: "skill_74", FCTM_skill_name: "JARDINERÍA" }
+];
+
+// Config legacy no usada
+const _normalizationConfig = [
+  { 
+    field: "FCTM_category", 
+    options: categoryOptions, 
+    optionValue: "FCTM_category_name", 
+    optionLabel: "FCTM_category_name", 
+    type: "multi" 
+  },
+  { 
+    field: "FCTM_student_skills", 
+    options: skillOptions, 
+    optionValue: "FCTM_skill_name", 
+    optionLabel: "FCTM_skill_name", 
+    type: "multi" 
+  }
+];
+
+
+// Configs filtradas (usadas)
+const CONFIG_SOLO_CATEGORY = [{ field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }];
+const CONFIG_OPENWORK_CATEGORY = [
+  { field: "FCTM_student_openToWork", type: "boolean" },
+  { field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }
+];
 
 //MIRIAM
 const SAO_fields = [
@@ -119,8 +240,8 @@ const normalizationConfig = [
 
 //CAROLINA
 const FCTM_fields = [
-  { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
-  { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text"},
+  { key: "FCTM_student_observations", label: "Observaciones", type: "textarea" },
+  { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text" },
   {
     key: "FCTM_student_openToWork",
     label: "En búsqueda activa / Disponible",
@@ -139,8 +260,10 @@ const FCTM_fields = [
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
+    options: [{ _id: "true", nombre: "Sí" }, { _id: "false", nombre: "No" }],
+    optionValue: "_id", optionLabel: "nombre"
   }
-]
+];
 
 const ShowStudent = () => {
 
@@ -152,6 +275,10 @@ const ShowStudent = () => {
     const [loading,setLoading] = useState(true)
     const [isEditing,setIsEditing] = useState(false)
     const [originalData,setOriginalData] = useState(null)
+    
+    // Inicializamos con hardcoded por si falla la API (Fallback solicitado)
+    const [availableSkills, setAvailableSkills] = useState(skillOptions);
+    const [availableCategories, setAvailableCategories] = useState(categoryOptions);
 
     const hostAPI = getBackendHost()
 
@@ -191,7 +318,25 @@ const ShowStudent = () => {
       }
     ]
 
-    // Cargar el estudiante por ID
+    // Cargar datos REALES del backend para tener los IDs correctos (Skills y Categorías)
+    const fetchOptions = useCallback(async () => {
+      try {
+        // SKILLS
+        const resSkills = await sendRequest("GET", null, "/skills/search?q=");
+        if (resSkills.success && Array.isArray(resSkills.data) && resSkills.data.length > 0) {
+          setAvailableSkills(resSkills.data);
+        }
+        
+        // CATEGORIES: Comentado temporalmente para evitar 404 si el endpoint no existe
+        const resCat = await sendRequest("GET", null, "/category"); 
+        if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
+          setAvailableCategories(resCat.data);
+        } 
+      } catch (error) {
+        console.warn("No se pudieron cargar opciones dinámicas del backend, usando locales.");
+      }
+    }, []);
+
     const fetchStudent = useCallback(async () => {
       setLoading(true)
       
@@ -221,8 +366,78 @@ const ShowStudent = () => {
 
       setLoading(false)
     }, [id])
+      setLoading(true);
+      const res = await sendRequest("GET", null, `/students/${id}`);
+      
+      if (res.success) {
+        // Normalizar SOLO categories (skills quedan crudos como en DB)
+        let dataNormalizada = normalizeFromApi(res.data, CONFIG_SOLO_CATEGORY);
+        
+        // Inicializar skills como array vacío si viene undefined
+        if (!dataNormalizada.FCTM_student_skills) dataNormalizada.FCTM_student_skills = [];
 
-    // Guardar cambios FCTM_
+        // 1. Mapeo Inteligente de SKILLS (ID -> Nombre real)
+        if (res.data.FCTM_student_skills) {
+          if (Array.isArray(res.data.FCTM_student_skills)) {
+            dataNormalizada.FCTM_student_skills = res.data.FCTM_student_skills.map(s => {
+              // A) Si ya viene poblado (objeto)
+              if (typeof s === 'object' && s.FCTM_skill_name) {
+                 return { value: s.FCTM_skill_name, label: s.FCTM_skill_name };
+              }
+              // B) Si viene como ID (String), buscamos en la lista dinámica
+              if (typeof s === 'string') {
+                 const found = availableSkills.find(sk => sk._id === s);
+                 if (found) {
+                    return { value: found.FCTM_skill_name, label: found.FCTM_skill_name };
+                 }
+                 // Fallback visual si no se encuentra el ID
+                 return { value: s, label: "Skill ID: " + s.substring(0, 5) + "..." };
+              }
+              return { value: s, label: s };
+            });
+          } else {
+            dataNormalizada.FCTM_student_skills = [];
+          }
+        }
+        
+        // 2. Mapeo Inteligente de CATEGORIES (ID -> Nombre real)
+        if (res.data.FCTM_category) {
+           // Verificamos si FCTM_category es un array (multiselector)
+           let cats = Array.isArray(res.data.FCTM_category) ? res.data.FCTM_category : [res.data.FCTM_category];
+           
+           dataNormalizada.FCTM_category = cats.map(c => {
+              // A) Objeto poblado
+              if (typeof c === 'object' && c.FCTM_category_name) {
+                 return { value: c.FCTM_category_name, label: c.FCTM_category_name };
+              }
+              // B) ID String
+              if (typeof c === 'string') {
+                 const found = availableCategories.find(cat => cat._id === c);
+                 if (found) {
+                    return { value: found.FCTM_category_name, label: found.FCTM_category_name };
+                 }
+                 // Intento buscar en opciones hardcoded si falla la API
+                 const foundHard = categoryOptions.find(cat => cat._id === c);
+                 if(foundHard) return { value: foundHard.FCTM_category_name, label: foundHard.FCTM_category_name };
+
+                 return { value: c, label: "Category ID..." }; 
+              }
+              return { value: c, label: c || "Sin categoría" };
+           });
+        }
+        
+        // openToWork string
+        dataNormalizada.FCTM_student_openToWork = String(res.data.FCTM_student_openToWork || false);
+        
+        console.log("📊 Data loaded:", { skills: dataNormalizada.FCTM_student_skills, categories: dataNormalizada.FCTM_category }); // DEBUG
+        
+        setData(dataNormalizada);
+        setOriginalData(dataNormalizada);
+      }
+      setLoading(false);
+    }, [id, availableSkills, availableCategories]); // Dependencias clave para reactivar cuando carguen las opciones
+
+    // Guardar cambios FCTM_ (lógica copiada de ShowDummy funcional)
     const handleSave = async () => {
       try {
         // A. Asegurar las skills en el backend
@@ -251,6 +466,37 @@ const ShowStudent = () => {
         }
 
         const res = await sendRequest("PATCH", payload, `/students/${id}`);
+      try {
+        // 1. Skills: extraer nombres → ensure → IDs
+        let skillNames = [];
+        if (data.FCTM_student_skills) {
+          skillNames = data.FCTM_student_skills.map(s => {
+            let name = null;
+            if (typeof s === "string") name = s;
+            else if (s.label) name = s.label;
+            else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+            return name ? name.trim().toUpperCase() : null;
+          }).filter(Boolean);
+        }
+
+        const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
+        if (!resSkills.success) return showAlert("Error en skills: " + resSkills.message, "error");
+
+        // El backend devuelve directamente un array de IDs en resSkills.data
+        const skillIds = resSkills.data;
+
+        // 2. Normalizar SIN skills (solo category/openToWork)
+        const payloadNormalizado = normalizeToApi(data, CONFIG_OPENWORK_CATEGORY);
+        
+        // 3. Payload final MANUAL con skills IDs
+        const finalPayload = {
+          ...payloadNormalizado,
+          FCTM_student_skills: skillIds,
+          FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
+        };
+
+        // 4. PATCH
+        const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
 
         if (res.success) {
           setData(prev => ({ ...prev, ...res.data }));
@@ -264,6 +510,31 @@ const ShowStudent = () => {
       } catch (err) {
         console.error(err);
         showAlert("Error crítico", "error");
+        if (res.success) {
+          // 5. Refresh con nueva data + remap UI skills
+          const dataFinal = normalizeFromApi(res.data, CONFIG_SOLO_CATEGORY);
+          
+          // Usamos los nombres que acabamos de enviar (skillNames) para reconstruir la UI,
+          // ya que el backend nos devuelve IDs y no tenemos sus nombres en este punto.
+          dataFinal.FCTM_student_skills = skillNames.map(name => ({
+            value: name, 
+            label: name
+          }));
+          dataFinal.FCTM_student_openToWork = String(res.data.FCTM_student_openToWork);
+          
+          // Mantenemos las categorías seleccionadas para evitar desincronización visual IDs/Nombres
+          if (data.FCTM_category) dataFinal.FCTM_category = data.FCTM_category;
+
+          setData(dataFinal);
+          setOriginalData(dataFinal);
+          setIsEditing(false);
+          showAlert("✅ Skills/Categories actualizados correctamente", "success");
+        } else {
+          showAlert("Error PATCH: " + (res.message || "Backend falló"), "error");
+        }
+      } catch (err) {
+        console.error("Save error:", err);
+        showAlert("Error al guardar: " + err.message, "error");
       }
     };
 
@@ -283,6 +554,7 @@ const ShowStudent = () => {
     const [selectedFile, setSelectedFile] = useState(null);
 
     //AINHOA
+    // UNUSED OLD
     const handleFileUpload__OLD = async () => {
       if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
 
@@ -326,62 +598,80 @@ const ShowStudent = () => {
 
     // AITANA
     const handleDeleteDocument = async (docId) => {
-      // Usamos el showAlert que ya tenéis importado para el confirm
-      /*const result = await showAlert("¿Estás seguro de que quieres eliminar este CV?", "question", {
-        showCancelButton: true,
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar"
-      });*/
       const confirmado = await confirmation('¿Seguro que quieres eliminar este CV?')
-      if (!confirmado) return
+      if (!confirmado) return;
 
-      //const res = await sendRequest("DELETE", null, `/students/${id}/documents/${docId}`);
-      const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
+      const res = await sendRequest('DELETE', undefined, `/documents/${docId}`);
 
       if (res.success) {
-        const updatedDocuments = data.FCTM_documents.filter(item => item !== docId)
+        const updatedDocuments = data.FCTM_documents.filter(item => item._id !== docId);
         const patchRes = await sendRequest(
           "PATCH",
           { FCTM_documents: updatedDocuments },
           `/students/${id}` 
-        )
+        );
 
         if (patchRes.success) {
-          showAlert('Documento eliminado y alumno actualizado', 'success')
-
-          setData(prev => ({
-            ...prev,
-            FCTM_documents: updatedDocuments
-          }))
-
-          fetchStudent()
+          showAlert('Documento eliminado correctamente', 'success');
+          fetchStudent(); // Refresh completo
         } else {
-          showAlert('Error actualizando el alumno: ' + patchRes.message, 'error')
+          showAlert('Error actualizando alumno', 'error');
         }
-
-        //showAlert("Documento eliminado correctamente", "success");
-        //fetchStudent(); // Recargamos los datos para que desaparezca de la tabla
       } else {
-        showAlert(res.message, "error");
+        showAlert(res.message || 'Error DELETE', "error");
       }
-      
     };
 
     useEffect(() => {
-      fetchStudent()
-    }, [fetchStudent])
+      fetchOptions(); // Cargar options (Skills y Categorías) primero
+    }, [fetchOptions]);
+
+    useEffect(() => {
+      // Recargar estudiante cuando tengamos las skills o categorías cargadas
+      // Esto asegura que el mapeo ID -> Nombre ocurra correctamente
+      if (availableSkills.length > 0 || availableCategories.length > 0 || loading) {
+         fetchStudent();
+      }
+    }, [fetchStudent, availableSkills.length, availableCategories.length]); 
 
     if (loading) return <p>Cargando datos...</p>
     if (!data) return <p>No se encontraron datos</p>
 
     //MIRIAM
 
+    // Campos dinámicos para pasar al formulario
+    const dynamicFCTMFields = [
+      ...FCTM_fields,
+      {
+        key: "FCTM_category",
+        label: "Categorías/Familias",
+        type: "select-multi",
+        // Usamos disponible dinámico, fallback a estático
+        options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
+        optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name"
+      },
+      {
+        key: "FCTM_student_skills",
+        label: "Aptitudes/Skills",
+        type: "select-multi-creatable",
+        // Usamos disponible dinámico, fallback a estático
+        options: availableSkills.length > 0 ? availableSkills : skillOptions, 
+        optionValue: "FCTM_skill_name", optionLabel: "FCTM_skill_name"
+      }
+    ];
+
     //mostrar solo los que existen (y los de FCTM_ que queremos gestionar)
     const filteredFCTMFields = FCTM_fields.filter(field => field.key in data || field.key === "FCTM_skills").map(field => {
+    //mostrar solo los que existen
+    const filteredFCTMFields = dynamicFCTMFields.filter(field => {
+      // Forzar que siempre se muestren category y skills aunque no haya datos
+      if (field.key === "FCTM_category" || field.key === "FCTM_student_skills") return true;
+      return field.key in data;
+    }).map(field => {
       if (field.key === "FCTM_student_openToWork") {
         return {
           ...field,
-          value: data[field.key] === "true" ? true : false
+          value: String(data[field.key])
         }
       }
       return field;
@@ -449,72 +739,6 @@ const ShowStudent = () => {
             />
           )}
 
-          {/*isEditing && (
-            <div className="mt-3 p-4 bg-white border rounded shadow-sm">
-              <label className="form-label fw-bold">Adjuntar Currículum Vitae</label>
-              <div className="d-flex gap-2">
-                <input 
-                  type="file" 
-                  className="form-control" 
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
-                />
-                <button 
-                  type="button" 
-                  className="btn-editar" 
-                  onClick={handleFileUpload}
-                >
-                  Adjuntar CV
-                </button>
-              </div>
-            </div>
-          )*/}
-
-          {/* SECCIÓN DE AITANA: Tabla de documentos */}
-          {/*<div className="mt-4 p-4 bg-white border rounded shadow-sm">
-            <h3 className="mb-3">Currículums Vitae Adjuntos</h3>
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead className="table-light">
-                  <tr>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Fecha</th>
-                    <th>Descarga</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.FCTM_documents && data.FCTM_documents.length > 0 ? (
-                    data.FCTM_documents
-                      .sort((a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date))
-                      .map((doc) => (
-                        <tr key={doc._id}>
-                          <td>{doc.FCTM_document_name}</td>
-                          <td>{doc.FCTM_document_type}</td>
-                          <td>{new Date(doc.FCTM_inserted_date).toLocaleDateString()}</td>
-                          <td>
-                            <a href={doc.FCTM_document_url} target="_blank" rel="noreferrer" className="text-primary">
-                              Descarga
-                            </a>
-                          </td>
-                          <td>
-                            <button className="btn btn-danger btn-sm" onClick={() => handleDeleteDocument(doc._id)}>
-                              Eliminar
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="text-center text-muted">
-                        No hay currículums disponibles.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>*/}
         </section>
     </div>
   )
