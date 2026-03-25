@@ -161,10 +161,7 @@ const FCTM_fields = [
     key: "FCTM_student_openToWork",
     label: "En búsqueda activa / Disponible",
     type: "select",
-    options: [
-      { _id: true, nombre: "Sí" },
-      { _id: false, nombre: "No" }
-    ],
+    options: categoryOptions,
     optionValue: "_id",
     optionLabel: "nombre"
   }
