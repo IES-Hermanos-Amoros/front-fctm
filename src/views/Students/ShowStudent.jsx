@@ -111,10 +111,25 @@ const skillOptions = [
 ];
 
 // Configs filtradas
-const CONFIG_SOLO_CATEGORY = [{ field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }];
-const CONFIG_OPENWORK_CATEGORY = [
-  { field: "FCTM_student_openToWork", type: "boolean" },
-  { field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }
+const NORMALIZATION_CONFIG = [
+  { 
+    field: "FCTM_category", 
+    options: categoryOptions, 
+    optionValue: "_id", 
+    optionLabel: "FCTM_category_name", 
+    type: "multi" 
+  },
+  {
+    field: "FCTM_skills",
+    options: skillOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_skill_name",
+    type: "multi"
+  },
+  { 
+    field: "FCTM_student_openToWork", 
+    type: "boolean" 
+  }
 ];
 
 // MIRIAM
@@ -225,40 +240,20 @@ const ShowStudent = () => {
       const res = await sendRequest("GET", null, `/students/${id}`);
       
       if (res.success) {
-        let dataNormalizada = normalizeFromApi(res.data, CONFIG_SOLO_CATEGORY);
-        
-        if (!dataNormalizada.FCTM_student_skills) dataNormalizada.FCTM_student_skills = [];
+        // Combinar opciones locales con las de backend si existen
+        const combinedCats = availableCategories.length > 0 ? availableCategories : categoryOptions;
+        const combinedSkills = availableSkills.length > 0 ? availableSkills : skillOptions;
 
-        // Mapeo de SKILLS (ID -> Nome real)
-        if (res.data.FCTM_student_skills && Array.isArray(res.data.FCTM_student_skills)) {
-          dataNormalizada.FCTM_student_skills = res.data.FCTM_student_skills.map(s => {
-            if (typeof s === 'object' && s.FCTM_skill_name) {
-               return { value: s.FCTM_skill_name, label: s.FCTM_skill_name };
-            }
-            if (typeof s === 'string') {
-               const found = availableSkills.find(sk => sk._id === s);
-               return found ? { value: found.FCTM_skill_name, label: found.FCTM_skill_name } : { value: s, label: s };
-            }
-            return { value: s, label: s };
-          });
-        }
+        // Actualizamos las opciones en la config dinámicamente para el normalize
+        const currentConfig = NORMALIZATION_CONFIG.map(c => {
+          if (c.field === "FCTM_category") return { ...c, options: combinedCats };
+          if (c.field === "FCTM_skills") return { ...c, options: combinedSkills };
+          return c;
+        });
+
+        const dataNormalizada = normalizeFromApi(res.data, currentConfig);
         
-        // Mapeo de CATEGORIES (ID -> Nome real)
-        if (res.data.FCTM_category) {
-           let cats = Array.isArray(res.data.FCTM_category) ? res.data.FCTM_category : [res.data.FCTM_category];
-           dataNormalizada.FCTM_category = cats.map(c => {
-              if (typeof c === 'object' && c.FCTM_category_name) {
-                 return { value: c.FCTM_category_name, label: c.FCTM_category_name };
-              }
-              if (typeof c === 'string') {
-                 const found = availableCategories.find(cat => cat._id === c) || categoryOptions.find(cat => cat._id === c);
-                 return found ? { value: found.FCTM_category_name, label: found.FCTM_category_name } : { value: c, label: c };
-              }
-              return { value: c, label: c || "Sin categoría" };
-           });
-        }
-        
-        dataNormalizada.FCTM_student_openToWork = String(res.data.FCTM_student_openToWork || false);
+        // Formateo adicional de campos SAO para <ShowEditableForm /> (input type="date" espera YYYY-MM-DD)
         dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
         dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
         
@@ -271,9 +266,10 @@ const ShowStudent = () => {
     const handleSave = async () => {
       try {
         let skillNames = [];
-        if (data.FCTM_student_skills) {
-          skillNames = data.FCTM_student_skills.map(s => {
+        if (data.FCTM_skills) {
+          skillNames = data.FCTM_skills.map(s => {
             let name = typeof s === "string" ? s : (s.label || s.FCTM_skill_name);
+            // Si el MultiSelect nos da {value, label}, el label es el nombre de la skill
             return name ? name.trim().toUpperCase() : null;
           }).filter(Boolean);
         }
@@ -282,12 +278,13 @@ const ShowStudent = () => {
         if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
         const skillIds = resSkills.data;
-        const payloadNormalizado = normalizeToApi(data, CONFIG_OPENWORK_CATEGORY);
+        const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
         
         const finalPayload = {
           ...payloadNormalizado,
-          FCTM_student_skills: skillIds,
-          FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
+          FCTM_skills: skillIds,
+          // Forzamos el casteo a booleano si es necesario
+          FCTM_student_openToWork: String(data.FCTM_student_openToWork) === "true"
         };
 
         const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
@@ -371,26 +368,28 @@ const ShowStudent = () => {
       ...FCTM_fields,
       {
         key: "FCTM_category",
-        label: "Categorías/Familias",
+        label: "Categorías/Familias Profesionales",
         type: "select-multi",
         options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
-        optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name"
+        optionValue: "_id", 
+        optionLabel: "FCTM_category_name"
       },
       {
-        key: "FCTM_student_skills",
+        key: "FCTM_skills",
         label: "Aptitudes/Skills",
         type: "select-multi-creatable",
         options: availableSkills.length > 0 ? availableSkills : skillOptions, 
-        optionValue: "FCTM_skill_name", optionLabel: "FCTM_skill_name"
+        optionValue: "_id", 
+        optionLabel: "FCTM_skill_name"
       }
     ];
 
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
-      if (field.key === "FCTM_category" || field.key === "FCTM_student_skills") return true;
+      if (field.key === "FCTM_category" || field.key === "FCTM_skills") return true;
       return field.key in data;
     }).map(field => {
       if (field.key === "FCTM_student_openToWork") {
-        return { ...field, value: String(data[field.key]) }
+        return { ...field, value: String(data[field.key] || false) }
       }
       return field;
     });
