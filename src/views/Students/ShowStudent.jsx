@@ -110,6 +110,22 @@ const skillOptions = [
   { _id: "skill_74", FCTM_skill_name: "JARDINERÍA" }
 ];
 
+const CATEGORY_FIELDS_CONFIG = {
+  field: "FCTM_category",
+  optionValue: "_id",
+  optionLabel: "FCTM_category_name",
+  type: "multi"
+};
+
+const CATEGORY_FIELD = {
+  key: "FCTM_category",
+  label: "Categorías/Familias Profesionales",
+  type: "select-multi",
+  optionValue: "_id",
+  optionLabel: "FCTM_category_name",
+  options: []
+};
+
 // Configs filtradas
 const NORMALIZATION_CONFIG = [
   { 
@@ -176,7 +192,7 @@ const ShowStudent = () => {
     const [isEditing, setIsEditing] = useState(false)
     const [originalData, setOriginalData] = useState(null)
     const [availableSkills, setAvailableSkills] = useState(skillOptions);
-    const [availableCategories, setAvailableCategories] = useState(categoryOptions);
+    const [categoryOptions, setCategoryOptions] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
 
     const hostAPI = getBackendHost()
@@ -225,7 +241,8 @@ const ShowStudent = () => {
         
         const resCat = await sendRequest("GET", null, "/category"); 
         if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
-          setAvailableCategories(resCat.data);
+          setCategoryOptions(resCat.data);
+          CATEGORY_FIELD.options = resCat.data;
         } 
       } catch (error) {
         console.warn("No se pudieron cargar opciones dinámicas del backend, usando locales.");
@@ -238,7 +255,7 @@ const ShowStudent = () => {
       
       if (res.success) {
         // Combinar opciones locales con las de backend si existen
-        const combinedCats = availableCategories.length > 0 ? availableCategories : categoryOptions;
+        const combinedCats = categoryOptions.length > 0 ? categoryOptions : categoryOptions;
         const combinedSkills = availableSkills.length > 0 ? availableSkills : skillOptions;
 
         // Actualizamos las opciones en la config dinámicamente para el normalize
@@ -258,7 +275,7 @@ const ShowStudent = () => {
         setOriginalData(dataNormalizada);
       }
       setLoading(false);
-    }, [id, availableSkills, availableCategories]);
+    }, [id, availableSkills, categoryOptions]);
 
     const handleSave = async () => {
       try {
@@ -270,30 +287,16 @@ const ShowStudent = () => {
           }).filter(Boolean);
         }
 
-        let categoryNames = [];
-        if (data.FCTM_category) {
-          categoryNames = data.FCTM_category.map(c => {
-            let name = typeof c === "string" ? c : (c.label || c.FCTM_category_name);
-            return name ? name.trim().toUpperCase() : null;
-          }).filter(Boolean);
-        }
-
         const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
         if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
-        const resCat = await sendRequest("POST", { names: categoryNames }, "/category/ensure");
-        if (!resCat.success) return showAlert("Error en categorías: " + resCat.message, "error");
-
         const skillIds = resSkills.data;
-        const categoryIds = resCat.data;
-
-        const configSinMulti = NORMALIZATION_CONFIG.filter(c => c.field !== "FCTM_category" && c.field !== "FCTM_skills");
-        const payloadNormalizado = normalizeToApi(data, configSinMulti);
+        const configSinSkills = NORMALIZATION_CONFIG.filter(c => c.field !== "FCTM_skills");
+        const payloadNormalizado = normalizeToApi(data, configSinSkills);
         
         const finalPayload = {
           ...payloadNormalizado,
           FCTM_skills: skillIds,
-          FCTM_category: categoryIds,
           // Forzamos el casteo a booleano si es necesario
           FCTM_student_openToWork: String(data.FCTM_student_openToWork) === "true"
         };
@@ -367,10 +370,10 @@ const ShowStudent = () => {
     }, [fetchOptions]);
 
     useEffect(() => {
-      if (availableSkills.length > 0 || availableCategories.length > 0) {
+      if (availableSkills.length > 0 || categoryOptions.length > 0) {
          fetchStudent();
       }
-    }, [fetchStudent, availableSkills.length, availableCategories.length]); 
+    }, [fetchStudent, availableSkills.length, categoryOptions.length]); 
 
     if (loading && !data) return <p>Cargando datos...</p>
     if (!data && !loading) return <p>No se encontraron datos</p>
@@ -378,14 +381,7 @@ const ShowStudent = () => {
     const dynamicFCTMFields = [
       ...FCTM_fields,
       {
-        key: "FCTM_category",
-        label: "Categorías/Familias Profesionales",
-        type: "select-multi-creatable",
-        options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
-        optionValue: "_id", 
-        optionLabel: "FCTM_category_name"
-      },
-      {
+
         key: "FCTM_skills",
         label: "Aptitudes/Skills",
         type: "select-multi-creatable",
@@ -396,7 +392,7 @@ const ShowStudent = () => {
     ];
 
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
-      if (field.key === "FCTM_category" || field.key === "FCTM_skills") return true;
+      if (field.key === "FCTM_skills") return true;
       return field.key in data;
     }).map(field => {
       if (field.key === "FCTM_student_openToWork") {
@@ -428,6 +424,18 @@ const ShowStudent = () => {
             formId="fctmForm"
             data={data}
             fields={filteredFCTMFields}
+            isEditing={isEditing}
+            onEdit={() => setIsEditing(true)}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onChange={handleChange}
+          />
+
+          <ShowEditableForm
+            formTitle="Categorías/Familias Profesionales"
+            formId="categoriesForm"
+            data={data}
+            fields={[CATEGORY_FIELD]}
             isEditing={isEditing}
             onEdit={() => setIsEditing(true)}
             onSave={handleSave}
