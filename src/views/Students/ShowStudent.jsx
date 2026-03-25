@@ -5,6 +5,7 @@ import { sendRequest,confirmation, showAlert,formatDateDDMMYYYYHHmm,getBackendHo
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
+import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 
 
 //MIRIAM
@@ -57,7 +58,7 @@ const ShowStudent = () => {
     const [loading,setLoading] = useState(true)
     const [isEditing,setIsEditing] = useState(false)
     const [originalData,setOriginalData] = useState(null)
-
+    const [avatarUrl, setAvatarUrl] = useState("");
     const hostAPI = getBackendHost()
 
     const columnasDocuments = [
@@ -115,7 +116,18 @@ const ShowStudent = () => {
           }
         setData(transformedData)
         setOriginalData(res.data)
-        console.log(res.data)
+        //setAvatarUrl(hostAPI + res.data?.FCTM_documents[0]?.FCTM_document_url || "");
+        let avatarUrl = "";
+        if (res.data?.FCTM_documents?.length) {
+          const avatarDoc = res.data.FCTM_documents.find(
+            d => d.FCTM_document_type === "AVATAR"
+          );
+          if (avatarDoc?.FCTM_document_url) {
+            avatarUrl = hostAPI + avatarDoc.FCTM_document_url;
+          }
+        }
+        setAvatarUrl(avatarUrl);
+
       } else {
         console.error("Error al cargar el estudiante: ", res.message)
       }
@@ -157,23 +169,7 @@ const ShowStudent = () => {
 
     const [selectedFile, setSelectedFile] = useState(null);
 
-    //AINHOA
-    const handleFileUpload__OLD = async () => {
-      if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
 
-      const formData = new FormData();
-      // El backend espera 'documents' para el array de archivos
-      formData.append("documents", selectedFile); 
-
-      // El 'true' al final es vital para que sendRequest envíe el archivo correctamente
-      const res = await sendRequest("POST", formData, `/students/${id}/documents`, true);
-
-      if (res.success) {
-        showAlert("CV subido con éxito", "success");
-        setSelectedFile(null);
-        fetchStudent(); 
-      }
-    };
 
     const handleFileUpload = async () => {
       if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
@@ -270,6 +266,12 @@ const ShowStudent = () => {
           <ShowHeader
             title={`Ficha de ${data?.SAO_username || 'Student'}`} 
             onBack={() => navigate('/students')} 
+          />
+
+          <UserAvatarUploader
+            userId={id}
+            avatarUrl={avatarUrl}
+            onUploadSuccess={fetchStudent}
           />
 
           <ShowEditableForm

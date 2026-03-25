@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY,getBackendHost } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
+import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+
 
 //TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
 // Ejemplo de categorías para el multiselect
@@ -137,6 +139,8 @@ const ShowCompany = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const hostAPI = getBackendHost()
 
   const fetchCompany = useCallback(async () => {
     setLoading(true);
@@ -155,6 +159,8 @@ const ShowCompany = () => {
       setData(normalized);
       //setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
       setOriginalData(normalized);
+      setAvatarUrl(hostAPI + res.data?.FCTM_documents[0]?.FCTM_document_url || "");
+
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -269,6 +275,12 @@ const ShowCompany = () => {
       <ShowHeader
         title={`Ficha de ${data?.SAO_name || 'Empresa'}`}
         onBack={() => navigate('/companies')}
+      />
+
+      <UserAvatarUploader
+        userId={id}
+        avatarUrl={avatarUrl}
+        onUploadSuccess={fetchCompany}
       />
 
       <div className="mb-4">

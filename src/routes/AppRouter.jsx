@@ -22,6 +22,7 @@ import ListCompanies from '../views/Companies/ListCompanies'
 import ListFcts from '../views/Fcts/ListFcts'
 import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
+import ShowTeacher from '../views/Teachers/ShowTeacher'
 
 
 import ValidateReviews from '../views/Administrators/ValidateReviews'
@@ -54,6 +55,10 @@ export default function AppRouter() {
       <Route path="/students" element={<ListStudents />} />
       <Route path="/students/:id" element={<ShowStudent />} />
       <Route path="/fcts" element={<ListFcts />} />
+
+      <Route path="/teachers/:id" element={<ShowTeacher />} />
+  
+
       <Route path="/sinc/empresas" element={<ListCompaniesSAO />} />
       <Route path="/sinc/alumnos" element={<ListStudentsSAO />} />
       <Route path="/sinc/profesores" element={<ListTeachersSAO />} />

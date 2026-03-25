@@ -392,6 +392,12 @@ export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
 export const normalizeFromApi = (data, configs = []) => {
   let normalized = { ...data };
 
+    // Definimos la lógica de fecha internamente para usarla cuando se necesite
+    const formatToInputDate = (value) => {
+        if (!value || typeof value !== "string") return "";
+        return value.includes("T") ? value.split("T")[0] : value;
+    };
+
   configs.forEach(config => {
     const {
       field,
@@ -403,6 +409,13 @@ export const normalizeFromApi = (data, configs = []) => {
 
     if (!normalized[field]) {
       normalized[field] = type === "multi" ? [] : null;
+      return;
+    }
+
+
+    // --- NUEVA LÓGICA PARA FECHAS ---
+    if (type === "date") {
+      normalized[field] = formatToInputDate(normalized[field]);
       return;
     }
 
@@ -447,6 +460,11 @@ export const normalizeToApi = (data, configs = []) => {
 
   configs.forEach(config => {
     const { field, type = "single" } = config;
+
+    // SI EL CAMPO NO ESTÁ EN LOS DATOS QUE QUEREMOS ENVIAR, NO HACEMOS NADA
+    if (!(field in normalized)) {
+      return; 
+    }
 
     if (!normalized[field]) {
       normalized[field] = type === "multi" ? [] : null;

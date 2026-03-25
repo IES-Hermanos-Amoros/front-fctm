@@ -19,6 +19,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from "./views/Auth/Login"
 import VerifyEmailPage from "./views/Auth/VerifyEmailPage"
 import PasswordSetup from "./views/Auth/PasswordSetup"
+import CheckEmailPassRecovery from "./views/Auth/CheckEmailPassRecovery"
+import PasswordChange from "./views/Auth/PasswordChange"
 import PrivateLayout from './layouts/PrivateLayout';
 
 
@@ -38,7 +40,9 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/auth/password-setup" element={<PasswordSetup />} />
         <Route path="/verify-email-info" element={<VerifyEmailPage mensajeInformativo={true} />}/>
-        <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} /> 
+        <Route path="/verify-email/:emailToken" element={<VerifyEmailPage />} />
+        <Route path="/auth/check-email-recovery" element={<CheckEmailPassRecovery />} />
+        <Route path="/auth/change-password/:token" element={<PasswordChange />} />
 
 
         {/* RUTAS PRIVADAS */}
