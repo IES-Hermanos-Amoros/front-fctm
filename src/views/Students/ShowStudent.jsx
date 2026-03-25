@@ -14,15 +14,7 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
-const categoryOptions = [
-  { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
-  { _id: "69a82074499df1aec1d2477f", FCTM_category_name: "DESARROLLO DE APLICACIONES WEB" },
-  { _id: "69a82074499df1aec1d24780", FCTM_category_name: "EDUCACIÓN INFANTIL" },
-  { _id: "69a82074499df1aec1d24781", FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
-  { _id: "69a82074499df1aec1d24782", FCTM_category_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69a82074499df1aec1d24783", FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA" },
-  { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
-];
+
 
 const skillOptions = [
   // Soft Skills
@@ -112,13 +104,6 @@ const skillOptions = [
 
 // Configs filtradas
 const NORMALIZATION_CONFIG = [
-  { 
-    field: "FCTM_category", 
-    options: categoryOptions, 
-    optionValue: "_id", 
-    optionLabel: "FCTM_category_name", 
-    type: "multi" 
-  },
   {
     field: "FCTM_skills",
     options: skillOptions,
@@ -179,7 +164,6 @@ const ShowStudent = () => {
     const [isEditing, setIsEditing] = useState(false)
     const [originalData, setOriginalData] = useState(null)
     const [availableSkills, setAvailableSkills] = useState(skillOptions);
-    const [availableCategories, setAvailableCategories] = useState(categoryOptions);
     const [selectedFile, setSelectedFile] = useState(null);
 
     const hostAPI = getBackendHost()
@@ -219,41 +203,21 @@ const ShowStudent = () => {
       }
     ]
 
-    const fetchOptions = useCallback(async () => {
-      try {
-        const resSkills = await sendRequest("GET", null, "/skills/search?q=");
-        if (resSkills.success && Array.isArray(resSkills.data) && resSkills.data.length > 0) {
-          setAvailableSkills(resSkills.data);
-        }
-
-        const resCat = await sendRequest("GET", null, "/category"); 
-        if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
-          setAvailableCategories(resCat.data);
-        } 
-      } catch (error) {
-        console.warn("No se pudieron cargar opciones dinámicas del backend, usando locales.");
-      }
-    }, []);
-
     const fetchStudent = useCallback(async () => {
       setLoading(true);
       const res = await sendRequest("GET", null, `/students/${id}`);
 
       if (res.success) {
-        // Combinar opciones locales con las de backend si existen
-        const combinedCats = availableCategories.length > 0 ? availableCategories : categoryOptions;
-        const combinedSkills = availableSkills.length > 0 ? availableSkills : skillOptions;
-
-        // Actualizamos las opciones en la config dinámicamente para el normalize
+        // Para las skills, usamos las que vienen del backend para mapear IDs a nombres
         const currentConfig = NORMALIZATION_CONFIG.map(c => {
-          if (c.field === "FCTM_category") return { ...c, options: combinedCats };
-          if (c.field === "FCTM_skills") return { ...c, options: combinedSkills };
+          if (c.field === "FCTM_skills" && res.data.FCTM_skills) {
+            return { ...c, options: res.data.FCTM_skills };
+          }
           return c;
         });
 
         const dataNormalizada = normalizeFromApi(res.data, currentConfig);
 
-        // Formateo adicional de campos SAO para <ShowEditableForm /> (input type="date" espera YYYY-MM-DD)
         dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
         dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
 
@@ -261,7 +225,7 @@ const ShowStudent = () => {
         setOriginalData(dataNormalizada);
       }
       setLoading(false);
-    }, [id, availableSkills, availableCategories]);
+    }, [id]);
 
     const handleSave = async () => {
       try {
@@ -352,27 +316,13 @@ const ShowStudent = () => {
     };
 
     useEffect(() => {
-      fetchOptions();
-    }, [fetchOptions]);
-
-    useEffect(() => {
-      if (availableSkills.length > 0 || availableCategories.length > 0) {
-         fetchStudent();
-      }
-    }, [fetchStudent, availableSkills.length, availableCategories.length]); 
+      fetchStudent();
+    }, [id]); 
 
     if (loading && !data) return <p>Cargando datos...</p>
     if (!data && !loading) return <p>No se encontraron datos</p>
 
     const dynamicFCTMFields = [
-      {
-        key: "FCTM_category",
-        label: "Categorías/Familias Profesionales",
-        type: "select-multi",
-        options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
-        optionValue: "_id", 
-        optionLabel: "FCTM_category_name"
-      },
       {
         key: "FCTM_skills",
         label: "Aptitudes/Skills",
@@ -385,7 +335,7 @@ const ShowStudent = () => {
     ];
 
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
-      if (field.key === "FCTM_category" || field.key === "FCTM_skills") return true;
+      if (field.key === "FCTM_skills") return true;
       return field.key in data;
     }).map(field => {
       if (field.key === "FCTM_student_openToWork") {
