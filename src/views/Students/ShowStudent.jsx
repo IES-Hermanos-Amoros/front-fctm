@@ -399,14 +399,23 @@ const ShowStudent = () => {
     if (!data && !loading) return <p>No se encontraron datos</p>
 
     const dynamicFCTMFields = [
-      ...FCTM_fields,
       {
-        key: "FCTM_student_skills",
+        key: "FCTM_category",
+        label: "Categorías/Familias Profesionales",
+        type: "select-multi",
+        options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
+        optionValue: "_id", 
+        optionLabel: "FCTM_category_name"
+      },
+      {
+        key: "FCTM_skills",
         label: "Aptitudes/Skills",
         type: "select-multi-creatable",
         options: availableSkills.length > 0 ? availableSkills : skillOptions, 
-        optionValue: "FCTM_skill_name", optionLabel: "FCTM_skill_name"
-      }
+        optionValue: "_id", 
+        optionLabel: "FCTM_skill_name"
+      },
+      ...FCTM_fields,
     ];
 
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
