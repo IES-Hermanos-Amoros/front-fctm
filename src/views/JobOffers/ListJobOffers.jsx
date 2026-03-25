@@ -3,16 +3,6 @@ import { sendRequest, confirmation, showAlert, stringToColor } from '../../utils
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
 
-// Opciones estáticas para mostrar columna SKILLS
-const skillOptions = [
-  { _id: "69a82074499df1aec1d2477e", FCTM_skill_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
-  { _id: "69a82074499df1aec1d2477f", FCTM_skill_name: "DESARROLLO DE APLICACIONES WEB" },
-  { _id: "69a82074499df1aec1d24780", FCTM_skill_name: "EDUCACIÓN INFANTIL" },
-  { _id: "69a82074499df1aec1d24781", FCTM_skill_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
-  { _id: "69a82074499df1aec1d24782", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69a82074499df1aec1d24783", FCTM_skill_name: "PRODUCCIÓN AGROECOLÓGICA" },
-  { _id: "69a82074499df1aec1d24784", FCTM_skill_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
-];
 
 const ListJobOffers = () => {
   const [data, setData] = useState([])
@@ -70,7 +60,7 @@ const ListJobOffers = () => {
       // Familias Profesionales (SKILLS) 
       {
         key: "FCTM_skills",
-        encabezado: "Familias Profesionales",
+        encabezado: "Aptitudes Demandadas",
         accessorFn: row =>
           Array.isArray(row.FCTM_skills)
             ? row.FCTM_skills
@@ -100,7 +90,7 @@ const ListJobOffers = () => {
                   )
                 })
             ) : (
-              <span className="text-muted small">Sin familias</span>
+              <span className="text-muted small">-</span>
             )}
           </div>
         )
@@ -130,7 +120,7 @@ const ListJobOffers = () => {
 
       if (res.success) {
         // Normalizamos los datos para asegurar que FCTM_skills siempre sea un array de objetos con FCTM_skill_name
-        const normalized = res.data.map(item => ({
+        /*const normalized = res.data.map(item => ({
           ...item,
           FCTM_skills: Array.isArray(item.FCTM_skills)
             ? item.FCTM_skills
@@ -145,7 +135,8 @@ const ListJobOffers = () => {
             : []
         }))
 
-        setData(normalized)
+        setData(normalized)*/
+        setData(res.data)
       } else {
         setError(res.message || 'Error al cargar las ofertas')
       }

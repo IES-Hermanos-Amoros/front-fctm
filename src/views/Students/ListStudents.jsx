@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { sendRequest } from '../../utils/functions'
+import { sendRequest, stringToColor } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
 
@@ -31,7 +31,33 @@ const ListStudents = () => {
   const colStudents = [
     { key: "SAO_username", encabezado: "NIA" },
     { key: "SAO_name", encabezado: "Nombre" },
-    { key: "SAO_student_city", encabezado: "Localidad" },
+    { key: "SAO_student_city", encabezado: "Localidad" }
+    ,
+        {
+          key: "FCTM_skills",
+          encabezado: "Aptitudes",
+          accessorFn: row => row.FCTM_skills?.map(skill => skill.FCTM_skill_name).join(" ") || "",
+          render: row => (
+            <div className="d-flex flex-wrap gap-1">
+              {row.FCTM_skills?.length > 0 ? (
+                row.FCTM_skills.map((skill) => {
+                  const bgColor = stringToColor(skill.FCTM_skill_name);
+                  return (
+                    <span
+                      key={skill._id}
+                      className="badge rounded-pill text-dark"
+                      style={{ backgroundColor: bgColor, border: '1px solid rgba(0,0,0,0.1)', fontSize: '0.75rem' }}
+                    >
+                      {skill.FCTM_skill_name}
+                    </span>
+                  )
+                })
+              ) : (
+                <span className="text-muted small">-</span>
+              )}
+            </div>
+          )
+        },
     {
       key:"Actions", encabezado:"Acciones",
       render: (row) => (
