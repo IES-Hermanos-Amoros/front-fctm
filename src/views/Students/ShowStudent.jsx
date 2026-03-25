@@ -264,6 +264,8 @@ const ShowStudent = () => {
         const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
         if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
+        const skillIds = resSkills.data;
+
         const configSinSkills = NORMALIZATION_CONFIG.filter(c => c.field !== "FCTM_skills");
         const payloadNormalizado = normalizeToApi(data, configSinSkills);
         
