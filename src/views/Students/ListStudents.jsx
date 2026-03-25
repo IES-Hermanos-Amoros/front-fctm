@@ -7,7 +7,6 @@ import ListCRUD from '../../components/List/ListCRUD'
 const ListStudents = () => {
   const [students, setStudents] = useState([])
   const [allSkills, setAllSkills] = useState([])
-  const [allCategories, setAllCategories] = useState([]) 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const navigate = useNavigate()
@@ -19,14 +18,9 @@ const ListStudents = () => {
       // 1. Cargamos Alumnos
       const res = await sendRequest('GET', null, '/students');
       
-      // 2. Cargamos Skills y Categorías para mapear nombres si el backend no los popula
-      const [resSkills, resCats] = await Promise.all([
-        sendRequest('GET', null, '/skills/search?q='),
-        sendRequest('GET', null, '/category')
-      ]);
-
+      // 2. Cargamos Skills para mapear nombres si el backend no los popula
+      const resSkills = await sendRequest('GET', null, '/skills/search?q=');
       if (resSkills.success) setAllSkills(resSkills.data);
-      if (resCats.success) setAllCategories(resCats.data);
 
       if (res.success) setStudents(res.data);
       else setError(res.message || 'Error al cargar alumnos');
@@ -43,48 +37,6 @@ const ListStudents = () => {
     { key: "SAO_username", encabezado: "NIA" },
     { key: "SAO_name", encabezado: "Nombre" },
     { key: "SAO_student_city", encabezado: "Localidad" },
-    {
-      key: "FCTM_category",
-      encabezado: "Familias Profesionales",
-      accessorFn: row => {
-        if (!row.FCTM_category) return "";
-        const cats = Array.isArray(row.FCTM_category) ? row.FCTM_category : [row.FCTM_category];
-        return cats.map(c => {
-          if (typeof c === 'object') return c.FCTM_category_name;
-          const found = allCategories.find(cat => cat._id === c);
-          return found ? found.FCTM_category_name : "";
-        }).filter(Boolean).join(" ");
-      },
-      render: (row) => {
-        const rowCats = Array.isArray(row.FCTM_category) ? row.FCTM_category : (row.FCTM_category ? [row.FCTM_category] : []);
-        const catList = rowCats.map(c => {
-          if (typeof c === 'object') return c;
-          return allCategories.find(cat => cat._id === c) || null;
-        }).filter(Boolean);
-
-        return (
-          <div className="d-flex flex-wrap gap-1">
-            {catList.length > 0 ? (
-              catList.map((cat) => (
-                <span
-                  key={cat._id}
-                  className="badge rounded-pill text-dark"
-                  style={{
-                    backgroundColor: stringToColor(cat.FCTM_category_name || ""),
-                    border: '1px solid rgba(0,0,0,0.1)',
-                    fontSize: '0.7rem'
-                  }}
-                >
-                  {cat.FCTM_category_name}
-                </span>
-              ))
-            ) : (
-              <span className="text-muted small">Sin familias</span>
-            )}
-          </div>
-        );
-      }
-    },
     {
       key: "FCTM_skills",
       encabezado: "Aptitudes/Skills",
@@ -137,7 +89,7 @@ const ListStudents = () => {
         </button>
       )
     }
-  ], [navigate, allSkills, allCategories]);
+  ], [navigate, allSkills]);
 
   return (
     <>
