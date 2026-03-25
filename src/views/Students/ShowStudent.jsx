@@ -24,11 +24,6 @@ const categoryOptions = [
   { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
 ];
 
-const booleanOptions = [
-  { _id: true, nombre: "Sí" },
-  { _id: false, nombre: "No" }
-];
-
 const skillOptions = [
   // Soft Skills
   { _id: "skill_01", FCTM_skill_name: "LIDERAZGO" },
@@ -166,7 +161,7 @@ const FCTM_fields = [
     key: "FCTM_student_openToWork",
     label: "En búsqueda activa / Disponible",
     type: "select",
-    options: booleanOptions,
+    options: categoryOptions,
     optionValue: "_id",
     optionLabel: "nombre"
   }
@@ -228,7 +223,7 @@ const ShowStudent = () => {
           setAvailableSkills(resSkills.data);
         }
         
-        const resCat = await sendRequest("GET", null, "/categories"); 
+        const resCat = await sendRequest("GET", null, "/category"); 
         if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
           setAvailableCategories(resCat.data);
         } 
@@ -275,15 +270,30 @@ const ShowStudent = () => {
           }).filter(Boolean);
         }
 
+        let categoryNames = [];
+        if (data.FCTM_category) {
+          categoryNames = data.FCTM_category.map(c => {
+            let name = typeof c === "string" ? c : (c.label || c.FCTM_category_name);
+            return name ? name.trim().toUpperCase() : null;
+          }).filter(Boolean);
+        }
+
         const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
         if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
+        const resCat = await sendRequest("POST", { names: categoryNames }, "/category/ensure");
+        if (!resCat.success) return showAlert("Error en categorías: " + resCat.message, "error");
+
         const skillIds = resSkills.data;
-        const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
+        const categoryIds = resCat.data;
+
+        const configSinMulti = NORMALIZATION_CONFIG.filter(c => c.field !== "FCTM_category" && c.field !== "FCTM_skills");
+        const payloadNormalizado = normalizeToApi(data, configSinMulti);
         
         const finalPayload = {
           ...payloadNormalizado,
           FCTM_skills: skillIds,
+          FCTM_category: categoryIds,
           // Forzamos el casteo a booleano si es necesario
           FCTM_student_openToWork: String(data.FCTM_student_openToWork) === "true"
         };
@@ -370,7 +380,7 @@ const ShowStudent = () => {
       {
         key: "FCTM_category",
         label: "Categorías/Familias Profesionales",
-        type: "select-multi",
+        type: "select-multi-creatable",
         options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
         optionValue: "_id", 
         optionLabel: "FCTM_category_name"
