@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost,normalizeFromApi, normalizeToApi, normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { 
+  sendRequest, 
+  confirmation, 
+  showAlert, 
+  formatDateDDMMYYYYHHmm, 
+  getBackendHost, 
+  normalizeFromApi, 
+  normalizeToApi 
+} from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -102,33 +110,14 @@ const skillOptions = [
   { _id: "skill_74", FCTM_skill_name: "JARDINERÍA" }
 ];
 
-// Config legacy no usada
-const _normalizationConfig = [
-  { 
-    field: "FCTM_category", 
-    options: categoryOptions, 
-    optionValue: "FCTM_category_name", 
-    optionLabel: "FCTM_category_name", 
-    type: "multi" 
-  },
-  { 
-    field: "FCTM_student_skills", 
-    options: skillOptions, 
-    optionValue: "FCTM_skill_name", 
-    optionLabel: "FCTM_skill_name", 
-    type: "multi" 
-  }
-];
-
-
-// Configs filtradas (usadas)
+// Configs filtradas
 const CONFIG_SOLO_CATEGORY = [{ field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }];
 const CONFIG_OPENWORK_CATEGORY = [
   { field: "FCTM_student_openToWork", type: "boolean" },
   { field: "FCTM_category", options: categoryOptions, optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name", type: "multi" }
 ];
 
-//MIRIAM
+// MIRIAM
 const SAO_fields = [
   { key: "SAO_id", label: "SAO ID", type: "text"},
   { key: "SAO_username", label: "NIA", type: "text"},
@@ -139,7 +128,6 @@ const SAO_fields = [
   { key: "SAO_group", label: "Group", type: "text" },
   { key: "SAO_email", label: "Email", type: "text" },
   { key: "SAO_phone", label: "Phone", type: "text" },
-
   { key: "SAO_student_id", label: "Student ID", type: "text" },
   { key: "SAO_student_socialNumber", label: "Student social number", type: "text" },
   { key: "SAO_student_city", label: "Student city", type: "text" },
@@ -150,95 +138,7 @@ const SAO_fields = [
   { key: "SAO_student_visibleCompanies", label: "Student visible companies", type: "text" }
 ]
 
-
-const skillOptions = [
-  { _id: "69bd6bb2e1aa8f195c71c305", FCTM_skill_name: "ADAPTABILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c31d", FCTM_skill_name: "ADMINISTRACIÓN DE SISTEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c339", FCTM_skill_name: "ADOBE ILLUSTRATOR" },
-  { _id: "69bd6bb2e1aa8f195c71c338", FCTM_skill_name: "ADOBE PHOTOSHOP" },
-  { _id: "69bd6bb2e1aa8f195c71c341", FCTM_skill_name: "AGRICULTURA ECOLÓGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c320", FCTM_skill_name: "ANGULAR" },
-  { _id: "69bd6bb2e1aa8f195c71c32b", FCTM_skill_name: "ANÁLISIS DE DATOS" },
-  { _id: "69bd6bb2e1aa8f195c71c32e", FCTM_skill_name: "ATENCIÓN AL CLIENTE" },
-  { _id: "69bd6bb2e1aa8f195c71c322", FCTM_skill_name: "AWS" },
-  { _id: "69bd6bb2e1aa8f195c71c323", FCTM_skill_name: "AZURE" },
-  { _id: "69bd6bb2e1aa8f195c71c344", FCTM_skill_name: "BOTÁNICA" },
-  { _id: "69bd6bb2e1aa8f195c71c325", FCTM_skill_name: "C#" },
-  { _id: "69bd6bb2e1aa8f195c71c326", FCTM_skill_name: "C++" },
-  { _id: "69bd6bb2e1aa8f195c71c316", FCTM_skill_name: "CIBERSEGURIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c315", FCTM_skill_name: "CLOUD COMPUTING" },
-  { _id: "69bd6bb2e1aa8f195c71c301", FCTM_skill_name: "COMUNICACIÓN EFECTIVA" },
-  { _id: "69bd6bb2e1aa8f195c71c332", FCTM_skill_name: "CONTENT MARKETING" },
-  { _id: "69bd6bb2e1aa8f195c71c345", FCTM_skill_name: "CONTROL DE PLAGAS" },
-  { _id: "69bd6bb2e1aa8f195c71c308", FCTM_skill_name: "CREATIVIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c310", FCTM_skill_name: "CSS3" },
-  { _id: "69bd6bb2e1aa8f195c71c329", FCTM_skill_name: "DESARROLLO DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c30b", FCTM_skill_name: "DESARROLLO WEB" },
-  { _id: "69bd6bb2e1aa8f195c71c335", FCTM_skill_name: "DISEÑO GRÁFICO" },
-  { _id: "69bd6bb2e1aa8f195c71c33b", FCTM_skill_name: "DOCENCIA" },
-  { _id: "69bd6bb2e1aa8f195c71c318", FCTM_skill_name: "DOCKER" },
-  { _id: "69bd6bb2e1aa8f195c71c334", FCTM_skill_name: "E-COMMERCE" },
-  { _id: "69bd6bb2e1aa8f195c71c33c", FCTM_skill_name: "E-LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c33a", FCTM_skill_name: "EDICIÓN DE VÍDEO" },
-  { _id: "69bd6bb2e1aa8f195c71c30a", FCTM_skill_name: "EMPATÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c328", FCTM_skill_name: "ESTRATEGIA DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c337", FCTM_skill_name: "FIGMA" },
-  { _id: "69bd6bb2e1aa8f195c71c343", FCTM_skill_name: "GESTIÓN AMBIENTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c327", FCTM_skill_name: "GESTIÓN DE PROYECTOS" },
-  { _id: "69bd6bb2e1aa8f195c71c303", FCTM_skill_name: "GESTIÓN DEL TIEMPO" },
-  { _id: "69bd6bb2e1aa8f195c71c347", FCTM_skill_name: "GESTIÓN FORESTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c317", FCTM_skill_name: "GIT" },
-  { _id: "69bd6bb2e1aa8f195c71c333", FCTM_skill_name: "GOOGLE ANALYTICS" },
-  { _id: "69bd6bb2e1aa8f195c71c309", FCTM_skill_name: "HABLAR EN PÚBLICO" },
-  { _id: "69bd6bb2e1aa8f195c71c30f", FCTM_skill_name: "HTML5" },
-  { _id: "69bd6bb2e1aa8f195c71c33e", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c31a", FCTM_skill_name: "INTELIGENCIA ARTIFICIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c307", FCTM_skill_name: "INTELIGENCIA EMOCIONAL" },
-  { _id: "69bd6bb2e1aa8f195c71c33d", FCTM_skill_name: "INTERVENCIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c348", FCTM_skill_name: "JARDINERÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30e", FCTM_skill_name: "JAVA" },
-  { _id: "69bd6bb2e1aa8f195c71c30c", FCTM_skill_name: "JAVASCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c319", FCTM_skill_name: "KUBERNETES" },
-  { _id: "69bd6bb2e1aa8f195c71c2ff", FCTM_skill_name: "LIDERAZGO" },
-  { _id: "69bd6bb2e1aa8f195c71c31b", FCTM_skill_name: "MACHINE LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c32f", FCTM_skill_name: "MARKETING DIGITAL" },
-  { _id: "69bd6bb2e1aa8f195c71c306", FCTM_skill_name: "NEGOCIACIÓN" },
-  { _id: "69bd6bb2e1aa8f195c71c312", FCTM_skill_name: "NODE.JS" },
-  { _id: "69bd6bb2e1aa8f195c71c314", FCTM_skill_name: "NOSQL" },
-  { _id: "69bd6bb2e1aa8f195c71c340", FCTM_skill_name: "ORIENTACIÓN LABORAL" },
-  { _id: "69bd6bb2e1aa8f195c71c342", FCTM_skill_name: "PAISAJISMO" },
-  { _id: "69bd6bb2e1aa8f195c71c304", FCTM_skill_name: "PENSAMIENTO CRÍTICO" },
-  { _id: "69bd6bb2e1aa8f195c71c324", FCTM_skill_name: "PHP" },
-  { _id: "69bd6bb2e1aa8f195c71c32a", FCTM_skill_name: "PLANIFICACIÓN ESTRATÉGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c33f", FCTM_skill_name: "PSICOLOGÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30d", FCTM_skill_name: "PYTHON" },
-  { _id: "69bd6bb2e1aa8f195c71c311", FCTM_skill_name: "REACT" },
-  { _id: "69bd6bb2e1aa8f195c71c32c", FCTM_skill_name: "RECURSOS HUMANOS" },
-  { _id: "69bd6bb2e1aa8f195c71c31e", FCTM_skill_name: "REDES DE COMPUTADORES" },
-  { _id: "69bd6bb2e1aa8f195c71c302", FCTM_skill_name: "RESOLUCIÓN DE PROBLEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c331", FCTM_skill_name: "SEM" },
-  { _id: "69bd6bb2e1aa8f195c71c330", FCTM_skill_name: "SEO" },
-  { _id: "69bd6bb2e1aa8f195c71c31c", FCTM_skill_name: "SOPORTE TÉCNICO" },
-  { _id: "69bd6bb2e1aa8f195c71c346", FCTM_skill_name: "SOSTENIBILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c313", FCTM_skill_name: "SQL" },
-  { _id: "69bd6bb2e1aa8f195c71c300", FCTM_skill_name: "TRABAJO EN EQUIPO" },
-  { _id: "69bd6bb2e1aa8f195c71c31f", FCTM_skill_name: "TYPESCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c336", FCTM_skill_name: "UI/UX" },
-  { _id: "69bd6bb2e1aa8f195c71c32d", FCTM_skill_name: "VENTAS" },
-  { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" }
-];
-
-const normalizationConfig = [
-  {
-    field: "FCTM_skills",
-    options: skillOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_skill_name",
-    type: "multi"
-  }
-];
-
-//CAROLINA
+// CAROLINA
 const FCTM_fields = [
   { key: "FCTM_student_observations", label: "Observaciones", type: "textarea" },
   { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text" },
@@ -252,33 +152,20 @@ const FCTM_fields = [
     ],
     optionValue: "_id",
     optionLabel: "nombre"
-  },
-  {
-    key: "FCTM_skills",
-    label: "Aptitudes/Tecnologías",
-    type: "select-multi-creatable",
-    options: skillOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_skill_name"
-    options: [{ _id: "true", nombre: "Sí" }, { _id: "false", nombre: "No" }],
-    optionValue: "_id", optionLabel: "nombre"
   }
 ];
 
 const ShowStudent = () => {
-
-    //CAROLINA
     const { id } = useParams()
     const navigate = useNavigate()
 
     const [data, setData] = useState(null)
-    const [loading,setLoading] = useState(true)
-    const [isEditing,setIsEditing] = useState(false)
-    const [originalData,setOriginalData] = useState(null)
-    
-    // Inicializamos con hardcoded por si falla la API (Fallback solicitado)
+    const [loading, setLoading] = useState(true)
+    const [isEditing, setIsEditing] = useState(false)
+    const [originalData, setOriginalData] = useState(null)
     const [availableSkills, setAvailableSkills] = useState(skillOptions);
     const [availableCategories, setAvailableCategories] = useState(categoryOptions);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const hostAPI = getBackendHost()
 
@@ -290,11 +177,10 @@ const ShowStudent = () => {
         encabezado: 'Descarga',
         render: (row) => {
           if (!row) return "No disponible"
-
           const url = row.FCTM_document_url
           return (
             <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
-              <i className="bi bi-download"></i> {/* Icono de descarga */}
+              <i className="bi bi-download"></i>
             </a>
           )
         }
@@ -318,16 +204,13 @@ const ShowStudent = () => {
       }
     ]
 
-    // Cargar datos REALES del backend para tener los IDs correctos (Skills y Categorías)
     const fetchOptions = useCallback(async () => {
       try {
-        // SKILLS
         const resSkills = await sendRequest("GET", null, "/skills/search?q=");
         if (resSkills.success && Array.isArray(resSkills.data) && resSkills.data.length > 0) {
           setAvailableSkills(resSkills.data);
         }
         
-        // CATEGORIES: Comentado temporalmente para evitar 404 si el endpoint no existe
         const resCat = await sendRequest("GET", null, "/category"); 
         if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
           setAvailableCategories(resCat.data);
@@ -338,265 +221,118 @@ const ShowStudent = () => {
     }, []);
 
     const fetchStudent = useCallback(async () => {
-      setLoading(true)
-      
-      const res = await sendRequest("GET", null, `/students/${id}`)
-
-      if(res.success) {
-          const formatDateForInput = (isoDate) => {
-            if (!isoDate) return ""
-            return isoDate.split("T")[0]
-          }
-          
-          // Normalizamos las habilidades (skills) si vienen del API
-          const normalizedData = normalizeFromApi(res.data, []); // Solo skills se quedan como están
-          
-          const transformedData = {
-            ...normalizedData,
-            FCTM_student_openToWork: String(res.data.FCTM_student_openToWork),
-            SAO_registryDate: formatDateForInput(res.data.SAO_registryDate),
-            SAO_accessDate: formatDateForInput(res.data.SAO_accessDate)
-          }
-        setData(transformedData)
-        setOriginalData(transformedData)
-        console.log(res.data)
-      } else {
-        console.error("Error al cargar el estudiante: ", res.message)
-      }
-
-      setLoading(false)
-    }, [id])
       setLoading(true);
       const res = await sendRequest("GET", null, `/students/${id}`);
       
       if (res.success) {
-        // Normalizar SOLO categories (skills quedan crudos como en DB)
         let dataNormalizada = normalizeFromApi(res.data, CONFIG_SOLO_CATEGORY);
         
-        // Inicializar skills como array vacío si viene undefined
         if (!dataNormalizada.FCTM_student_skills) dataNormalizada.FCTM_student_skills = [];
 
-        // 1. Mapeo Inteligente de SKILLS (ID -> Nombre real)
-        if (res.data.FCTM_student_skills) {
-          if (Array.isArray(res.data.FCTM_student_skills)) {
-            dataNormalizada.FCTM_student_skills = res.data.FCTM_student_skills.map(s => {
-              // A) Si ya viene poblado (objeto)
-              if (typeof s === 'object' && s.FCTM_skill_name) {
-                 return { value: s.FCTM_skill_name, label: s.FCTM_skill_name };
-              }
-              // B) Si viene como ID (String), buscamos en la lista dinámica
-              if (typeof s === 'string') {
-                 const found = availableSkills.find(sk => sk._id === s);
-                 if (found) {
-                    return { value: found.FCTM_skill_name, label: found.FCTM_skill_name };
-                 }
-                 // Fallback visual si no se encuentra el ID
-                 return { value: s, label: "Skill ID: " + s.substring(0, 5) + "..." };
-              }
-              return { value: s, label: s };
-            });
-          } else {
-            dataNormalizada.FCTM_student_skills = [];
-          }
+        // Mapeo de SKILLS (ID -> Nome real)
+        if (res.data.FCTM_student_skills && Array.isArray(res.data.FCTM_student_skills)) {
+          dataNormalizada.FCTM_student_skills = res.data.FCTM_student_skills.map(s => {
+            if (typeof s === 'object' && s.FCTM_skill_name) {
+               return { value: s.FCTM_skill_name, label: s.FCTM_skill_name };
+            }
+            if (typeof s === 'string') {
+               const found = availableSkills.find(sk => sk._id === s);
+               return found ? { value: found.FCTM_skill_name, label: found.FCTM_skill_name } : { value: s, label: s };
+            }
+            return { value: s, label: s };
+          });
         }
         
-        // 2. Mapeo Inteligente de CATEGORIES (ID -> Nombre real)
+        // Mapeo de CATEGORIES (ID -> Nome real)
         if (res.data.FCTM_category) {
-           // Verificamos si FCTM_category es un array (multiselector)
            let cats = Array.isArray(res.data.FCTM_category) ? res.data.FCTM_category : [res.data.FCTM_category];
-           
            dataNormalizada.FCTM_category = cats.map(c => {
-              // A) Objeto poblado
               if (typeof c === 'object' && c.FCTM_category_name) {
                  return { value: c.FCTM_category_name, label: c.FCTM_category_name };
               }
-              // B) ID String
               if (typeof c === 'string') {
-                 const found = availableCategories.find(cat => cat._id === c);
-                 if (found) {
-                    return { value: found.FCTM_category_name, label: found.FCTM_category_name };
-                 }
-                 // Intento buscar en opciones hardcoded si falla la API
-                 const foundHard = categoryOptions.find(cat => cat._id === c);
-                 if(foundHard) return { value: foundHard.FCTM_category_name, label: foundHard.FCTM_category_name };
-
-                 return { value: c, label: "Category ID..." }; 
+                 const found = availableCategories.find(cat => cat._id === c) || categoryOptions.find(cat => cat._id === c);
+                 return found ? { value: found.FCTM_category_name, label: found.FCTM_category_name } : { value: c, label: c };
               }
               return { value: c, label: c || "Sin categoría" };
            });
         }
         
-        // openToWork string
         dataNormalizada.FCTM_student_openToWork = String(res.data.FCTM_student_openToWork || false);
-        
-        console.log("📊 Data loaded:", { skills: dataNormalizada.FCTM_student_skills, categories: dataNormalizada.FCTM_category }); // DEBUG
+        dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
+        dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
         
         setData(dataNormalizada);
         setOriginalData(dataNormalizada);
       }
       setLoading(false);
-    }, [id, availableSkills, availableCategories]); // Dependencias clave para reactivar cuando carguen las opciones
+    }, [id, availableSkills, availableCategories]);
 
-    // Guardar cambios FCTM_ (lógica copiada de ShowDummy funcional)
     const handleSave = async () => {
       try {
-        // A. Asegurar las skills en el backend
-        let skillNames = [];
-        if (data.FCTM_skills) {
-          skillNames = data.FCTM_skills.map(s => {
-            let name = null;
-            if (typeof s === "string") name = s;
-            else if (s.label) name = s.label;
-            else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
-            return name ? name.trim().toUpperCase() : null;
-          }).filter(Boolean);
-        }
-
-        const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
-        if (!resSkills.success) return showAlert("Error en habilidades", "error");
-
-        const skillIds = resSkills.data;
-
-        // B. Preparar payload final
-        const payload = {
-          FCTM_student_observations: data.FCTM_student_observations,
-          FCTM_student_other_contact: data.FCTM_student_other_contact,
-          FCTM_student_openToWork: data.FCTM_student_openToWork === "true" ? true : false,
-          FCTM_skills: skillIds
-        }
-
-        const res = await sendRequest("PATCH", payload, `/students/${id}`);
-      try {
-        // 1. Skills: extraer nombres → ensure → IDs
         let skillNames = [];
         if (data.FCTM_student_skills) {
           skillNames = data.FCTM_student_skills.map(s => {
-            let name = null;
-            if (typeof s === "string") name = s;
-            else if (s.label) name = s.label;
-            else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+            let name = typeof s === "string" ? s : (s.label || s.FCTM_skill_name);
             return name ? name.trim().toUpperCase() : null;
           }).filter(Boolean);
         }
 
         const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
-        if (!resSkills.success) return showAlert("Error en skills: " + resSkills.message, "error");
+        if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
-        // El backend devuelve directamente un array de IDs en resSkills.data
         const skillIds = resSkills.data;
-
-        // 2. Normalizar SIN skills (solo category/openToWork)
         const payloadNormalizado = normalizeToApi(data, CONFIG_OPENWORK_CATEGORY);
         
-        // 3. Payload final MANUAL con skills IDs
         const finalPayload = {
           ...payloadNormalizado,
           FCTM_student_skills: skillIds,
           FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
         };
 
-        // 4. PATCH
         const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
 
         if (res.success) {
-          setData(prev => ({ ...prev, ...res.data }));
-          setOriginalData(prev => ({ ...prev, ...res.data }));
-          setIsEditing(false);
           showAlert("Estudiante actualizado", "success");
-          fetchStudent(); // Recargamos para normalizar
-        } else {
-          showAlert(res.message,"error");
-        }
-      } catch (err) {
-        console.error(err);
-        showAlert("Error crítico", "error");
-        if (res.success) {
-          // 5. Refresh con nueva data + remap UI skills
-          const dataFinal = normalizeFromApi(res.data, CONFIG_SOLO_CATEGORY);
-          
-          // Usamos los nombres que acabamos de enviar (skillNames) para reconstruir la UI,
-          // ya que el backend nos devuelve IDs y no tenemos sus nombres en este punto.
-          dataFinal.FCTM_student_skills = skillNames.map(name => ({
-            value: name, 
-            label: name
-          }));
-          dataFinal.FCTM_student_openToWork = String(res.data.FCTM_student_openToWork);
-          
-          // Mantenemos las categorías seleccionadas para evitar desincronización visual IDs/Nombres
-          if (data.FCTM_category) dataFinal.FCTM_category = data.FCTM_category;
-
-          setData(dataFinal);
-          setOriginalData(dataFinal);
           setIsEditing(false);
-          showAlert("✅ Skills/Categories actualizados correctamente", "success");
+          fetchStudent();
         } else {
-          showAlert("Error PATCH: " + (res.message || "Backend falló"), "error");
+          showAlert(res.message, "error");
         }
       } catch (err) {
         console.error("Save error:", err);
-        showAlert("Error al guardar: " + err.message, "error");
+        showAlert("Error al guardar", "error");
       }
     };
 
-    // Actualizar campos FCTM_ en estado local
     const handleChange = (field, value) => {
-      setData(prev => ({
-        ...prev,
-        [field]: value
-      }))
+      setData(prev => ({ ...prev, [field]: value }))
     }
 
     const handleCancel = () => {
-      setData(originalData) // restauramos valores
+      setData(originalData)
       setIsEditing(false)
     }
-
-    const [selectedFile, setSelectedFile] = useState(null);
-
-    //AINHOA
-    // UNUSED OLD
-    const handleFileUpload__OLD = async () => {
-      if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
-
-      const formData = new FormData();
-      // El backend espera 'documents' para el array de archivos
-      formData.append("documents", selectedFile); 
-
-      // El 'true' al final es vital para que sendRequest envíe el archivo correctamente
-      const res = await sendRequest("POST", formData, `/students/${id}/documents`, true);
-
-      if (res.success) {
-        showAlert("CV subido con éxito", "success");
-        setSelectedFile(null);
-        fetchStudent(); 
-      }
-    };
 
     const handleFileUpload = async () => {
       if (!selectedFile) return showAlert("Selecciona un archivo", "warning");
 
       const formData = new FormData();
-      // CAMBIO: El backend espera 'files' para el array de archivos
       formData.append("files", selectedFile); 
-      
-      // Agregamos metadata si la necesitas
       formData.append("type", "CURRÍCULUM VITAE");
       formData.append("userId", id);
 
-      // CAMBIO: Usamos el endpoint correcto que tiene el middleware de multer
       const res = await sendRequest("POST", formData, `/documents/upload`);
 
       if (res.success) {
         showAlert("CV subido con éxito", "success");
         setSelectedFile(null);
-        fetchStudent(); // Recargamos para ver el nuevo CV en la tabla
+        fetchStudent(); 
       } else {
-        // Si res.message no llega, capturamos el posible error de servidor
         showAlert(res.message || "Error al subir el CV", "error");
       }
     };
 
-    // AITANA
     const handleDeleteDocument = async (docId) => {
       const confirmado = await confirmation('¿Seguro que quieres eliminar este CV?')
       if (!confirmado) return;
@@ -605,15 +341,11 @@ const ShowStudent = () => {
 
       if (res.success) {
         const updatedDocuments = data.FCTM_documents.filter(item => item._id !== docId);
-        const patchRes = await sendRequest(
-          "PATCH",
-          { FCTM_documents: updatedDocuments },
-          `/students/${id}` 
-        );
+        const patchRes = await sendRequest("PATCH", { FCTM_documents: updatedDocuments }, `/students/${id}`);
 
         if (patchRes.success) {
           showAlert('Documento eliminado correctamente', 'success');
-          fetchStudent(); // Refresh completo
+          fetchStudent();
         } else {
           showAlert('Error actualizando alumno', 'error');
         }
@@ -623,30 +355,24 @@ const ShowStudent = () => {
     };
 
     useEffect(() => {
-      fetchOptions(); // Cargar options (Skills y Categorías) primero
+      fetchOptions();
     }, [fetchOptions]);
 
     useEffect(() => {
-      // Recargar estudiante cuando tengamos las skills o categorías cargadas
-      // Esto asegura que el mapeo ID -> Nombre ocurra correctamente
-      if (availableSkills.length > 0 || availableCategories.length > 0 || loading) {
+      if (availableSkills.length > 0 || availableCategories.length > 0) {
          fetchStudent();
       }
     }, [fetchStudent, availableSkills.length, availableCategories.length]); 
 
-    if (loading) return <p>Cargando datos...</p>
-    if (!data) return <p>No se encontraron datos</p>
+    if (loading && !data) return <p>Cargando datos...</p>
+    if (!data && !loading) return <p>No se encontraron datos</p>
 
-    //MIRIAM
-
-    // Campos dinámicos para pasar al formulario
     const dynamicFCTMFields = [
       ...FCTM_fields,
       {
         key: "FCTM_category",
         label: "Categorías/Familias",
         type: "select-multi",
-        // Usamos disponible dinámico, fallback a estático
         options: availableCategories.length > 0 ? availableCategories : categoryOptions, 
         optionValue: "FCTM_category_name", optionLabel: "FCTM_category_name"
       },
@@ -654,25 +380,17 @@ const ShowStudent = () => {
         key: "FCTM_student_skills",
         label: "Aptitudes/Skills",
         type: "select-multi-creatable",
-        // Usamos disponible dinámico, fallback a estático
         options: availableSkills.length > 0 ? availableSkills : skillOptions, 
         optionValue: "FCTM_skill_name", optionLabel: "FCTM_skill_name"
       }
     ];
 
-    //mostrar solo los que existen (y los de FCTM_ que queremos gestionar)
-    const filteredFCTMFields = FCTM_fields.filter(field => field.key in data || field.key === "FCTM_skills").map(field => {
-    //mostrar solo los que existen
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
-      // Forzar que siempre se muestren category y skills aunque no haya datos
       if (field.key === "FCTM_category" || field.key === "FCTM_student_skills") return true;
       return field.key in data;
     }).map(field => {
       if (field.key === "FCTM_student_openToWork") {
-        return {
-          ...field,
-          value: String(data[field.key])
-        }
+        return { ...field, value: String(data[field.key]) }
       }
       return field;
     });
@@ -707,34 +425,29 @@ const ShowStudent = () => {
             onChange={handleChange}
           />
 
-          {/* AINHOA: Adjuntar currículum vitae */}
           {isEditing && (
             <div className="card p-3 mt-3">
-
               <h5>Adjuntar Currículum Vitae</h5>
-
               <input
                 type="file"
                 className="form-control"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
               />
-
               <button
                 className="btn btn-primary mt-2"
                 onClick={handleFileUpload}
               >
                 Subir
               </button>
-
             </div>
           )}
 
-          {data.FCTM_documents.length === 0 ? (
-            <h4>Todavía no se ha adjuntado un Currículum Vitae (pulsa en "Editar" para subir tu CV)</h4>
+          {data.FCTM_documents?.length === 0 ? (
+            <h4 className="mt-4">Todavía no se ha adjuntado un Currículum Vitae (pulsa en "Editar" para subir tu CV)</h4>
           ) : (
             <ListCRUD 
               title="Currículums Vitae Adjuntos"
-              datos={data.FCTM_documents}
+              datos={data.FCTM_documents || []}
               columnas={columnasDocuments}          
             />
           )}
