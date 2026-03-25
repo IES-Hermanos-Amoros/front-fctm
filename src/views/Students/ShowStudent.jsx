@@ -24,6 +24,11 @@ const categoryOptions = [
   { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
 ];
 
+const booleanOptions = [
+  { _id: true, nombre: "Sí" },
+  { _id: false, nombre: "No" }
+];
+
 const skillOptions = [
   // Soft Skills
   { _id: "skill_01", FCTM_skill_name: "LIDERAZGO" },
@@ -161,7 +166,7 @@ const FCTM_fields = [
     key: "FCTM_student_openToWork",
     label: "En búsqueda activa / Disponible",
     type: "select",
-    options: categoryOptions,
+    options: booleanOptions,
     optionValue: "_id",
     optionLabel: "nombre"
   }
@@ -223,7 +228,7 @@ const ShowStudent = () => {
           setAvailableSkills(resSkills.data);
         }
         
-        const resCat = await sendRequest("GET", null, "/category"); 
+        const resCat = await sendRequest("GET", null, "/categories"); 
         if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
           setAvailableCategories(resCat.data);
         } 
@@ -237,11 +242,20 @@ const ShowStudent = () => {
       const res = await sendRequest("GET", null, `/students/${id}`);
       
       if (res.success) {
-        // 1. Normalizamos SOLO Categorías siguiendo el ejemplo de dummy
-        const configSoloCategorias = NORMALIZATION_CONFIG.filter(c => c.field === "FCTM_category");
-        const dataNormalizada = normalizeFromApi(res.data, configSoloCategorias);
+        // Combinar opciones locales con las de backend si existen
+        const combinedCats = availableCategories.length > 0 ? availableCategories : categoryOptions;
+        const combinedSkills = availableSkills.length > 0 ? availableSkills : skillOptions;
 
-        // Formateo de fechas para inputs HTML
+        // Actualizamos las opciones en la config dinámicamente para el normalize
+        const currentConfig = NORMALIZATION_CONFIG.map(c => {
+          if (c.field === "FCTM_category") return { ...c, options: combinedCats };
+          if (c.field === "FCTM_skills") return { ...c, options: combinedSkills };
+          return c;
+        });
+
+        const dataNormalizada = normalizeFromApi(res.data, currentConfig);
+        
+        // Formateo adicional de campos SAO para <ShowEditableForm /> (input type="date" espera YYYY-MM-DD)
         dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
         dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
         
@@ -249,7 +263,7 @@ const ShowStudent = () => {
         setOriginalData(dataNormalizada);
       }
       setLoading(false);
-    }, [id]);
+    }, [id, availableSkills, availableCategories]);
 
     const handleSave = async () => {
       try {
@@ -265,9 +279,7 @@ const ShowStudent = () => {
         if (!resSkills.success) return showAlert("Error en habilidades: " + resSkills.message, "error");
 
         const skillIds = resSkills.data;
-
-        const configSinSkills = NORMALIZATION_CONFIG.filter(c => c.field !== "FCTM_skills");
-        const payloadNormalizado = normalizeToApi(data, configSinSkills);
+        const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
         
         const finalPayload = {
           ...payloadNormalizado,
