@@ -38,7 +38,7 @@ const skillOptions = [
   { _id: "skill_10", FCTM_skill_name: "CREATIVIDAD" },
   { _id: "skill_11", FCTM_skill_name: "HABLAR EN PÚBLICO" },
   { _id: "skill_12", FCTM_skill_name: "EMPATÍA" },
-  
+
   // Tecnología / IT
   { _id: "skill_13", FCTM_skill_name: "DESARROLLO WEB" },
   { _id: "skill_14", FCTM_skill_name: "JAVASCRIPT" },
@@ -225,7 +225,7 @@ const ShowStudent = () => {
         if (resSkills.success && Array.isArray(resSkills.data) && resSkills.data.length > 0) {
           setAvailableSkills(resSkills.data);
         }
-        
+
         const resCat = await sendRequest("GET", null, "/category"); 
         if (resCat.success && Array.isArray(resCat.data) && resCat.data.length > 0) {
           setAvailableCategories(resCat.data);
@@ -238,7 +238,7 @@ const ShowStudent = () => {
     const fetchStudent = useCallback(async () => {
       setLoading(true);
       const res = await sendRequest("GET", null, `/students/${id}`);
-      
+
       if (res.success) {
         // Combinar opciones locales con las de backend si existen
         const combinedCats = availableCategories.length > 0 ? availableCategories : categoryOptions;
@@ -252,11 +252,11 @@ const ShowStudent = () => {
         });
 
         const dataNormalizada = normalizeFromApi(res.data, currentConfig);
-        
+
         // Formateo adicional de campos SAO para <ShowEditableForm /> (input type="date" espera YYYY-MM-DD)
         dataNormalizada.SAO_registryDate = res.data.SAO_registryDate?.split("T")[0] || "";
         dataNormalizada.SAO_accessDate = res.data.SAO_accessDate?.split("T")[0] || "";
-        
+
         setData(dataNormalizada);
         setOriginalData(dataNormalizada);
       }
@@ -269,6 +269,7 @@ const ShowStudent = () => {
         if (data.FCTM_skills) {
           skillNames = data.FCTM_skills.map(s => {
             let name = typeof s === "string" ? s : (s.label || s.FCTM_skill_name);
+            // Si el MultiSelect nos da {value, label}, el label es el nombre de la skill
             return name ? name.trim().toUpperCase() : null;
           }).filter(Boolean);
         }
@@ -278,7 +279,7 @@ const ShowStudent = () => {
 
         const skillIds = resSkills.data;
         const payloadNormalizado = normalizeToApi(data, NORMALIZATION_CONFIG);
-        
+
         const finalPayload = {
           ...payloadNormalizado,
           FCTM_skills: skillIds,
