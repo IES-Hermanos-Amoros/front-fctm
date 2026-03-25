@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { sendRequest, showAlert, getBackendHost } from '../../utils/functions'
+import defaultAvatar from "../../assets/avatar.png"
 
 const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,9 +18,11 @@ const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
 
   // 1. Construcción de la URL segura
   const host = getBackendHost(); // esto ya trae http:// o https://
-  const defaultImage = "https://via.placeholder.com/120"; // Imagen por defecto
+  const defaultImage = defaultAvatar//"https://via.placeholder.com/120"; // Imagen por defecto
   
-  const fullUrl = avatarUrl ? (avatarUrl.startsWith('http') ? avatarUrl : `${host}${avatarUrl}`) : defaultImage;
+  //const fullUrl = avatarUrl ? (avatarUrl.startsWith('http') ? avatarUrl : `${host}${avatarUrl}`) : defaultImage;
+  const fullUrl = avatarUrl ? avatarUrl : defaultImage;
+  console.log("URL del avatar:", fullUrl);
 
   // 2. Manejo del archivo seleccionado
   const handleFileChange = (e) => {

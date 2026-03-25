@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 
 const categoryOptions = [
   { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
@@ -56,11 +57,6 @@ const normalizationConfig = [
   { field: "SAO_accessDate", type: "date" }
 ];
 
-const toInputDate = (value) => {
-  if (!value) return "";
-  if (typeof value !== "string") return "";
-  return value.includes("T") ? value.split("T")[0] : value;
-};
 
 const ShowTeacher = () => {
   const { id } = useParams();
@@ -70,6 +66,9 @@ const ShowTeacher = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const hostAPI = getBackendHost()
+
 
   const fetchTeacher = useCallback(async () => {
     if (!id) {
@@ -94,6 +93,7 @@ const ShowTeacher = () => {
 
       setData(dataNormalizada);
       setOriginalData(dataNormalizada);
+      setAvatarUrl(hostAPI + res.data?.FCTM_documents[0]?.FCTM_document_url || "");
     } else {
       showAlert(res.message, "error");
     }
@@ -161,6 +161,12 @@ const ShowTeacher = () => {
             navigate("/");
           }
         }}
+      />
+
+      <UserAvatarUploader
+        userId={id}
+        avatarUrl={avatarUrl}
+        onUploadSuccess={fetchTeacher}
       />
 
       <ShowEditableForm
