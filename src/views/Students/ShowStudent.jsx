@@ -365,7 +365,6 @@ const ShowStudent = () => {
     if (!data && !loading) return <p>No se encontraron datos</p>
 
     const dynamicFCTMFields = [
-      ...FCTM_fields,
       {
         key: "FCTM_category",
         label: "Categorías/Familias Profesionales",
@@ -381,7 +380,8 @@ const ShowStudent = () => {
         options: availableSkills.length > 0 ? availableSkills : skillOptions, 
         optionValue: "_id", 
         optionLabel: "FCTM_skill_name"
-      }
+      },
+      ...FCTM_fields,
     ];
 
     const filteredFCTMFields = dynamicFCTMFields.filter(field => {
