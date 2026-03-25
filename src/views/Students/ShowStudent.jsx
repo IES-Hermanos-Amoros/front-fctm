@@ -269,7 +269,6 @@ const ShowStudent = () => {
         if (data.FCTM_skills) {
           skillNames = data.FCTM_skills.map(s => {
             let name = typeof s === "string" ? s : (s.label || s.FCTM_skill_name);
-            // Si el MultiSelect nos da {value, label}, el label es el nombre de la skill
             return name ? name.trim().toUpperCase() : null;
           }).filter(Boolean);
         }
