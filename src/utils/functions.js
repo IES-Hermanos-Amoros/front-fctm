@@ -550,3 +550,34 @@ export const validateStrongPassword = (password) => {
 
   return strongPasswordRegex.test(password);
 };
+
+export const extractSkillNames = (skills) => {
+  if (!skills) return [];
+
+  return skills.map(s => {
+    let name = null;
+
+    if (typeof s === "string") name = s;
+    else if (s.label) name = s.label;
+    else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+
+    return name ? name.trim().toUpperCase() : null;
+  }).filter(Boolean);
+};
+
+export const ensureSkills = async (skills) => {
+
+  const names = extractSkillNames(skills);
+
+  const res = await sendRequest(
+    "POST",
+    { names },
+    "/skills/ensure"
+  );
+
+  if (!res.success) {
+    throw new Error("Error ensuring skills");
+  }
+
+  return res.data; // ids
+};

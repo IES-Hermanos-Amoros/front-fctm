@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost, normalizeFromApi, normalizeToApi } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost, normalizeFromApi, normalizeToApi, ensureSkills } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 
@@ -90,16 +90,6 @@ const skillOptions = [
   { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" }
 ];
 
-// Normalización de SKILLS (Familias Profesionales)
-const normalizationConfig = [
-  {
-    field: "FCTM_skills",
-    options: skillOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_skill_name",
-    type: "multi"
-  }
-];
 
 //CAMPOS DEL FORMULARIO
 const jobOfferFields = [
@@ -118,12 +108,11 @@ const jobOfferFields = [
     optionValue: '_id',
     optionLabel: 'nombre',
   },
-
-  // Campo de Familias Profesionales (SKILLS) con opciones estáticas
+  // Campo de Aptitudes (SKILLS) con opciones estáticas
   {
     key: "FCTM_skills",
     label: "Aptitudes Demandadas",
-    type: "select-multi",
+    type: "select-multi-creatable", //NEW SKILLS
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
@@ -132,30 +121,10 @@ const jobOfferFields = [
   { key: 'FCTM_job_observations', label: 'Observaciones', type: 'textarea' },
 ]
 
-const formatDateForInput = value => {
-  if (!value) return ''
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    return value.toISOString().slice(0, 10)
-  }
-  if (typeof value === 'string') {
-    const isoDateMatch = value.match(/^(\d{4}-\d{2}-\d{2})/)
-    if (isoDateMatch) return isoDateMatch[1]
-    const parsedDate = new Date(value)
-    if (!Number.isNaN(parsedDate.getTime())) {
-      return parsedDate.toISOString().slice(0, 10)
-    }
-  }
-  return value
-}
-
-const normalizeJobOfferDates = jobOffer => {
-  if (!jobOffer) return jobOffer
-  return {
-    ...jobOffer,
-    FCTM_job_start_date: formatDateForInput(jobOffer.FCTM_job_start_date),
-    FCTM_job_end_date: formatDateForInput(jobOffer.FCTM_job_end_date),
-  }
-}
+const normalizationConfig = [
+  { field: "FCTM_job_start_date", type: "date" },
+  { field: "FCTM_job_end_date", type: "date" }
+];
 
 const ShowJobOffer = () => {
   const { id } = useParams()
@@ -228,47 +197,72 @@ const ShowJobOffer = () => {
   ]
 
   const fetchJobOffer = useCallback(async () => {
-    setLoading(true)
+      setLoading(true)
 
-    const res = await sendRequest('GET', null, `/joboffers/${id}`)
+      const res = await sendRequest("GET", null, `/joboffers/${id}`)
 
-    if (res.success) {
-      let normalizedData = normalizeJobOfferDates(res.data)
+      if (res.success) {
 
-      // 2. Aplanamos los datos de la empresa para que ShowEditableForm los lea
-      if (res.data.empresa) {
-        normalizedData = {
-          ...normalizedData,
-          empresa_nombre: res.data.empresa.SAO_name,
-          empresa_ciudad: res.data.empresa.SAO_company_city
+        let normalizedData = normalizeFromApi(
+          res.data,
+          normalizationConfig
+        )
+
+        // ✅ Aplanar empresa
+        if (res.data.empresa) {
+          normalizedData = {
+            ...normalizedData,
+            empresa_nombre: res.data.empresa.SAO_name,
+            empresa_ciudad: res.data.empresa.SAO_company_city,
+          }
         }
+
+        // ✅ NO normalizamos skills aquí (las maneja ensureSkills)
+        setData(normalizedData)
+        setOriginalData(normalizedData)
+
+        // ============================
+        // ✅ CARGAR DOCUMENTS (NO BORRAR)
+        // ============================
+
+        if (res.data.FCTM_documents?.length > 0) {
+
+          const promises = res.data.FCTM_documents.map(id =>
+            sendRequest("GET", null, `/documents/${id}`)
+          )
+
+          const responses = await Promise.all(promises)
+
+          const documents = responses
+            .filter(r => r.success)
+            .map(r => r.data)
+
+          const sortedDocuments = [...documents].sort(
+            (a, b) =>
+              new Date(b.FCTM_inserted_date) -
+              new Date(a.FCTM_inserted_date)
+          )
+
+          setDocumentData(sortedDocuments)
+
+        } else {
+
+          setDocumentData([])
+
+        }
+
+      } else {
+
+        console.error(
+          "Error al cargar joboffer:",
+          res.message
+        )
+
       }
 
-      // Normalizamos las SKILLS para que el select-multi las muestre correctamente
-      normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
+      setLoading(false)
 
-      setData(normalizedData)
-      setOriginalData(normalizedData)
-    } else {
-      console.error('Error al cargar el joboffers:', res.message)
-    }
-
-    //Obtener documentos asociados
-    if (res.data.FCTM_documents.length > 0) {
-      const promises = res.data.FCTM_documents.map(async id =>
-          await sendRequest('GET', null, `/documents/${id}`)
-      )
-      const responses = await Promise.all(promises)
-      const documents = responses.filter(res => res.success).map(res => res.data)
-      // Ordenar por fecha
-      const sortedDocuments = [...documents].sort(
-        (a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date)
-      )
-      setDocumentData(sortedDocuments)
-    }
-
-    setLoading(false)
-  }, [id])
+    }, [id])
 
 const handleDelete = async (docId) => {
   const confirmado = await confirmation('¿Seguro que quieres eliminar este documento?')
@@ -304,32 +298,50 @@ const handleDelete = async (docId) => {
   // Guardar cambios FCTM_
   const handleSave = async () => {
 
-    // Normalizar SKILLS antes de enviar 
-    const payload = normalizeToApi(data, normalizationConfig)
+      try {
 
-    const res = await sendRequest('PATCH', payload, `/joboffers/${id}`)
-    
+        const skillIds = await ensureSkills(
+          data.FCTM_skills
+        );
 
-    // Reconstruir objetos SKILLS después de guardar
-    if (res.success) {
-      let normalizedData = {
-        ...res.data,
-        FCTM_skills: res.data.FCTM_skills
-          .map(id => skillOptions.find(opt => opt._id === id))
-          .filter(Boolean)
+        const payload = normalizeToApi(
+          data,
+          normalizationConfig
+        );
+
+        const finalPayload = {
+          ...payload,
+          FCTM_skills: skillIds
+        };
+
+        const res = await sendRequest(
+          "PATCH",
+          finalPayload,
+          `/joboffers/${id}`
+        );
+
+        if (!res.success) {
+          showAlert(res.message, "error");
+          return;
+        }
+
+        let normalizedData = normalizeFromApi(
+          res.data,
+          normalizationConfig
+        );
+
+        setData(normalizedData);
+        setOriginalData(normalizedData);
+        setIsEditing(false);
+
+      } catch (err) {
+
+        console.error(err);
+        showAlert("Error guardando", "error");
+
       }
 
-
-      // Normalizar SKILLS de nuevo para el estado después de reconstruirlos, para que el formulario los muestre correctamente
-      normalizedData = normalizeFromApi(normalizedData, normalizationConfig)
-
-      setData(normalizedData)
-      setOriginalData(normalizedData)
-      setIsEditing(false)
-    } else {
-      showAlert(res.message, 'error')
-    }
-  }
+    };
 
   const handleChange = (field, value) => {
     setData(prev => ({
