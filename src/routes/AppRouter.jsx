@@ -29,6 +29,8 @@ import ShowFct from '../views/Fcts/ShowFcts'
 
 import ValidateReviews from '../views/Administrators/ValidateReviews'
 import ValidateSkills from '../views/Administrators/ValidateSkills'
+import ShowReview from '../views/Reviews/ShowReview'
+import NewReview from '../views/Reviews/NewReview'
 
 // Importa más vistas...
 
@@ -88,6 +90,9 @@ export default function AppRouter() {
       <Route path="/students/:id" element={<ShowStudent />} />
       <Route path="/fcts" element={<ListFcts />} />
       <Route path="/fcts/:id" element={<ShowFct />} />
+
+      <Route path="/reviews/new" element={<NewReview />} />
+      <Route path="/reviews/:id" element={<ShowReview />} />
 
 
       <Route path="/teachers/:id" element={<ShowTeacher />} />

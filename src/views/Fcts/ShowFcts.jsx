@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, formatDateDDMMYYYY, confirmation } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import ListCRUD from "../../components/List/ListCRUD";
+import RatingStars from "../../components/RatingStars";
 
 // --- CONFIGURACIÓN DE CAMPOS ---
 
@@ -71,6 +73,74 @@ const ShowFcts = () => {
     setLoading(false);
   }, [id]);
 
+  // --- FUNCIONES DE RESEÑAS ---
+  const handleDeleteReview = useCallback(async (reviewId) => {
+    const confirmed = await confirmation("¿Seguro que quieres eliminar esta reseña?");
+    if (!confirmed) return;
+
+    const res = await sendRequest("DELETE", undefined, `/reviews/${reviewId}`);
+
+    if (res.success) {
+      showAlert("Reseña eliminada correctamente", "success");
+      fetchFct();
+    } else {
+      showAlert(res.message || "Error al eliminar la reseña", "error");
+    }
+  }, [fetchFct]);
+
+  const columnasReviews = useMemo(() => [
+    { key: "FCTM_review_title", encabezado: "Título" },
+    {
+      key: "FCTM_review_rating",
+      encabezado: "Calificación",
+      render: (row) => <RatingStars rating={row.FCTM_review_rating} />
+    },
+    {
+      key: "FCTM_user_id",
+      encabezado: "Autor",
+      render: (row) => row.FCTM_user_id?.SAO_name || "Desconocido"
+    },
+    {
+      key: "FCTM_review_text",
+      encabezado: "Comentario",
+      render: (row) => {
+        const text = row.FCTM_review_text || "";
+        return text.length > 80 ? text.substring(0, 80) + "..." : text;
+      }
+    },
+    {
+      key: "FCTM_review_date",
+      encabezado: "Fecha",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_review_date)
+    },
+    {
+      key: "__show",
+      encabezado: "Ver",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => navigate(`/reviews/${row._id}`, { state: { fctId: id } })}
+          title="Ver detalles"
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Eliminar",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDeleteReview(row._id)}
+          title="Eliminar reseña"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [navigate, id, handleDeleteReview]);
+
   // --- GUARDADO ---
   const handleSave = async () => {
     // Filtramos para enviar solo lo que empieza por FCTM_ (opcional, según backend)
@@ -135,6 +205,21 @@ const ShowFcts = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
+
+      <hr />
+
+      <ListCRUD
+        title="Reseñas Verificadas"
+        datos={data.FCTM_reviews || []}
+        columnas={columnasReviews}
+      >
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/reviews/new', { state: { fctId: id } })}
+        >
+          Nueva Reseña
+        </button>
+      </ListCRUD>
     </section>
   );
 };
