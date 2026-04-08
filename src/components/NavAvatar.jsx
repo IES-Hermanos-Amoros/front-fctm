@@ -1,6 +1,7 @@
 import React from 'react';
 import profileImg from '../images/user.jpg'
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 import useUserStore from "../store/userStore"
 import { sendRequest } from '../utils/functions';
@@ -43,7 +44,25 @@ function NavAvatar() {
   }
 
   const logout = async () => {
-    //TO DO
+    const result = await Swal.fire({
+      title: '¿Cerrar sesión?',
+      text: 'Se cerrará tu sesión actual.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cerrar sesión',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true,
+      focusCancel: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    const res = await sendRequest("POST", null, "/auth/logout");
+
+    if (res?.success) {
+      clearUser();
+      navigate('/');
+    }
   }
 
   return (
@@ -89,11 +108,11 @@ function NavAvatar() {
 
         <li>
           <button
-            className="dropdown-item d-flex align-items-center"
+            className="dropdown-item d-flex align-items-center logout-item"
             onClick={logout}
           >
             <i className="bi bi-box-arrow-right"></i>
-            <span>Sign Out</span>
+            <span>Cerrar Sesión</span>
           </button>
         </li>
 
