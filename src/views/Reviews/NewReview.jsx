@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { sendRequest, showAlert } from '../../utils/functions'
 import ShowHeader from '../../components/Show/ShowHeader'
@@ -32,9 +32,21 @@ const NewReview = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const user = useUserStore((state) => state.user)
+  const loading = useUserStore((state) => state.loading)
+  const fetchUser = useUserStore((state) => state.fetchUser)
 
   const fctId = location.state?.fctId || null
   const returnPath = fctId ? `/fcts/${fctId}` : '/'
+
+  useEffect(() => {
+    if (!user) {
+      fetchUser()
+    }
+  }, [user, fetchUser])
+
+  if (loading) {
+    return <p className="p-5 text-center">Cargando usuario...</p>
+  }
 
   const [data, setData] = useState({
     FCTM_review_title: '',
@@ -47,6 +59,10 @@ const NewReview = () => {
   }
 
   const handleSave = async () => {
+    console.log("=== HANDLE SAVE ===")
+    console.log("user:", user)
+    console.log("user.id:", user?.id)
+    
     if (!data.FCTM_review_title.trim()) {
       showAlert('Por favor, introduce un título para la reseña.', 'error')
       return
@@ -62,13 +78,20 @@ const NewReview = () => {
       return
     }
 
+    if (!user?.user?.id) {
+      showAlert('No se ha podido identificar al usuario. Recarga la página.', 'error')
+      return
+    }
+
     const payload = {
       ...data,
-      FCTM_user_id: user._id,
+      FCTM_user_id: user.user.id,
       FCTM_review_verified: false,
       fctId
     }
 
+    console.log("Payload a enviar:", payload)
+    console.log("User del store:", user)
     const res = await sendRequest('POST', payload, '/reviews')
     if (res.success) {
       navigate(returnPath)
