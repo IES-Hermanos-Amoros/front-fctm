@@ -34,6 +34,18 @@ const NewJobOffer = () => {
     }));
   }, [enums, getEnumArray]);
 
+  const [skillOptions, setSkillOptions] = useState([]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      const res = await sendRequest('GET', null, '/skills');
+      if (res.success) {
+        setSkillOptions(res.data || res);
+      }
+    };
+    fetchSkills();
+  }, []);
+
   // === CAMPOS DEL FORMULARIO ===
   const jobOfferFields = [
     { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required:true },
@@ -53,6 +65,14 @@ const NewJobOffer = () => {
       optionValue: '_id',
       optionLabel: 'nombre',
     },
+    {
+      key: 'FCTM_skills',
+      label: 'Aptitudes/Tecnologías',
+      type: 'select-multi-creatable',
+      options: skillOptions,
+      optionValue: '_id',
+      optionLabel: 'FCTM_skill_name'
+    }
   ]
   const location = useLocation()
   const companyId = location.state?.companyId || null
@@ -69,6 +89,7 @@ const NewJobOffer = () => {
     FCTM_job_observations: '',
     FCTM_job_salary: '',
     FCTM_job_status: 'ACTIVA',
+    FCTM_skills: []
   })
 
   const handleChange = (field, value) => {
@@ -97,13 +118,42 @@ const NewJobOffer = () => {
       return
     }
 
-    //const res = await sendRequest('POST', data, '/joboffers')
-    const payload = companyId ? { ...data, companyId } : data
-    const res = await sendRequest('POST', payload, '/joboffers')
-    if (res.success) {
-      navigate(returnPath)
-    } else {
-      showAlert(res.message, 'error')
+    try {
+      let skillNames = [];
+      if (data.FCTM_skills && data.FCTM_skills.length > 0) {
+        skillNames = data.FCTM_skills.map(s => {
+          let name = null;
+          if (typeof s === "string") name = s;
+          else if (s.label) name = s.label;
+          else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+          
+          return name ? name.trim().toUpperCase() : null;
+        }).filter(Boolean);
+      }
+
+      let skillIds = [];
+      
+      if (skillNames.length > 0) {
+        const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
+        if (!resSkills.success) {
+          showAlert("Error gestionando las aptitudes asociadas", "error");
+          return;
+        }
+        skillIds = resSkills.data; 
+      }
+
+      const payload = companyId ? { ...data, companyId } : { ...data };
+      payload.FCTM_skills = skillIds;
+
+      const res = await sendRequest('POST', payload, '/joboffers')
+      if (res.success) {
+        navigate(returnPath)
+      } else {
+        showAlert(res.message, 'error')
+      }
+    } catch (err) {
+      console.error("Error al guardar la oferta de trabajo:", err);
+      showAlert("Error interno al guardar la oferta", "error")
     }
   }
 
