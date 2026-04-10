@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert, confirmation } from "../../utils/functions";
 
@@ -19,7 +19,11 @@ const SAO_fields = [
   { key: "SAO_workcenter_name", label: "Centro de Trabajo", type: "text" },
   { key: "SAO_workcenter_phone", label: "Teléfono Centro", type: "text" },
   { key: "SAO_workcenter_manager", label: "Responsable Centro", type: "text" },
-  { key: "SAO_workcenter_manager_id", label: "ID Responsable Centro", type: "text" },
+  {
+    key: "SAO_workcenter_manager_id",
+    label: "ID Responsable Centro",
+    type: "text",
+  },
   { key: "SAO_workcenter_email", label: "Email Centro", type: "email" },
   { key: "SAO_teacher_id", label: "NIF Profesor", type: "text" },
   { key: "SAO_teacher_fullname", label: "Tutor Curso", type: "text" },
@@ -34,7 +38,11 @@ const SAO_fields = [
   { key: "SAO_Authorization", label: "Autorización", type: "text" },
   { key: "SAO_Erasmus", label: "Erasmus", type: "text" },
   { key: "SAO_termination_date", label: "Fecha Finalización", type: "text" },
-  { key: "SAO_instructor_assessment", label: "Valoración Instructor", type: "text" },
+  {
+    key: "SAO_instructor_assessment",
+    label: "Valoración Instructor",
+    type: "text",
+  },
   { key: "SAO_variation", label: "Variación", type: "text" },
   { key: "SAO_link", label: "Enlace", type: "text" },
   { key: "SAO_amount", label: "Importe", type: "text" },
@@ -75,8 +83,8 @@ const ShowFcts = () => {
   const handleSave = async () => {
     // Filtramos para enviar solo lo que empieza por FCTM_ (opcional, según backend)
     const payload = {};
-    Object.keys(data).forEach(key => {
-        if(key.startsWith('FCTM_')) payload[key] = data[key];
+    Object.keys(data).forEach((key) => {
+      if (key.startsWith("FCTM_")) payload[key] = data[key];
     });
 
     const res = await sendRequest("PATCH", payload, `/fct/${id}`);
@@ -101,81 +109,99 @@ const ShowFcts = () => {
   };
 
   // --- MANEJO DE RESEÑAS ---
-  const handleDeleteReview = useCallback(async (reviewId) => {
-    const confirmed = await confirmation("¿Seguro que quieres eliminar esta reseña?");
-    if (!confirmed) return;
+  const handleDeleteReview = useCallback(
+    async (reviewId) => {
+      const confirmed = await confirmation(
+        "¿Seguro que quieres eliminar esta reseña?",
+      );
+      if (!confirmed) return;
 
-    const res = await sendRequest("DELETE", undefined, `/reviews/${reviewId}?fctId=${encodeURIComponent(id)}`);
+      const res = await sendRequest(
+        "DELETE",
+        undefined,
+        `/reviews/${reviewId}?fctId=${encodeURIComponent(id)}`,
+      );
 
-    if (res.success) {
-      await fetchFct(); // Recargar para actualizar la lista
-    } else {
-      showAlert(res.message || "Error al eliminar reseña", "error");
-    }
-  }, [id, fetchFct]);
+      if (res.success) {
+        await fetchFct(); // Recargar para actualizar la lista
+      } else {
+        showAlert(res.message || "Error al eliminar reseña", "error");
+      }
+    },
+    [id, fetchFct],
+  );
 
   // --- CONFIGURACIÓN DE COLUMNAS PARA RESEÑAS ---
-  const columnasReviews = useMemo(() => [
-    { key: "FCTM_review_title", encabezado: "Título" },
-    {
-      key: "FCTM_review_rating",
-      encabezado: "Calificación",
-      render: (row) => <RatingStars rating={row.FCTM_review_rating} />,
-    },
-    {
-      key: "FCTM_user_id",
-      encabezado: "Autor",
-      render: (row) =>
-        row.FCTM_user_id?.SAO_fullname ||
-        `${row.FCTM_user_id?.SAO_name || ""} ${row.FCTM_user_id?.SAO_surname || ""}`.trim() ||
-        "Desconocido",
-    },
-    {
-      key: "FCTM_review_text",
-      encabezado: "Comentario",
-      render: (row) => {
-        const text = row.FCTM_review_text || "";
-        return text.length > 80 ? text.substring(0, 80) + "..." : text;
+  const columnasReviews = useMemo(
+    () => [
+      { key: "FCTM_review_title", encabezado: "Título" },
+      {
+        key: "FCTM_review_rating",
+        encabezado: "Calificación",
+        render: (row) => <RatingStars rating={row.FCTM_review_rating} />,
       },
-    },
-    {
-      key: "FCTM_review_date",
-      encabezado: "Fecha",
-      render: (row) => formatDateDDMMYYYY(row.FCTM_review_date),
-    },
-    {
-      key: "__show",
-      encabezado: "Ver",
-      render: (row) => (
-        <button
-          className="btn btn-sm btn-outline-primary"
-          onClick={() => navigate(`/reviews/${row._id}`, { state: { fctId: id } })}
-          title="Ver reseña"
-        >
-          <i className="bi bi-search"></i>
-        </button>
-      ),
-    },
-    {
-      key: "__delete",
-      encabezado: "Eliminar",
-      render: (row) => (
-        <button
-          className="btn btn-sm btn-outline-danger"
-          onClick={() => handleDeleteReview(row._id)}
-          title="Eliminar reseña"
-        >
-          <i className="bi bi-trash"></i>
-        </button>
-      ),
-    },
-  ], [navigate, id, handleDeleteReview]);
+      {
+        key: "FCTM_user_id",
+        encabezado: "Autor",
+        render: (row) =>
+          row.FCTM_user_id?.SAO_fullname ||
+          `${row.FCTM_user_id?.SAO_name || ""} ${row.FCTM_user_id?.SAO_surname || ""}`.trim() ||
+          "Desconocido",
+      },
+      {
+        key: "FCTM_review_text",
+        encabezado: "Comentario",
+        render: (row) => {
+          const text = row.FCTM_review_text || "";
+          return text.length > 80 ? text.substring(0, 80) + "..." : text;
+        },
+      },
+      {
+        key: "FCTM_review_date",
+        encabezado: "Fecha",
+        render: (row) => formatDateDDMMYYYY(row.FCTM_review_date),
+      },
+      {
+        key: "__show",
+        encabezado: "Ver",
+        render: (row) => (
+          <button
+            className="btn btn-sm btn-outline-primary"
+            onClick={() =>
+              navigate(`/reviews/${row._id}`, { state: { fctId: id } })
+            }
+            title="Ver reseña"
+          >
+            <i className="bi bi-search"></i>
+          </button>
+        ),
+      },
+      {
+        key: "__delete",
+        encabezado: "Eliminar",
+        render: (row) => (
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={() => handleDeleteReview(row._id)}
+            title="Eliminar reseña"
+          >
+            <i className="bi bi-trash"></i>
+          </button>
+        ),
+      },
+    ],
+    [navigate, id, handleDeleteReview],
+  );
 
   // --- FILTRADO DE RESEÑAS VALIDADAS ---
   const reviewsValidadas = useMemo(() => {
     if (!data?.FCTM_reviews) return [];
-    const validadas = data.FCTM_reviews.filter((rev) => rev.FCTM_review_verified == true);
-    return validadas.sort((a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date));
+    const validadas = data.FCTM_reviews.filter(
+      (rev) => rev.FCTM_review_verified == true,
+    );
+    return validadas.sort(
+      (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
+    );
   }, [data]);
 
   useEffect(() => {
@@ -187,9 +213,9 @@ const ShowFcts = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader 
-        title={`FCT: ${data.SAO_student_fullname || "Detalle"}`} 
-        onBack={() => navigate("/fcts")} 
+      <ShowHeader
+        title={`FCT: ${data.SAO_student_fullname || "Detalle"}`}
+        onBack={() => navigate("/fcts")}
       />
 
       {/* SECCIÓN SAO: Siempre bloqueada */}
@@ -222,7 +248,7 @@ const ShowFcts = () => {
       >
         <button
           className="btn btn-primary"
-          onClick={() => navigate('/reviews/new', { state: { fctId: id } })}
+          onClick={() => navigate("/reviews/new", { state: { fctId: id } })}
         >
           Nueva Reseña
         </button>
