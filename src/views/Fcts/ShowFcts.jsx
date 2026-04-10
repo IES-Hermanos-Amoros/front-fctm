@@ -4,6 +4,8 @@ import { sendRequest, showAlert, confirmation } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import ListCRUD from "../../components/List/ListCRUD";
+import RatingStars from "../../components/RatingStars";
 
 // --- CONFIGURACIÓN DE CAMPOS ---
 
