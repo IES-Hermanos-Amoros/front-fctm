@@ -70,6 +70,31 @@ const ListCompanies = () => {
                 </div>
               )
             },
+                {
+                  key: "FCTM_skills",
+                  encabezado: "¿Con qué trabajan?",
+                  accessorFn: row => row.FCTM_skills?.map(skill => skill.FCTM_skill_name).join(" ") || "",
+                  render: row => (
+                    <div className="d-flex flex-wrap gap-1">
+                      {row.FCTM_skills?.length > 0 ? (
+                        row.FCTM_skills.map((skill) => {
+                          const bgColor = stringToColor(skill.FCTM_skill_name);
+                          return (
+                            <span
+                              key={skill._id}
+                              className="badge rounded-pill text-dark"
+                              style={{ backgroundColor: bgColor, border: '1px solid rgba(0,0,0,0.1)', fontSize: '0.75rem' }}
+                            >
+                              {skill.FCTM_skill_name}
+                            </span>
+                          )
+                        })
+                      ) : (
+                        <span className="text-muted small">-</span>
+                      )}
+                    </div>
+                  )
+                },
         // Columna de acción (ver ficha)
         {
             key: "__show",

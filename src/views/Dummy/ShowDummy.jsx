@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, extractSkillNames, ensureSkills } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -110,13 +110,6 @@ const normalizationConfig = [
     optionValue: "_id",
     optionLabel: "FCTM_category_name",
     type: "multi"
-  },
-  {
-    field: "FCTM_skills",
-    options: skillOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_skill_name",
-    type: "multi"
   }
 ];
 
@@ -177,14 +170,8 @@ const ShowDummy = () => {
     const res = await sendRequest("GET", null, `/dummy/${id}`);
 
     if (res.success) {
-      // 1. Normalizamos SOLO Categorías (usando una config filtrada)
-      const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
-      const dataNormalizada = normalizeFromApi(res.data, configSoloCategorias);
-
-      // 2. Las skills las dejamos como vienen (objetos de Mongo)
-      // dataNormalizada ya tiene las categorías como {value, label} para el Select
-      // y mantiene FCTM_skills como [{_id, FCTM_skill_name...}]
-      
+      //Debemos normalizar las categorias
+      const dataNormalizada = normalizeFromApi(res.data, normalizationConfig)     
       setData(dataNormalizada);
       setOriginalData(dataNormalizada);
     } else {
@@ -196,50 +183,46 @@ const ShowDummy = () => {
   // --- FUNCIÓN DE GUARDADO ---
   const handleSave = async () => {
     try {
-      // A. Extraer nombres para asegurar skills (Nuevas + Existentes)
-      let skillNames = [];
-      if (data.FCTM_skills) {
-        skillNames = data.FCTM_skills.map(s => {
-          let name = null;
-          if (typeof s === "string") name = s;
-          else if (s.label) name = s.label;
-          else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
-          return name ? name.trim().toUpperCase() : null;
-        }).filter(Boolean);
-      }
 
-      const resSkills = await sendRequest("POST", { names: skillNames }, "/skills/ensure");
-      if (!resSkills.success) return showAlert("Error en skills", "error");
+      const skillIds = await ensureSkills(
+        data.FCTM_skills
+      );
 
-      const skillIds = resSkills.data;
+      const payloadNormalizado = normalizeToApi(
+        data,
+        normalizationConfig
+      );
 
-      // B. Normalizar RESTO (Categorías) para ir al API
-      const configSinSkills = normalizationConfig.filter(c => c.field !== "FCTM_skills");
-      const payloadNormalizado = normalizeToApi(data, configSinSkills);
-
-      // C. Payload final con IDs inyectados
       const finalPayload = {
         ...payloadNormalizado,
         FCTM_skills: skillIds
       };
 
-      const res = await sendRequest("PUT", finalPayload, `/dummy/${id}`);
+      const res = await sendRequest(
+        "PUT",
+        finalPayload,
+        `/dummy/${id}`
+      );
 
-      if (res.success) {
-        // Al guardar, repetimos la lógica del fetch para que el estado quede limpio
-        const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
-        const dataFinal = normalizeFromApi(res.data, configSoloCategorias);
-        
-        setData(dataFinal);
-        setOriginalData(dataFinal);
-        setIsEditing(false);
-        showAlert("Actualizado!", "success");
-      } else {
+      if (!res.success) {
         showAlert(res.message, "error");
+        return;
       }
+
+      const dataFinal = normalizeFromApi(
+        res.data,
+        normalizationConfig
+      );
+
+      setData(dataFinal);
+      setOriginalData(dataFinal);
+      setIsEditing(false);
+
     } catch (err) {
+
       console.error(err);
       showAlert("Error crítico", "error");
+
     }
   };
 
