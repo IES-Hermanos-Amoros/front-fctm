@@ -28,6 +28,7 @@ const ListCRUD = ({
           <ReactTableToolBar 
             data={datos}
             columns={columnas}
+            title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
           />
         </div>
       </div>

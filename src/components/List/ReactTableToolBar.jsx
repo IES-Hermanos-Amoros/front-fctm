@@ -3,8 +3,12 @@ import "./ReactTableToolBar.css"
 
 const ReactTableToolBar = ({
     data = [],
-    columns = []
+    columns = [],
+    // Para que el título del PDF y excel sea dinámico
+    title = "Datos Tabla"
 }) => {
+    // Para normalizar el nombre del archivo (quitar espacios)
+    const fileNameBase = title.replace(/\s+/g, '_')
     const exportExcel = async () => {
         //TO DO: Implementar exportación a Excel usando XLSX o similar
         // Hemos usado las librerías exceljs y file-saver para exportar a Excel. Asegúrate de instalarlas en tu proyecto:
@@ -12,7 +16,7 @@ const ReactTableToolBar = ({
 
         const ExcelJS = await import('exceljs')
         const workbook = new ExcelJS.Workbook()
-        const worksheet = workbook.addWorksheet('Datos')
+        const worksheet = workbook.addWorksheet(title) // Nombre de la pestaña dinámico
         // Para excluir los botones y acciones que no queremos exportar
         const excludedKeys = ['acciones', 'ver', 'eliminar']
 
@@ -116,17 +120,15 @@ const ReactTableToolBar = ({
             })
         }
     })
-
         // Descargar el archivo - Creamos el buffer y disparamos la descarga en el navegador
         const buffer = await workbook.xlsx.writeBuffer()
         const blob = new Blob([buffer], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
-
         // Link
         const link = document.createElement('a')
         link.href = URL.createObjectURL(blob)
-        link.download = `Informe_${new Date().getTime()}.xlsx`
+        link.download = `${fileNameBase}_${new Date().getTime()}.xlsx`
         link.click()
         URL.revokeObjectURL(link.href)
       }
@@ -186,7 +188,7 @@ const ReactTableToolBar = ({
           content: [
             {
               columns: [
-                { text: "Datos Tabla", style: "header"},
+                { text: `${title.toUpperCase()}`, style: "header"},
                 { text: "IES Hermanos Amorós", style: "subheader", alignment: "right"}
               ],
               margin: [0,0,0,20]
@@ -234,7 +236,7 @@ const ReactTableToolBar = ({
           }
         }
         // Descargar el PDF
-        pdfMake.createPdf(docDefinition).download(`Informe_${new Date().getTime()}.pdf`)
+        pdfMake.createPdf(docDefinition).download(`${fileNameBase}_${new Date().getTime()}.pdf`)
     }
   return (
     <div className='react-table-toolbar'>
