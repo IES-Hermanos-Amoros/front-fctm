@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation,formatDateDDMMYYYY } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -198,9 +198,15 @@ const ShowFcts = () => {
 
   // --- FILTRADO DE RESEÑAS VALIDADAS ---
   const reviewsValidadas = useMemo(() => {
-    if (!data?.reviews) return [];
-    const validadas = data.reviews.filter(
-      (rev) => true, // Mostrar todas para debug
+    //ERROR
+    //if (!data?.reviews) return [];
+    if (!data?.FCTM_reviews) return [];
+
+    //ERROR
+    //const validadas = data.reviews.filter(
+    const validadas = data.FCTM_reviews.filter(
+      //ERROR (rev) => true, // Mostrar todas para debug
+      (rev) => rev.FCTM_review_verified === true,
     );
     return validadas.sort(
       (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
