@@ -200,7 +200,7 @@ const ShowFcts = () => {
   const reviewsValidadas = useMemo(() => {
     if (!data?.reviews) return [];
     const validadas = data.reviews.filter(
-      (rev) => rev.FCTM_review_verified == true,
+      (rev) => true, // Mostrar todas para debug
     );
     return validadas.sort(
       (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
@@ -245,7 +245,7 @@ const ShowFcts = () => {
 
       {/* SECCIÓN RESEÑAS */}
       <ListCRUD
-        title="Reseñas Validadas"
+        title="Reseñas"
         datos={reviewsValidadas}
         columnas={columnasReviews}
       >
