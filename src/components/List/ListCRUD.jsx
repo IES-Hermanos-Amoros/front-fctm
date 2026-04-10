@@ -1,5 +1,6 @@
 import React from "react";
 import ReactTableTanstack from "./ReactTableTanstack";
+import ReactTableToolBar from "./ReactTableToolBar";
 
 const ListCRUD = ({
   title = "",
@@ -18,6 +19,16 @@ const ListCRUD = ({
         <div className="col-12">
           {/*{title && <h3 className="m-0">{title}</h3>}*/}
           {children} {/* BOTON NUEVO - Ir al .../new */}
+        </div>
+      </div>
+
+      {/* TOOLBAR DE EXPORTACIÓN */}
+      <div className="row">
+        <div className="col-12">
+          <ReactTableToolBar 
+            data={datos}
+            columns={columnas}
+          />
         </div>
       </div>
 
