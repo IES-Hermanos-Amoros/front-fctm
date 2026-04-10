@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -100,6 +100,84 @@ const ShowFcts = () => {
     setIsEditing(false);
   };
 
+  // --- MANEJO DE RESEÑAS ---
+  const handleDeleteReview = useCallback(async (reviewId) => {
+    const confirmed = await confirmation("¿Seguro que quieres eliminar esta reseña?");
+    if (!confirmed) return;
+
+    const res = await sendRequest("DELETE", undefined, `/reviews/${reviewId}?fctId=${encodeURIComponent(id)}`);
+
+    if (res.success) {
+      await fetchFct(); // Recargar para actualizar la lista
+    } else {
+      showAlert(res.message || "Error al eliminar reseña", "error");
+    }
+  }, [id, fetchFct]);
+
+  // --- CONFIGURACIÓN DE COLUMNAS PARA RESEÑAS ---
+  const columnasReviews = useMemo(() => [
+    { key: "FCTM_review_title", encabezado: "Título" },
+    {
+      key: "FCTM_review_rating",
+      encabezado: "Calificación",
+      render: (row) => <RatingStars rating={row.FCTM_review_rating} />,
+    },
+    {
+      key: "FCTM_user_id",
+      encabezado: "Autor",
+      render: (row) =>
+        row.FCTM_user_id?.SAO_fullname ||
+        `${row.FCTM_user_id?.SAO_name || ""} ${row.FCTM_user_id?.SAO_surname || ""}`.trim() ||
+        "Desconocido",
+    },
+    {
+      key: "FCTM_review_text",
+      encabezado: "Comentario",
+      render: (row) => {
+        const text = row.FCTM_review_text || "";
+        return text.length > 80 ? text.substring(0, 80) + "..." : text;
+      },
+    },
+    {
+      key: "FCTM_review_date",
+      encabezado: "Fecha",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_review_date),
+    },
+    {
+      key: "__show",
+      encabezado: "Ver",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-primary"
+          onClick={() => navigate(`/reviews/${row._id}`, { state: { fctId: id } })}
+          title="Ver reseña"
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      ),
+    },
+    {
+      key: "__delete",
+      encabezado: "Eliminar",
+      render: (row) => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDeleteReview(row._id)}
+          title="Eliminar reseña"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      ),
+    },
+  ], [navigate, id, handleDeleteReview]);
+
+  // --- FILTRADO DE RESEÑAS VALIDADAS ---
+  const reviewsValidadas = useMemo(() => {
+    if (!data?.FCTM_reviews) return [];
+    const validadas = data.FCTM_reviews.filter((rev) => rev.FCTM_review_verified == true);
+    return validadas.sort((a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date));
+  }, [data]);
+
   useEffect(() => {
     fetchFct();
   }, [fetchFct]);
@@ -137,26 +215,18 @@ const ShowFcts = () => {
       />
 
       {/* SECCIÓN RESEÑAS */}
-      <div className="card mt-3">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <strong>Reseñas</strong>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => navigate('/reviews/new', { state: { fctId: id } })}
-          >
-            <i className="bi bi-plus-circle me-1"></i>
-            Nueva Reseña
-          </button>
-        </div>
-        <div className="card-body">
-          {data.FCTM_reviews && data.FCTM_reviews.length > 0 ? (
-            <p className="text-muted mb-0"> ({data.FCTM_reviews.length}) reseñas</p>
-          ) : (
-            <p className="text-muted mb-0">No hay reseñas todavía.</p>
-          )}
-        </div>
-      </div>
+      <ListCRUD
+        title="Reseñas Validadas"
+        datos={reviewsValidadas}
+        columnas={columnasReviews}
+      >
+        <button
+          className="btn btn-primary"
+          onClick={() => navigate('/reviews/new', { state: { fctId: id } })}
+        >
+          Nueva Reseña
+        </button>
+      </ListCRUD>
     </section>
   );
 };
