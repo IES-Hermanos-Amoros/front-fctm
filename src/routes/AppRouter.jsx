@@ -30,6 +30,8 @@ import NewReview from '../views/Reviews/NewReview'
 
 import ValidateReviews from '../views/Administrators/ValidateReviews'
 import ValidateSkills from '../views/Administrators/ValidateSkills'
+import ShowReview from '../views/Reviews/ShowReview'
+
 
 // Importa más vistas...
 
@@ -90,6 +92,9 @@ export default function AppRouter() {
       <Route path="/fcts" element={<ListFcts />} />
       <Route path="/fcts/:id" element={<ShowFct />} />
       <Route path="/reviews/new" element={<NewReview />} />
+
+      <Route path="/reviews/new" element={<NewReview />} />
+      <Route path="/reviews/:id" element={<ShowReview />} />
 
 
       <Route path="/teachers/:id" element={<ShowTeacher />} />
