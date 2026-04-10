@@ -9,9 +9,9 @@ import ShowEditableForm from '../../components/Show/ShowEditableForm'
 import useEnumStore from '../../store/enumStore'
 
 const SAO_FIELDS = [
-  { key: "empresa_nombre", label: "Empresa", type: "text" },
-  { key: "empresa_ciudad", label: "Ciudad / Ubicación", type: "text" }
-];
+  { key: 'empresa_nombre', label: 'Empresa', type: 'text' },
+  { key: 'empresa_ciudad', label: 'Ciudad / Ubicación', type: 'text' },
+]
 
 const skillOptions = [
   { _id: "69bd6bb2e1aa8f195c71c305", FCTM_skill_name: "ADAPTABILIDAD" },
@@ -93,10 +93,25 @@ const skillOptions = [
 
 //CAMPOS DEL FORMULARIO
 const jobOfferFields = [
-  { key: 'FCTM_job_title', label: 'Título de la oferta', type: 'text', required: true },
-  { key: 'FCTM_job_description', label: 'Descripción', type: 'textarea', required: true },
+  {
+    key: 'FCTM_job_title',
+    label: 'Título de la oferta',
+    type: 'text',
+    required: true,
+  },
+  {
+    key: 'FCTM_job_description',
+    label: 'Descripción',
+    type: 'textarea',
+    required: true,
+  },
   { key: 'FCTM_job_requirements', label: 'Requisitos', type: 'textarea' },
-  { key: 'FCTM_job_start_date', label: 'Fecha de inicio', type: 'date', required: true },
+  {
+    key: 'FCTM_job_start_date',
+    label: 'Fecha de inicio',
+    type: 'date',
+    required: true,
+  },
   { key: 'FCTM_job_end_date', label: 'Fecha de cierre', type: 'date' },
   { key: 'FCTM_job_salary', label: 'Salario', type: 'text' },
 
@@ -135,20 +150,22 @@ const ShowJobOffer = () => {
   const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
 
   //ENUM STORE
-  const cargarEnums = useEnumStore((state) => state.cargarEnums)
-  const getEnumArray = useEnumStore((state) => state.getEnumArray)
-  const enums = useEnumStore((state) => state.enums) 
+  const cargarEnums = useEnumStore(state => state.cargarEnums)
+  const getEnumArray = useEnumStore(state => state.getEnumArray)
+  const enums = useEnumStore(state => state.enums)
   // Cargar enums
   useEffect(() => {
     cargarEnums()
   }, [])
 
-  const jobStatusOptions = getEnumArray("JOB_STATUS")?.map(item => ({
-    _id: item,
-    nombre: item
-  })) || []
+  const jobStatusOptions =
+    getEnumArray('JOB_STATUS')?.map(item => ({
+      _id: item,
+      nombre: item,
+    })) || []
 
-  jobOfferFields.find(f => f.key === "FCTM_job_status").options = jobStatusOptions
+  jobOfferFields.find(f => f.key === 'FCTM_job_status').options =
+    jobStatusOptions
 
   const [data, setData] = useState(null) // Datos del JobOffer cargado desde API
   const [documentData, setDocumentData] = useState([]) //Datos del Documents cargado desde API
@@ -156,44 +173,49 @@ const ShowJobOffer = () => {
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
   const [files, setFiles] = useState([])
-  
+
   const hostAPI = getBackendHost()
 
   const columnasDocuments = [
-    { key: 'FCTM_document_name', encabezado: 'Nombre'},
-    { key: 'FCTM_document_type', encabezado: 'Tipo'},
-    { 
-      key: 'FCTM_document_url', 
+    { key: 'FCTM_document_name', encabezado: 'Nombre' },
+    { key: 'FCTM_document_type', encabezado: 'Tipo' },
+    {
+      key: 'FCTM_document_url',
       encabezado: 'Descarga',
-      render: (row) => {
-          if (!row) return "No disponible"
+      render: row => {
+        if (!row || !row.FCTM_document_url) return 'No disponible'
 
-          const url = row.FCTM_document_url
-          return (
-            <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
-              <i className="bi bi-download"></i> {/* Icono de descarga */}
-            </a>
-          )
-        }
+        const url = row.FCTM_document_url
+        return (
+          <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
+            <i className="bi bi-download"></i> {/* Icono de descarga */}
+          </a>
+        )
+      },
     },
-    { key: 'FCTM_inserted_date', 
-        encabezado: 'Fecha ',
-        render: (row) => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
+    {
+      key: 'FCTM_inserted_date',
+      encabezado: 'Fecha ',
+      render: row => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date),
     },
     // Solo mostrar botón eliminar si readOnly es false
-    ...(!readOnly ? [{
-      key: '__delete', 
-      encabezado: 'Eliminar',
-      render: row => (
-        <button
-          className="btn btn-sm btn-outline-danger"
-          onClick={() => handleDelete(row._id)}
-          title="Eliminar Documento"
-        >
-          <i className="bi bi-trash"></i>
-        </button>
-      )
-    }] : [])
+    ...(!readOnly
+      ? [
+          {
+            key: '__delete',
+            encabezado: 'Eliminar',
+            render: row => (
+              <button
+                className="btn btn-sm btn-outline-danger"
+                onClick={() => handleDelete(row._id)}
+                title="Eliminar Documento"
+              >
+                <i className="bi bi-trash"></i>
+              </button>
+            ),
+          },
+        ]
+      : []),
   ]
 
   const fetchJobOffer = useCallback(async () => {
@@ -221,6 +243,22 @@ const ShowJobOffer = () => {
         setData(normalizedData)
         setOriginalData(normalizedData)
 
+    //Obtener documentos asociados
+    if (res.data.FCTM_documents.length > 0) {
+      const promises = res.data.FCTM_documents.map(
+        async id => await sendRequest('GET', null, `/documents/${id}`)
+      )
+      const responses = await Promise.all(promises)
+      const documents = responses
+        .filter(res => res.success)
+        .map(res => res.data)
+      // Ordenar por fecha
+      const sortedDocuments = [...documents].sort(
+        (a, b) =>
+          new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date)
+      )
+      setDocumentData(sortedDocuments)
+    }
         // ============================
         // ✅ CARGAR DOCUMENTS (NO BORRAR)
         // ============================
@@ -264,36 +302,40 @@ const ShowJobOffer = () => {
 
     }, [id])
 
-const handleDelete = async (docId) => {
-  const confirmado = await confirmation('¿Seguro que quieres eliminar este documento?')
-  if (!confirmado) return
-
-  const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
-
-  if (res.success) {
-    const updatedDocuments = data.FCTM_documents.filter(item => item !== docId)
-    const patchRes = await sendRequest(
-      "PATCH",
-      { FCTM_documents: updatedDocuments },
-      `/joboffers/${id}` 
+  const handleDelete = async docId => {
+    const confirmado = await confirmation(
+      '¿Seguro que quieres eliminar este documento?'
     )
+    if (!confirmado) return
 
-    if (patchRes.success) {
-      showAlert('Documento eliminado y oferta actualizada', 'success')
+    const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
 
-      setData(prev => ({
-        ...prev,
-        FCTM_documents: updatedDocuments
-      }))
+    if (res.success) {
+      const updatedDocuments = data.FCTM_documents.filter(
+        item => item !== docId
+      )
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
 
-      fetchJobOffer()
+      if (patchRes.success) {
+        showAlert('Documento eliminado y oferta actualizada', 'success')
+
+        setData(prev => ({
+          ...prev,
+          FCTM_documents: updatedDocuments,
+        }))
+
+        fetchJobOffer()
+      } else {
+        showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
+      }
     } else {
-      showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
+      showAlert(res.message, 'error')
     }
-  } else {
-    showAlert(res.message, 'error')
   }
-}
 
   // Guardar cambios FCTM_
   const handleSave = async () => {
@@ -355,130 +397,137 @@ const handleDelete = async (docId) => {
     setIsEditing(false)
   }
 
-  const handleFileChange = (e) => {
+  const handleFileChange = e => {
     const selectedFiles = Array.from(e.target.files)
 
     if (selectedFiles.length > 10) {
-      showAlert("Solo puedes subir un máximo de 10 documentos", "error")
+      showAlert('Solo puedes subir un máximo de 10 documentos', 'error')
       return
     }
 
     setFiles(selectedFiles)
   }
 
-const handleUploadDocs__OLD = async () => {
-  if (files.length === 0) {
-    showAlert("Debes seleccionar al menos un archivo", "error")
-    return
-  }
-
-  if (files.length > 10) {
-    showAlert("No puedes subir más de 10 archivos a la vez", "error")
-    return
-  }
-
-  let allNewIds = []
-  if (files.length === 1) {
-    const formData = new FormData()
-    const file = files[0]
-    formData.append("documents", file)
-    formData.append("FCTM_document_name", file.name)
-    formData.append("FCTM_document_type", "OTRO")
-    formData.append("FCTM_document_url", file.name)
-    formData.append("FCTM_document_created_by", "000000000000000000000000")
-    formData.append("jobOfferId", id)
-
-    const res = await sendRequest("POST", formData, "/documents")
-    if (res.success) {
-      allNewIds = Array.isArray(res.data) ? res.data.map(doc => doc._id) : [res.data._id]
-    } else {
-      showAlert(res.message, "error")
+  const handleUploadDocs__OLD = async () => {
+    if (files.length === 0) {
+      showAlert('Debes seleccionar al menos un archivo', 'error')
       return
     }
-  } else {
-    for (const file of files) {
-      const formData = new FormData()
-      
-      formData.append("documents", file) 
-      formData.append("FCTM_document_type", "OTRO") 
-      formData.append("FCTM_document_name", file.name)
-      formData.append("FCTM_document_url", file.name)
-      formData.append("FCTM_document_created_by", "000000000000000000000000")
-      formData.append("userId", "000000000000000000000000")
-      formData.append("jobOfferId", id)
 
-      const res = await sendRequest("POST", formData, "/documents")
-      
+    if (files.length > 10) {
+      showAlert('No puedes subir más de 10 archivos a la vez', 'error')
+      return
+    }
+
+    let allNewIds = []
+    if (files.length === 1) {
+      const formData = new FormData()
+      const file = files[0]
+      formData.append('documents', file)
+      formData.append('FCTM_document_name', file.name)
+      formData.append('FCTM_document_type', 'OTRO')
+      formData.append('FCTM_document_url', file.name)
+      formData.append('FCTM_document_created_by', '000000000000000000000000')
+      formData.append('jobOfferId', id)
+
+      const res = await sendRequest('POST', formData, '/documents')
       if (res.success) {
-        const idCreated = Array.isArray(res.data) ? res.data[0]._id : res.data._id
-        allNewIds.push(idCreated)
+        allNewIds = Array.isArray(res.data)
+          ? res.data.map(doc => doc._id)
+          : [res.data._id]
+      } else {
+        showAlert(res.message, 'error')
+        return
+      }
+    } else {
+      for (const file of files) {
+        const formData = new FormData()
+
+        formData.append('documents', file)
+        formData.append('FCTM_document_type', 'OTRO')
+        formData.append('FCTM_document_name', file.name)
+        formData.append('FCTM_document_url', file.name)
+        formData.append('FCTM_document_created_by', '000000000000000000000000')
+        formData.append('userId', '000000000000000000000000')
+        formData.append('jobOfferId', id)
+
+        const res = await sendRequest('POST', formData, '/documents')
+
+        if (res.success) {
+          const idCreated = Array.isArray(res.data)
+            ? res.data[0]._id
+            : res.data._id
+          allNewIds.push(idCreated)
+        }
       }
     }
-  }
 
-  if (allNewIds.length > 0) {
-    const updatedDocuments = [
-      ...(data.FCTM_documents || []),
-      ...allNewIds
-    ]
+    if (allNewIds.length > 0) {
+      const updatedDocuments = [...(data.FCTM_documents || []), ...allNewIds]
 
-    const patchRes = await sendRequest(
-      "PATCH",
-      { FCTM_documents: updatedDocuments },
-      `/joboffers/${id}`
-    )
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
 
-    if (patchRes.success) {
-      showAlert("Documentos subidos correctamente", "success")
-      setData(prev => ({
-        ...prev,
-        FCTM_documents: updatedDocuments
-      }))
-      setFiles([])
-    }
-    fetchJobOffer()
-  }
-}
-
-const handleUploadDocs = async () => {
-  if (files.length === 0) {
-    showAlert("Debes seleccionar al menos un archivo", "error")
-    return
-  }
-
-  const formData = new FormData()
-  
-  // 1. Cambia 'documents' por 'files' para que coincida con el middleware: upload.array("files", 10)
-  for (const file of files) {
-    formData.append("files", file)
-  }
-
-  // 2. Agrega los datos adicionales al formData (Multer los recibirá en req.body)
-  formData.append("FCTM_document_type", "GENERAL")
-  formData.append("jobOfferId", id)
-  // Nota: No envíes createdBy aquí si lo asignas en el backend desde req.user.id
-
-  // 3. ¡IMPORTANTE! Llama a la ruta /documents/upload
-  const res = await sendRequest("POST", formData, "/documents/upload")
-
-  if (res.success) {
-    showAlert("Documentos subidos correctamente", "success")
-    
-    // 4. Actualiza la oferta con los nuevos IDs
-    const newDocIds = Array.isArray(res.data) ? res.data.map(d => d._id) : [res.data._id]
-    const updatedDocuments = [...(data.FCTM_documents || []), ...newDocIds]
-    
-    const patchRes = await sendRequest("PATCH", { FCTM_documents: updatedDocuments }, `/joboffers/${id}`)
-    
-    if (patchRes.success) {
-      setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }))
-      setFiles([])
+      if (patchRes.success) {
+        showAlert('Documentos subidos correctamente', 'success')
+        setData(prev => ({
+          ...prev,
+          FCTM_documents: updatedDocuments,
+        }))
+        setFiles([])
+      }
       fetchJobOffer()
     }
-  } else {
-    showAlert(res.message, "error")
   }
-}
+
+  const handleUploadDocs = async () => {
+    if (files.length === 0) {
+      showAlert('Debes seleccionar al menos un archivo', 'error')
+      return
+    }
+
+    const formData = new FormData()
+
+    // 1. Cambia 'documents' por 'files' para que coincida con el middleware: upload.array("files", 10)
+    for (const file of files) {
+      formData.append('files', file)
+    }
+
+    // 2. Agrega los datos adicionales al formData (Multer los recibirá en req.body)
+    formData.append('FCTM_document_type', 'GENERAL')
+    formData.append('jobOfferId', id)
+    // Nota: No envíes createdBy aquí si lo asignas en el backend desde req.user.id
+
+    // 3. ¡IMPORTANTE! Llama a la ruta /documents/upload
+    const res = await sendRequest('POST', formData, '/documents/upload')
+
+    if (res.success) {
+      showAlert('Documentos subidos correctamente', 'success')
+
+      // 4. Actualiza la oferta con los nuevos IDs
+      const newDocIds = Array.isArray(res.data)
+        ? res.data.map(d => d._id)
+        : [res.data._id]
+      const updatedDocuments = [...(data.FCTM_documents || []), ...newDocIds]
+
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
+
+      if (patchRes.success) {
+        setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }))
+        setFiles([])
+        fetchJobOffer()
+      }
+    } else {
+      showAlert(res.message, 'error')
+    }
+  }
 
   useEffect(() => {
     fetchJobOffer()
@@ -495,29 +544,28 @@ const handleUploadDocs = async () => {
       />
 
       <ShowEditableForm
-              formTitle="Información de SAO"
-              formId="jobOfferSaoForm"
-              data={data}
-              fields={SAO_FIELDS}
-              hideEditButton={true}
-            />
+        formTitle="Información de SAO"
+        formId="jobOfferSaoForm"
+        data={data}
+        fields={SAO_FIELDS}
+        hideEditButton={true}
+      />
 
       <ShowEditableForm
         formTitle="Información de la Oferta de Trabajo"
         formId="ftcmForm"
         data={data}
         fields={jobOfferFields}
-        isEditing={isEditing && !readOnly}   // si readOnly, nunca permitir editar
+        isEditing={isEditing && !readOnly} // si readOnly, nunca permitir editar
         onEdit={() => setIsEditing(true)}
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
-        hideEditButton={readOnly}  // Si readOnly es true, ocultamos el botón de editar
+        hideEditButton={readOnly} // Si readOnly es true, ocultamos el botón de editar
       />
 
       {isEditing && !readOnly && (
         <div className="card p-3 mt-3">
-
           <h5>Adjuntar Documentos</h5>
 
           <input
@@ -527,26 +575,21 @@ const handleUploadDocs = async () => {
             onChange={handleFileChange}
           />
 
-          <button
-            className="btn btn-primary mt-2"
-            onClick={handleUploadDocs}
-          >
+          <button className="btn btn-primary mt-2" onClick={handleUploadDocs}>
             Adjuntar Docs.
           </button>
-
         </div>
       )}
 
       {documentData.length === 0 ? (
         <h4>Oferta sin documentos</h4>
       ) : (
-        <ListCRUD 
+        <ListCRUD
           title="Documentos Relacionados"
           datos={documentData}
-          columnas={columnasDocuments}          
+          columnas={columnasDocuments}
         />
       )}
-
     </section>
   )
 }
