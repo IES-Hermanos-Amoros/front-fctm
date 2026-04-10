@@ -72,6 +72,7 @@ const ShowFcts = () => {
     const res = await sendRequest("GET", null, `/fct/${id}`);
 
     if (res.success) {
+      console.log("Datos de FCT:", res.data); // Debug
       // Si tuvieras select-multi usaríamos normalizeFromApi aquí
       setData(res.data);
       setOriginalData(res.data);
@@ -197,8 +198,8 @@ const ShowFcts = () => {
 
   // --- FILTRADO DE RESEÑAS VALIDADAS ---
   const reviewsValidadas = useMemo(() => {
-    if (!data?.FCTM_reviews) return [];
-    const validadas = data.FCTM_reviews.filter(
+    if (!data?.reviews) return [];
+    const validadas = data.reviews.filter(
       (rev) => rev.FCTM_review_verified == true,
     );
     return validadas.sort(
