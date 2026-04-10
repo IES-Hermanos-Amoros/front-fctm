@@ -25,17 +25,8 @@ const NewReview = () => {
     {
       key: "FCTM_review_rating",
       label: "Calificación",
-      type: "select",
+      type: "stars",
       required: true,
-      options: [
-        { _id: 1, nombre: "1 Estrella" },
-        { _id: 2, nombre: "2 Estrellas" },
-        { _id: 3, nombre: "3 Estrellas" },
-        { _id: 4, nombre: "4 Estrellas" },
-        { _id: 5, nombre: "5 Estrellas" },
-      ],
-      optionValue: "_id",
-      optionLabel: "nombre",
     },
   ];
 

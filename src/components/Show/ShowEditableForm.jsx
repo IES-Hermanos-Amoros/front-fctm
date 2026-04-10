@@ -12,7 +12,7 @@ const ShowEditableForm = ({
   onSave,
   onCancel,
   onChange,
-  hideEditButton = false   // <-- NUEVO
+  hideEditButton = false, // <-- NUEVO
 }) => {
   const handleSubmit = (e) => {
     e.preventDefault(); // evitamos recarga
@@ -36,11 +36,7 @@ const ShowEditableForm = ({
         {/* MODO EDIT */}
         {isEditing && (
           <div className="d-flex gap-2">
-            <button
-              type="submit"
-              form={formId}
-              className="btn btn-success"
-            >
+            <button type="submit" form={formId} className="btn btn-success">
               Guardar
             </button>
 
@@ -57,24 +53,23 @@ const ShowEditableForm = ({
 
       <div className="card-body">
         <form id={formId} onSubmit={handleSubmit}>
-
           {fields.map((field) => {
-          const {
-            key,
-            label,
-            type = "text",
-            options = [],
-            optionValue = "_id",
-            optionLabel = "nombre",
-            required = false
-          } = field
+            const {
+              key,
+              label,
+              type = "text",
+              options = [],
+              optionValue = "_id",
+              optionLabel = "nombre",
+              required = false,
+            } = field;
 
-          return (
-            <div className="mb-3" key={key}>
-              <label className="form-label">
-                {label} {required && <span className="text-danger">*</span>}
-              </label>
-              {(() => {
+            return (
+              <div className="mb-3" key={key}>
+                <label className="form-label">
+                  {label} {required && <span className="text-danger">*</span>}
+                </label>
+                {(() => {
                   if (type === "select") {
                     return (
                       <select
@@ -84,13 +79,13 @@ const ShowEditableForm = ({
                             ? data[key][optionValue]
                             : data[key] || ""
                         }
-                        onChange={e => onChange(key, e.target.value)}
+                        onChange={(e) => onChange(key, e.target.value)}
                         disabled={!isEditing}
                         required={required}
                       >
                         <option value="">-- Selecciona --</option>
 
-                        {options.map(opt => (
+                        {options.map((opt) => (
                           <option
                             key={opt[optionValue]}
                             value={opt[optionValue]}
@@ -99,7 +94,7 @@ const ShowEditableForm = ({
                           </option>
                         ))}
                       </select>
-                    )
+                    );
                   }
 
                   if (type === "textarea") {
@@ -111,19 +106,22 @@ const ShowEditableForm = ({
                             ? data[key][optionLabel] || ""
                             : data[key] || ""
                         }
-                        onChange={e => onChange(key, e.target.value)}
+                        onChange={(e) => onChange(key, e.target.value)}
                         required={required}
                         readOnly={!isEditing}
                         rows={4}
                       />
-                    )
+                    );
                   }
 
                   if (type === "select-multi") {
                     // React-select multiselect con chips
                     return (
                       <Select
-                        options={options.map(opt => ({ value: opt[optionValue], label: opt[optionLabel] }))}
+                        options={options.map((opt) => ({
+                          value: opt[optionValue],
+                          label: opt[optionLabel],
+                        }))}
                         isMulti
                         value={data[key] || []}
                         onChange={(selected) => onChange(key, selected)}
@@ -133,36 +131,34 @@ const ShowEditableForm = ({
                         menuPortalTarget={document.body}
                         menuPosition="fixed"
                         styles={{
-                          menuPortal: base => ({ ...base, zIndex: 9999 })
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
                     );
                   }
 
                   if (type === "select-multi-creatable") {
-                    const selectOptions = options.map(opt => ({
+                    const selectOptions = options.map((opt) => ({
                       value: opt[optionValue],
                       label: opt[optionLabel],
-                      original: opt
+                      original: opt,
                     }));
 
-                    const value = (data[key] || []).map(v => {
+                    const value = (data[key] || []).map((v) => {
                       if (v.value && v.label) return v;
 
-                      // 1. Caso: Objeto con ID (vienen de base de datos)
                       if (v[optionValue]) {
                         return {
                           value: v[optionValue],
                           label: v[optionLabel],
-                          original: v
+                          original: v,
                         };
                       }
 
-                      // 2. CASO NUEVO: Objeto sin ID pero con nombre (recién creados localmente)
                       if (v[optionLabel]) {
                         return {
-                          value: v[optionLabel], // Usamos el nombre como value temporal
-                          label: v[optionLabel]
+                          value: v[optionLabel],
+                          label: v[optionLabel],
                         };
                       }
 
@@ -172,7 +168,7 @@ const ShowEditableForm = ({
 
                       return v;
                     });
-  
+
                     return (
                       <CreatableSelect
                         isMulti
@@ -181,37 +177,54 @@ const ShowEditableForm = ({
                         isDisabled={!isEditing}
                         placeholder={`Selecciona ${label}...`}
                         closeMenuOnSelect={false}
-
                         onChange={(selected) => {
-
-                          const parsed = selected.map(s => {
-
-                            // existente
+                          const parsed = selected.map((s) => {
                             if (s.original) return s.original;
 
-                            // existente sin original
-                            if (s.value && options.find(o => o[optionValue] === s.value)) {
-                              return options.find(o => o[optionValue] === s.value);
+                            if (
+                              s.value &&
+                              options.find((o) => o[optionValue] === s.value)
+                            ) {
+                              return options.find(
+                                (o) => o[optionValue] === s.value,
+                              );
                             }
 
-                            // nueva skill
                             return {
-                              [optionLabel]: s.label
+                              [optionLabel]: s.label,
                             };
-
                           });
 
                           onChange(key, parsed);
-
                         }}
-
                         formatCreateLabel={(input) => `Añadir "${input}"`}
                         menuPortalTarget={document.body}
                         menuPosition="fixed"
                         styles={{
-                          menuPortal: base => ({ ...base, zIndex: 9999 })
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
+                    );
+                  }
+
+                  if (type === "stars") {
+                    const rating = data[key] || 0;
+                    return (
+                      <div className="d-flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            onClick={() => isEditing && onChange(key, star)}
+                            style={{
+                              cursor: isEditing ? "pointer" : "default",
+                              fontSize: "1.5rem",
+                              color: star <= rating ? "#ffc107" : "#dee2e6",
+                            }}
+                          >
+                            ★
+                          </span>
+                        ))}
+                      </div>
                     );
                   }
 
@@ -225,18 +238,15 @@ const ShowEditableForm = ({
                           ? data[key][optionLabel] || ""
                           : data[key] || ""
                       }
-                      onChange={e => onChange(key, e.target.value)}
+                      onChange={(e) => onChange(key, e.target.value)}
                       required={required}
                       readOnly={!isEditing}
                     />
-                  )
+                  );
                 })()}
-
-            </div>
-          )
-        })}
-
-         
+              </div>
+            );
+          })}
         </form>
       </div>
     </div>
