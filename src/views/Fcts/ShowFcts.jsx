@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation } from "../../utils/functions";
+import {
+  sendRequest,
+  showAlert,
+  confirmation,
+  formatDateDDMMYYYY,
+} from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -200,7 +205,7 @@ const ShowFcts = () => {
   const reviewsValidadas = useMemo(() => {
     if (!data?.reviews) return [];
     const validadas = data.reviews.filter(
-      (rev) => true, // Mostrar todas para debug
+      () => true, // Mostrar todas para debug
     );
     return validadas.sort(
       (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
