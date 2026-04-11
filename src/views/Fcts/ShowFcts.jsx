@@ -203,9 +203,15 @@ const ShowFcts = () => {
 
   // --- FILTRADO DE RESEÑAS VALIDADAS ---
   const reviewsValidadas = useMemo(() => {
-    if (!data?.reviews) return [];
-    const validadas = data.reviews.filter(
-      () => true, // Mostrar todas para debug
+    //ERROR
+    //if (!data?.reviews) return [];
+    if (!data?.FCTM_reviews) return [];
+
+    //ERROR
+    //const validadas = data.reviews.filter(
+    const validadas = data.FCTM_reviews.filter(
+      //ERROR (rev) => true, // Mostrar todas para debug
+      (rev) => rev.FCTM_review_verified === true,
     );
     return validadas.sort(
       (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
