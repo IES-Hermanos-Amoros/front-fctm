@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
@@ -116,6 +116,32 @@ const ShowEditableForm = ({
                         readOnly={!isEditing}
                         rows={4}
                       />
+                    )
+                  }
+
+                  if (type === "star") {
+                    const [hover, setHover] = useState(0)
+                    
+                    const currentValue = data[key] || 0
+                    
+                    return (
+                      <div className="star-rating">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            onClick={() => isEditing && onChange(key, star)}
+                            onMouseEnter={() => isEditing && setHover(star)}
+                            onMouseLeave={() => isEditing && setHover(0)}
+                            style={{
+                              cursor: isEditing ? 'pointer' : 'default',
+                              fontSize: '1.5rem',
+                              color: star <= (hover || currentValue) ? '#ffc107' : '#dee2e6'
+                            }}
+                          >
+                            <i className={`bi ${star <= (hover || currentValue) ? 'bi-star-fill' : 'bi-star'}`}></i>
+                          </span>
+                        ))}
+                      </div>
                     )
                   }
 
