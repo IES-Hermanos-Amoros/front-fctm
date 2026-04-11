@@ -77,8 +77,10 @@ const ShowFcts = () => {
     const res = await sendRequest("GET", null, `/fct/${id}`);
 
     if (res.success) {
-      console.log("Datos de FCT:", res.data); // Debug
-      // Si tuvieras select-multi usaríamos normalizeFromApi aquí
+      if (res.data?.FCTM_reviews?.length > 0) {
+        console.log("Review keys:", Object.keys(res.data.FCTM_reviews[0]));
+        console.log("Review sample:", res.data.FCTM_reviews[0]);
+      }
       setData(res.data);
       setOriginalData(res.data);
     } else {
@@ -124,19 +126,15 @@ const ShowFcts = () => {
       );
       if (!confirmed) return;
 
-      const res = await sendRequest(
-        "DELETE",
-        undefined,
-        `/reviews/${reviewId}?fctId=${encodeURIComponent(id)}`,
-      );
-
+      const res = await sendRequest("DELETE", null, `/reviews/${reviewId}`);
       if (res.success) {
-        await fetchFct(); // Recargar para actualizar la lista
+        showAlert("Reseña eliminada correctamente", "success");
+        await fetchFct();
       } else {
         showAlert(res.message || "Error al eliminar reseña", "error");
       }
     },
-    [id, fetchFct],
+    [fetchFct],
   );
 
   // --- CONFIGURACIÓN DE COLUMNAS PARA RESEÑAS ---
@@ -149,12 +147,18 @@ const ShowFcts = () => {
         render: (row) => <RatingStars rating={row.FCTM_review_rating} />,
       },
       {
-        key: "FCTM_user_id",
+        key: "FCTM_review_user",
         encabezado: "Autor",
-        render: (row) =>
-          row.FCTM_user_id?.SAO_fullname ||
-          `${row.FCTM_user_id?.SAO_name || ""} ${row.FCTM_user_id?.SAO_surname || ""}`.trim() ||
-          "Desconocido",
+        render: (row) => {
+          const user = row.FCTM_user_id || row.FCTM_review_user;
+          if (!user) return "-";
+          if (typeof user === 'object') {
+            return user.SAO_fullname || 
+              `${user.SAO_name || ""} ${user.SAO_surname || ""}`.trim() ||
+              "Desconocido";
+          }
+          return user.toString().slice(-8);
+        },
       },
       {
         key: "FCTM_review_text",
@@ -175,10 +179,8 @@ const ShowFcts = () => {
         render: (row) => (
           <button
             className="btn btn-sm btn-outline-primary"
-            onClick={() =>
-              navigate(`/reviews/${row._id}`, { state: { fctId: id } })
-            }
-            title="Ver reseña"
+            onClick={() => navigate(`/reviews/${row._id}`, { state: { fctId: id } })}
+            title="Ver详情"
           >
             <i className="bi bi-search"></i>
           </button>
@@ -201,20 +203,11 @@ const ShowFcts = () => {
     [navigate, id, handleDeleteReview],
   );
 
-  // --- FILTRADO DE RESEÑAS VALIDADAS ---
+  // --- FILTRADO DE RESEÑAS ---
   const reviewsValidadas = useMemo(() => {
-    //ERROR
-    //if (!data?.reviews) return [];
     if (!data?.FCTM_reviews) return [];
-
-    //ERROR
-    //const validadas = data.reviews.filter(
-    const validadas = data.FCTM_reviews.filter(
-      //ERROR (rev) => true, // Mostrar todas para debug
-      (rev) => rev.FCTM_review_verified === true,
-    );
-    return validadas.sort(
-      (a, b) => new Date(b.FCTM_review_date) - new Date(a.FCTM_review_date),
+    return data.FCTM_reviews.filter(
+      (rev) => rev.FCTM_review_verified === false,
     );
   }, [data]);
 
