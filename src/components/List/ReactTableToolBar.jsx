@@ -5,7 +5,10 @@ const ReactTableToolBar = ({
     data = [],
     columns = [],
     // Para que el título del PDF y excel sea dinámico
-    title = "Datos Tabla"
+    title = "Datos Tabla",
+    filters = {},
+    onFilterChange,
+    filtersConfig = []
 }) => {
     // Para normalizar el nombre del archivo (quitar espacios)
     const fileNameBase = title.replace(/\s+/g, '_')
@@ -240,8 +243,35 @@ const ReactTableToolBar = ({
     }
   return (
     <div className='react-table-toolbar'>
-      <button className='toolbar-btn excel-btn' onClick={exportExcel}>Exportar Excel</button>
+      {/* Filtros dinámicos */}
+      <div className="toolbar-filters">
+        {filtersConfig?.map(filter => (
+          <select
+            key={filter.key}
+            className="form-select"
+            value={filters[filter.key] || ""}
+            onChange={(e) =>
+              onFilterChange?.(prev => ({
+                ...prev,
+                [filter.key]: e.target.value
+              }))
+            }
+          >
+            <option value="">Todos - {filter.label}</option>
 
+            {filter.options?.map(opt => (
+              <option
+                key={opt[filter.optionValue]}
+                value={opt[filter.optionValue]}
+              >
+                {opt[filter.optionLabel]}
+              </option>
+            ))}
+          </select>
+        ))}
+      </div>
+      {/* Botones de exportación */}
+      <button className='toolbar-btn excel-btn' onClick={exportExcel}>Exportar Excel</button>
       <button className='toolbar-btn pdf-btn' onClick={exportPDF}>Exportar PDF</button>
     </div>
   )

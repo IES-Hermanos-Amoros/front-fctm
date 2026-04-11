@@ -12,6 +12,7 @@ import ShowDummy from "../views/Dummy/ShowDummy"
 import ShowStudent from "../views/Students/ShowStudent"
 import ShowCompany from "../views/Companies/ShowCompany"
 import ShowJobOffer from "../views/JobOffers/ShowJobOffer"
+import ShowReview from '../views/Reviews/ShowReview';
 import NewDummy from '../views/Dummy/NewDummy'
 import ListCompaniesSAO from '../views/SAOSinc/Companies/ListCompaniesSAO'
 import ListStudentsSAO from '../views/SAOSinc/Students/ListStudentsSAO'
@@ -90,6 +91,7 @@ export default function AppRouter() {
       <Route path="/fcts" element={<ListFcts />} />
       <Route path="/fcts/:id" element={<ShowFct />} />
       <Route path="/reviews/new" element={<NewReview />} />
+      <Route path="/reviews/:id" element={<ShowReview />} />
 
 
       <Route path="/teachers/:id" element={<ShowTeacher />} />

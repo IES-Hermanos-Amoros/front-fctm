@@ -56,13 +56,13 @@ const ValidateSkills = () => {
 
   // CONFIGURACIÓN DE COLUMNAS
   const columnas = useMemo(() => [
-    { key: "_id", encabezado: "ID" },
-    { key: "FCTM_skill_name", encabezado: "Nombre de la Aptitud" },
+    //{ key: "_id", encabezado: "ID" },
+    { key: "FCTM_skill_name", encabezado: "Aptitud, Habilidad, Tecnología..." },
     { 
       key: "FCTM_skill_verified", 
       encabezado: "Estado",
       render: () => (
-        <span className="badge bg-warning text-dark">Pendiente de Revisión</span>
+        <span className="badge bg-warning text-dark">Pendiente</span>
       )
     }
   ], []);

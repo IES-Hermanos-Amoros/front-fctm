@@ -20,7 +20,7 @@ const ListCRUD = ({
     <section className="dashboard section">
 
       {/* FILTRO TEMPORAL INI */}
-      <div className="row mb-2">
+      {/*<div className="row mb-2">
         {filtersConfig.map(filter => (
           <div className="col-md-4" key={filter.key}>
             <select
@@ -46,7 +46,7 @@ const ListCRUD = ({
             </select>
           </div>
         ))}
-      </div>
+      </div>*/}
       {/* FILTRO TEMPORAL FIN */}
 
     
@@ -64,6 +64,9 @@ const ListCRUD = ({
             data={datos}
             columns={columnas}
             title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
+            filters={filters}
+            onFilterChange={onFilterChange}
+            filtersConfig={filtersConfig}
           />
         </div>
       </div>
