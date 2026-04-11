@@ -1,0 +1,32 @@
+.react-table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 8px 0;
+}
+.toolbar-btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.toolbar-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1); 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.12);
+}
+.excel-btn {
+  background-color: #28a745; 
+  color: white;
+}
+.pdf-btn {
+  background-color: #f44336; 
+  color: white;
+}

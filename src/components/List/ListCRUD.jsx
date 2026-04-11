@@ -1,5 +1,6 @@
 import React from "react";
 import ReactTableTanstack from "./ReactTableTanstack";
+import ReactTableToolBar from "./ReactTableToolBar";
 
 const ListCRUD = ({
   title = "",
@@ -56,6 +57,16 @@ const ListCRUD = ({
         </div>
       </div>
 
+      {/* TOOLBAR DE EXPORTACIÓN */}
+      <div className="row">
+        <div className="col-12">
+          <ReactTableToolBar 
+            data={datos}
+            columns={columnas}
+            title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
+          />
+        </div>
+      </div>
 
 
       <div className="row">
