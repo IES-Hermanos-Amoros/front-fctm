@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest,confirmation, showAlert,formatDateDDMMYYYYHHmm,getBackendHost,normalizeFromApi, normalizeToApi } from "../../utils/functions";
+import SectionChangePassword from "../../components/User/SectionChangePassword";
+import { validateStrongPassword } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -179,6 +181,7 @@ const ShowStudent = () => {
     const [originalData,setOriginalData] = useState(null)
     const [avatarUrl, setAvatarUrl] = useState("");
     const hostAPI = getBackendHost()
+    const [passwordPayload, setPasswordPayload] = useState(null);
 
     const columnasDocuments = [
       { key: 'FCTM_document_name', encabezado: 'Nombre'},
@@ -306,26 +309,40 @@ const ShowStudent = () => {
 
     // Guardar cambios FCTM_
     const handleSave = async () => {
-      /*const payload = {
-        FCTM_student_observations: data.FCTM_student_observations,
-        FCTM_student_other_contact: data.FCTM_student_other_contact,
-        FCTM_student_openToWork: data.FCTM_student_openToWork === "true" ? true : false
-      }*/
+    // 1. Clonamos el payload normal
+    let payload = normalizeToApi(data, normalizationConfig);
 
-      const payloadNormalizado = normalizeToApi(data, normalizationConfig);
+    // 2. Si hay intención de cambiar contraseña (passwordPayload no es null)
+    if (passwordPayload) {
+        const { password, newPassword, repeatPassword } = passwordPayload;
 
-      console.log("Payload a enviar: ", payloadNormalizado)
-      const res = await sendRequest("PATCH", payloadNormalizado, `/students/${id}`);
+        if (!password || !newPassword || !repeatPassword) {
+            return showAlert("Todos los campos de contraseña son obligatorios", "error");
+        }
 
-      if (res.success) {
-        const dataFinal = normalizeFromApi(res.data, configSoloCategorias);
-        setData(dataFinal);
-        setOriginalData(dataFinal);
+        if (newPassword !== repeatPassword) {
+            return showAlert("La nueva contraseña no coincide con la repetición", "error");
+        }
+
+        if (!validateStrongPassword(newPassword)) {
+            return showAlert("La nueva contraseña debe ser más fuerte (Mayúsculas, números, símbolos...)", "warning");
+        }
+
+        payload.password = password;
+        payload.newPassword = newPassword;
+    }
+
+    const res = await sendRequest("PATCH", payload, `/students/${id}`);
+
+    if (res.success) {
+        showAlert("Perfil actualizado", "success");
         setIsEditing(false);
-      } else {
-        showAlert(res.message,"error");
-      }
-    };
+        setPasswordPayload(null); // Reset
+        fetchStudent();
+    } else {
+        showAlert(res.message, "error");
+    }
+};
 
     // Actualizar campos FCTM_ en estado local
     const handleChange = (field, value) => {
@@ -488,6 +505,11 @@ const ShowStudent = () => {
 
             </div>
           )}
+
+          <SectionChangePassword 
+              isEditing={isEditing} 
+              onChange={(passData) => setPasswordPayload(passData)} 
+          />
 
           {data.FCTM_documents.length === 0 ? (
             <h4>Todavía no se ha adjuntado un Currículum Vitae (pulsa en "Editar" para subir tu CV)</h4>
