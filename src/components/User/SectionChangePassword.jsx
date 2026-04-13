@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { validateStrongPassword } from "../../utils/functions" // Asumiendo que existe allí
 
 const SectionChangePassword = ({ isEditing, onChange }) => {
   const [isModifying, setIsModifying] = useState(false);
@@ -23,18 +22,18 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
     
     // Notificamos al padre (ShowCompany) los nuevos valores
     // Pasamos null si no estamos modificando para que no se envíen en el PATCH
-    onChange(isModifying ? newData : null);
+    onChange?.(isModifying ? newData : null);
   };
 
   const handleStartModifying = () => {
     setIsModifying(true);
-    onChange(pwdData);
+    onChange?.(pwdData);
   };
 
   const handleCancel = () => {
     setIsModifying(false);
     setPwdData({ password: '', newPassword: '', repeatPassword: '' });
-    onChange(null);
+    onChange?.(null);
   };
 
   if (!isEditing) return null;
