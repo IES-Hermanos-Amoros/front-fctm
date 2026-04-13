@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY,getBackendHost } from "../../utils/functions";
+import SectionChangePassword from "../../components/User/SectionChangePassword";
+import { validateStrongPassword } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -233,6 +235,7 @@ const ShowCompany = () => {
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
   const hostAPI = getBackendHost()
+  const [passwordPayload, setPasswordPayload] = useState(null);
 
   const fetchCompany = useCallback(async () => {
     setLoading(true);
@@ -332,9 +335,27 @@ const ShowCompany = () => {
     const fctmOnly = pickFCTMFields(data);
 
     // 2️⃣ Normalizamos selects
-    const payload = normalizeToApi(fctmOnly, normalizationConfig);
+    let payload = normalizeToApi(fctmOnly, normalizationConfig);
 
-    console.log(payload)
+    if (passwordPayload) {
+        const { password, newPassword, repeatPassword } = passwordPayload;
+
+        if (!password || !newPassword || !repeatPassword) {
+            return showAlert("Todos los campos de contraseña son obligatorios", "error");
+        }
+
+        if (newPassword !== repeatPassword) {
+            return showAlert("La nueva contraseña no coincide con la repetición", "error");
+        }
+
+        if (!validateStrongPassword(newPassword)) {
+            return showAlert("La nueva contraseña debe ser más fuerte (Mayúsculas, números, símbolos...)", "warning");
+        }
+
+        payload.password = password;
+        payload.newPassword = newPassword;
+    }
+
     const res = await sendRequest("PATCH", payload, `/companies/${id}`);
     
     if (res.success) {
@@ -343,8 +364,9 @@ const ShowCompany = () => {
       setData(normalized);
       setOriginalData(normalized);
       setIsEditing(false);
+      setPasswordPayload(null);
       // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
-      //fetchCompany(); 
+      fetchCompany(); 
     } else {
       showAlert(res.message || "Error al guardar los cambios", "error");
     }
@@ -402,6 +424,11 @@ const ShowCompany = () => {
           onChange={handleChange}
         />
       </div>
+
+      <SectionChangePassword 
+          isEditing={isEditing} 
+          onChange={(passData) => setPasswordPayload(passData)} 
+      />
 
       <hr />
 

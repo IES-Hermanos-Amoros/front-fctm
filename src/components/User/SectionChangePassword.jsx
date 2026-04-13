@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { validateStrongPassword } from "../../utils/functions" // Asumiendo que existe allí
 
 const SectionChangePassword = ({ isEditing, onChange }) => {
   const [isModifying, setIsModifying] = useState(false);
@@ -9,7 +8,6 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
     repeatPassword: ''
   });
 
-  // Si salimos del modo edición general, reseteamos el estado interno
   useEffect(() => {
     if (!isEditing) {
       handleCancel();
@@ -18,23 +16,29 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // CORRECCIÓN CRÍTICA: Primero creamos el objeto con el valor nuevo
     const newData = { ...pwdData, [name]: value };
+    
+    // Actualizamos el estado local para que el input se mueva visualmente
     setPwdData(newData);
     
-    // Notificamos al padre (ShowCompany) los nuevos valores
-    // Pasamos null si no estamos modificando para que no se envíen en el PATCH
-    onChange(isModifying ? newData : null);
+    // Enviamos 'newData' (el valor fresco) al padre, NO 'pwdData'
+    if (onChange) {
+      onChange(isModifying ? newData : null);
+    }
   };
 
   const handleStartModifying = () => {
     setIsModifying(true);
-    onChange(pwdData);
+    if (onChange) onChange(pwdData);
   };
 
   const handleCancel = () => {
     setIsModifying(false);
-    setPwdData({ password: '', newPassword: '', repeatPassword: '' });
-    onChange(null);
+    const reset = { password: '', newPassword: '', repeatPassword: '' };
+    setPwdData(reset);
+    if (onChange) onChange(null);
   };
 
   if (!isEditing) return null;
@@ -52,7 +56,7 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
               type="password"
               name="password"
               className="form-control"
-              placeholder="********"
+              // Si no modificamos, mostramos asteriscos. Si sí, el valor real.
               value={isModifying ? pwdData.password : '********'}
               onChange={handleInputChange}
               disabled={!isModifying}
