@@ -6,6 +6,7 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import useSkillStore from "../../store/skillStore";
 
 const categoryOptions = [
   { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
@@ -17,84 +18,27 @@ const categoryOptions = [
   { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
 ];
 
-const skillOptions = [
-  { _id: "69bd6bb2e1aa8f195c71c305", FCTM_skill_name: "ADAPTABILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c31d", FCTM_skill_name: "ADMINISTRACIÓN DE SISTEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c339", FCTM_skill_name: "ADOBE ILLUSTRATOR" },
-  { _id: "69bd6bb2e1aa8f195c71c338", FCTM_skill_name: "ADOBE PHOTOSHOP" },
-  { _id: "69bd6bb2e1aa8f195c71c341", FCTM_skill_name: "AGRICULTURA ECOLÓGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c320", FCTM_skill_name: "ANGULAR" },
-  { _id: "69bd6bb2e1aa8f195c71c32b", FCTM_skill_name: "ANÁLISIS DE DATOS" },
-  { _id: "69bd6bb2e1aa8f195c71c32e", FCTM_skill_name: "ATENCIÓN AL CLIENTE" },
-  { _id: "69bd6bb2e1aa8f195c71c322", FCTM_skill_name: "AWS" },
-  { _id: "69bd6bb2e1aa8f195c71c323", FCTM_skill_name: "AZURE" },
-  { _id: "69bd6bb2e1aa8f195c71c344", FCTM_skill_name: "BOTÁNICA" },
-  { _id: "69bd6bb2e1aa8f195c71c325", FCTM_skill_name: "C#" },
-  { _id: "69bd6bb2e1aa8f195c71c326", FCTM_skill_name: "C++" },
-  { _id: "69bd6bb2e1aa8f195c71c316", FCTM_skill_name: "CIBERSEGURIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c315", FCTM_skill_name: "CLOUD COMPUTING" },
-  { _id: "69bd6bb2e1aa8f195c71c301", FCTM_skill_name: "COMUNICACIÓN EFECTIVA" },
-  { _id: "69bd6bb2e1aa8f195c71c332", FCTM_skill_name: "CONTENT MARKETING" },
-  { _id: "69bd6bb2e1aa8f195c71c345", FCTM_skill_name: "CONTROL DE PLAGAS" },
-  { _id: "69bd6bb2e1aa8f195c71c308", FCTM_skill_name: "CREATIVIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c310", FCTM_skill_name: "CSS3" },
-  { _id: "69bd6bb2e1aa8f195c71c329", FCTM_skill_name: "DESARROLLO DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c30b", FCTM_skill_name: "DESARROLLO WEB" },
-  { _id: "69bd6bb2e1aa8f195c71c335", FCTM_skill_name: "DISEÑO GRÁFICO" },
-  { _id: "69bd6bb2e1aa8f195c71c33b", FCTM_skill_name: "DOCENCIA" },
-  { _id: "69bd6bb2e1aa8f195c71c318", FCTM_skill_name: "DOCKER" },
-  { _id: "69bd6bb2e1aa8f195c71c334", FCTM_skill_name: "E-COMMERCE" },
-  { _id: "69bd6bb2e1aa8f195c71c33c", FCTM_skill_name: "E-LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c33a", FCTM_skill_name: "EDICIÓN DE VÍDEO" },
-  { _id: "69bd6bb2e1aa8f195c71c30a", FCTM_skill_name: "EMPATÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c328", FCTM_skill_name: "ESTRATEGIA DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c337", FCTM_skill_name: "FIGMA" },
-  { _id: "69bd6bb2e1aa8f195c71c343", FCTM_skill_name: "GESTIÓN AMBIENTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c327", FCTM_skill_name: "GESTIÓN DE PROYECTOS" },
-  { _id: "69bd6bb2e1aa8f195c71c303", FCTM_skill_name: "GESTIÓN DEL TIEMPO" },
-  { _id: "69bd6bb2e1aa8f195c71c347", FCTM_skill_name: "GESTIÓN FORESTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c317", FCTM_skill_name: "GIT" },
-  { _id: "69bd6bb2e1aa8f195c71c333", FCTM_skill_name: "GOOGLE ANALYTICS" },
-  { _id: "69bd6bb2e1aa8f195c71c309", FCTM_skill_name: "HABLAR EN PÚBLICO" },
-  { _id: "69bd6bb2e1aa8f195c71c30f", FCTM_skill_name: "HTML5" },
-  { _id: "69bd6bb2e1aa8f195c71c33e", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c31a", FCTM_skill_name: "INTELIGENCIA ARTIFICIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c307", FCTM_skill_name: "INTELIGENCIA EMOCIONAL" },
-  { _id: "69bd6bb2e1aa8f195c71c33d", FCTM_skill_name: "INTERVENCIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c348", FCTM_skill_name: "JARDINERÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30e", FCTM_skill_name: "JAVA" },
-  { _id: "69bd6bb2e1aa8f195c71c30c", FCTM_skill_name: "JAVASCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c319", FCTM_skill_name: "KUBERNETES" },
-  { _id: "69bd6bb2e1aa8f195c71c2ff", FCTM_skill_name: "LIDERAZGO" },
-  { _id: "69bd6bb2e1aa8f195c71c31b", FCTM_skill_name: "MACHINE LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c32f", FCTM_skill_name: "MARKETING DIGITAL" },
-  { _id: "69bd6bb2e1aa8f195c71c306", FCTM_skill_name: "NEGOCIACIÓN" },
-  { _id: "69bd6bb2e1aa8f195c71c312", FCTM_skill_name: "NODE.JS" },
-  { _id: "69bd6bb2e1aa8f195c71c314", FCTM_skill_name: "NOSQL" },
-  { _id: "69bd6bb2e1aa8f195c71c340", FCTM_skill_name: "ORIENTACIÓN LABORAL" },
-  { _id: "69bd6bb2e1aa8f195c71c342", FCTM_skill_name: "PAISAJISMO" },
-  { _id: "69bd6bb2e1aa8f195c71c304", FCTM_skill_name: "PENSAMIENTO CRÍTICO" },
-  { _id: "69bd6bb2e1aa8f195c71c324", FCTM_skill_name: "PHP" },
-  { _id: "69bd6bb2e1aa8f195c71c32a", FCTM_skill_name: "PLANIFICACIÓN ESTRATÉGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c33f", FCTM_skill_name: "PSICOLOGÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30d", FCTM_skill_name: "PYTHON" },
-  { _id: "69bd6bb2e1aa8f195c71c311", FCTM_skill_name: "REACT" },
-  { _id: "69bd6bb2e1aa8f195c71c32c", FCTM_skill_name: "RECURSOS HUMANOS" },
-  { _id: "69bd6bb2e1aa8f195c71c31e", FCTM_skill_name: "REDES DE COMPUTADORES" },
-  { _id: "69bd6bb2e1aa8f195c71c302", FCTM_skill_name: "RESOLUCIÓN DE PROBLEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c331", FCTM_skill_name: "SEM" },
-  { _id: "69bd6bb2e1aa8f195c71c330", FCTM_skill_name: "SEO" },
-  { _id: "69bd6bb2e1aa8f195c71c31c", FCTM_skill_name: "SOPORTE TÉCNICO" },
-  { _id: "69bd6bb2e1aa8f195c71c346", FCTM_skill_name: "SOSTENIBILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c313", FCTM_skill_name: "SQL" },
-  { _id: "69bd6bb2e1aa8f195c71c300", FCTM_skill_name: "TRABAJO EN EQUIPO" },
-  { _id: "69bd6bb2e1aa8f195c71c31f", FCTM_skill_name: "TYPESCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c336", FCTM_skill_name: "UI/UX" },
-  { _id: "69bd6bb2e1aa8f195c71c32d", FCTM_skill_name: "VENTAS" },
-  { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" }
-];
+const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
+  const merged = [...storeSkills];
+  const seen = new Set(storeSkills.map(skill => skill._id));
 
-const normalizationConfig = [
+  entitySkills.forEach(skill => {
+    if (
+      skill &&
+      typeof skill === "object" &&
+      skill._id &&
+      skill.FCTM_skill_name &&
+      !seen.has(skill._id)
+    ) {
+      merged.push(skill);
+      seen.add(skill._id);
+    }
+  });
+
+  return merged;
+};
+
+const buildNormalizationConfig = (skillOptions) => [
   {
     field: "FCTM_company_category",
     options: categoryOptions,
@@ -135,7 +79,7 @@ const SAO_fields = [
 
 
 //CAROLINA
-const FCTM_fields = [
+const buildFCTMFields = (skillOptions) => [
   { key: "FCTM_student_observations", label: "Observaciones", type: "text"},
   { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text"},
   {
@@ -172,6 +116,10 @@ const ShowStudent = () => {
     //CAROLINA
     const { id } = useParams()
     const navigate = useNavigate()
+    const skillOptions = useSkillStore((state) => state.skills);
+    const cargarSkills = useSkillStore((state) => state.cargarSkills);
+    const normalizationConfig = buildNormalizationConfig(skillOptions);
+    const FCTM_fields = buildFCTMFields(skillOptions);
 
     const [data, setData] = useState(null)
     const [loading,setLoading] = useState(true)
@@ -179,6 +127,10 @@ const ShowStudent = () => {
     const [originalData,setOriginalData] = useState(null)
     const [avatarUrl, setAvatarUrl] = useState("");
     const hostAPI = getBackendHost()
+
+    useEffect(() => {
+      cargarSkills();
+    }, [cargarSkills]);
 
     const columnasDocuments = [
       { key: 'FCTM_document_name', encabezado: 'Nombre'},
@@ -235,9 +187,13 @@ const ShowStudent = () => {
           SAO_accessDate: formatDateForInput(res.data.SAO_accessDate)
         };
 
+        const responseNormalizationConfig = buildNormalizationConfig(
+          mergeSkillOptions(skillOptions, res.data.FCTM_skills || [])
+        );
+
         // 2. Normalización de campos múltiples (Categories y Skills)
         // Esto convierte los IDs que vienen del backend en los objetos que necesita el componente para pintar los CHIPS
-        const dataNormalizada = normalizeFromApi(baseData, normalizationConfig);
+        const dataNormalizada = normalizeFromApi(baseData, responseNormalizationConfig);
 
         setData(dataNormalizada);
         setOriginalData(dataNormalizada);
@@ -259,7 +215,7 @@ const ShowStudent = () => {
       }
 
       setLoading(false);
-    }, [id]);
+    }, [id, skillOptions]);
 
     // Cargar el estudiante por ID
     const fetchStudentOLD = useCallback(async () => {
@@ -302,7 +258,7 @@ const ShowStudent = () => {
       }
 
       setLoading(false)
-    }, [id])
+    }, [id, normalizationConfig])
 
     // Guardar cambios FCTM_
     const handleSave = async () => {
@@ -318,7 +274,23 @@ const ShowStudent = () => {
       const res = await sendRequest("PATCH", payloadNormalizado, `/students/${id}`);
 
       if (res.success) {
-        const dataFinal = normalizeFromApi(res.data, configSoloCategorias);
+        const formatDateForInput = (isoDate) => {
+          if (!isoDate) return "";
+          return isoDate.split("T")[0];
+        };
+
+        const baseData = {
+          ...res.data,
+          FCTM_student_openToWork: String(res.data.FCTM_student_openToWork),
+          SAO_registryDate: formatDateForInput(res.data.SAO_registryDate),
+          SAO_accessDate: formatDateForInput(res.data.SAO_accessDate)
+        };
+
+        const responseNormalizationConfig = buildNormalizationConfig(
+          mergeSkillOptions(skillOptions, res.data.FCTM_skills || [])
+        );
+
+        const dataFinal = normalizeFromApi(baseData, responseNormalizationConfig);
         setData(dataFinal);
         setOriginalData(dataFinal);
         setIsEditing(false);
