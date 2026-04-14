@@ -1,73 +1,63 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  sendRequest,
-  showAlert,
-  confirmation,
-  normalizeFromApi,
-  normalizeToApi,
-  pickFCTMFields,
-  formatDateDDMMYYYY,
-  getBackendHost
-} from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY,getBackendHost, ensureSkills } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 
-import useSkillStore from "../../store/skillStore";
-import useCategoryStore from "../../store/categoryStore";
 
-/**
- * Merge skills (ya lo tenías correcto)
- */
-const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
-  const merged = [...storeSkills];
-  const seen = new Set(storeSkills.map(s => s._id));
+//TEMPORAL - PENDIENTE DE ZUSTAND Y MAESTROS EN API
+// Ejemplo de categorías para el multiselect
+const categoryOptions = [
+  {
+    _id: "69a82074499df1aec1d2477e",
+    FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES"
+  },
+  {
+    _id: "69a82074499df1aec1d2477f",
+    FCTM_category_name: "DESARROLLO DE APLICACIONES WEB"
+  },
+  {
+    _id: "69a82074499df1aec1d24780",
+    FCTM_category_name: "EDUCACIÓN INFANTIL"
+  },
+  {
+    _id: "69a82074499df1aec1d24781",
+    FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL"
+  },
+  {
+    _id: "69a82074499df1aec1d24782",
+    FCTM_category_name: "INTEGRACIÓN SOCIAL"
+  },
+  {
+    _id: "69a82074499df1aec1d24783",
+    FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA"
+  },
+  {
+    _id: "69a82074499df1aec1d24784",
+    FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES"
+  }
+];
 
-  entitySkills.forEach(skill => {
-    if (
-      skill &&
-      typeof skill === "object" &&
-      skill._id &&
-      skill.FCTM_skill_name &&
-      !seen.has(skill._id)
-    ) {
-      merged.push(skill);
-      seen.add(skill._id);
-    }
-  });
+const normalizationConfigFactory = (skillOpts) => [
+  {
+    field: "FCTM_company_category",
+    options: categoryOptions,
+    optionValue: "_id",
+    optionLabel: "FCTM_category_name",
+    type: "multi"
+  },
+  {
+    field: "FCTM_skills",
+    options: skillOpts,
+    optionValue: "_id",
+    optionLabel: "FCTM_skill_name",
+    type: "multi"
+  }
+];
 
-  return merged;
-};
-
-/**
- * Merge categories (NUEVO)
- */
-const mergeCategoryOptions = (storeCategories = [], entityCategories = []) => {
-  const merged = [...storeCategories];
-  const seen = new Set(storeCategories.map(c => c._id));
-
-  entityCategories.forEach(cat => {
-    if (
-      cat &&
-      typeof cat === "object" &&
-      cat._id &&
-      cat.FCTM_category_name &&
-      !seen.has(cat._id)
-    ) {
-      merged.push(cat);
-      seen.add(cat._id);
-    }
-  });
-
-  return merged;
-};
-
-/**
- * Campos SAO (igual)
- */
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -77,13 +67,21 @@ const camposSAO = [
   { key: "SAO_organization", label: "Organización / Centro" },
   { key: "SAO_group", label: "Grupo / Curso" },
   { key: "SAO_email", label: "E-mail" },
-  { key: "SAO_phone", label: "Teléfono de Contacto" }
+  { key: "SAO_phone", label: "Teléfono de Contacto" },
+  { key: "SAO_company_FCT_Number", label: "Nº Convenio FE" },
+  { key: "SAO_company_FCT_Date", label: "Fecha Convenio FE" },
+  { key: "SAO_company_FPDual_Number", label: "Nº Convenio FE Intensiva" },
+  { key: "SAO_company_FPDual_Date", label: "Fecha Convenio FE Intensiva" },
+  { key: "SAO_company_city", label: "Localidad" },
+  { key: "SAO_company_state", label: "Provincia" },
+  { key: "SAO_company_address", label: "Dirección Social" },
+  { key: "SAO_company_activity", label: "Actividad Económica" },
+  { key: "SAO_company_nameManager", label: "Nombre del Representante / Gerente" },
+  { key: "SAO_company_idManager", label: "DNI/NIE del Representante" },
+  { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
 ];
 
-/**
- * Campos FCTM (AHORA usan store categories)
- */
-const buildCamposFCTM = (skillOptions, categoryOptions) => [
+const camposFCTMFactory = (skillOpts) => [
   {
     key: "FCTM_company_category",
     label: "Familias Profesionales",
@@ -95,8 +93,8 @@ const buildCamposFCTM = (skillOptions, categoryOptions) => [
   {
     key: "FCTM_skills",
     label: "Aptitudes/Tecnologías",
-    type: "select-multi",
-    options: skillOptions,
+    type: "select-multi-creatable", 
+    options: skillOpts,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
   },
@@ -148,52 +146,34 @@ const ShowCompany = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const hostAPI = getBackendHost()
 
-  /**
-   * Cargar stores
-   */
-  useEffect(() => {
-    cargarSkills();
-    cargarCategorias();
-  }, [cargarSkills, cargarCategorias]);
+  const [skillOptions, setSkillOptions] = useState([]);
+  
+  const normalizationConfig = useMemo(() => normalizationConfigFactory(skillOptions), [skillOptions]);
+  const camposFCTM = useMemo(() => camposFCTMFactory(skillOptions), [skillOptions]);
 
-  /**
-   * Campos memoizados (IMPORTANTÍSIMO)
-   */
-  const camposFCTM = useMemo(() => {
-    return buildCamposFCTM(skillOptions, categories || []);
-  }, [skillOptions, categories]);
-
-  const normalizationConfig = useMemo(() => {
-    return buildNormalizationConfig(skillOptions, categories || []);
-  }, [skillOptions, categories]);
-
-  /**
-   * FETCH COMPANY
-   */
   const fetchCompany = useCallback(async () => {
     setLoading(true);
 
-    const res = await sendRequest("GET", null, `/companies/${id}`);
+    const [resSkills, resCompany] = await Promise.all([
+      sendRequest("GET", null, "/skills"),
+      sendRequest("GET", null, `/companies/${id}`)
+    ]);
 
-    if (res.success) {
-      const mergedCategories = mergeCategoryOptions(
-        categories,
-        res.data.FCTM_company_category || []
-      );
+    let loadedSkills = [];
+    if (resSkills.success) {
+      loadedSkills = resSkills.data;
+      setSkillOptions(loadedSkills);
+    }
 
-      const mergedSkills = mergeSkillOptions(
-        skillOptions,
-        res.data.FCTM_skills || []
-      );
-
-      const config = buildNormalizationConfig(mergedSkills, mergedCategories);
-
-      const normalized = normalizeFromApi(res.data, config);
-
+    if (resCompany.success) {
+      const currentNormConfig = normalizationConfigFactory(loadedSkills);
+      const normalized = normalizeFromApi(resCompany.data, currentNormConfig);
+      
       setData(normalized);
       setOriginalData(normalized);
-      setAvatarUrl(res.data?.FCTM_documents?.[0]?.FCTM_document_url || "");
+      setAvatarUrl(resCompany.data?.FCTM_documents[0]?.FCTM_document_url || "");
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -275,31 +255,38 @@ const ShowCompany = () => {
    * SAVE
    */
   const handleSave = async () => {
-    const fctmOnly = pickFCTMFields(data);
-    const payload = normalizeToApi(fctmOnly, normalizationConfig);
+    try {
+      // Create any missing skills and get array of _id's
+      const skillIds = await ensureSkills(data.FCTM_skills);
 
-    const res = await sendRequest("PATCH", payload, `/companies/${id}`);
+      // 1. Solo campos FCTM_
+      const fctmOnly = pickFCTMFields(data);
 
-    if (res.success) {
-      const mergedCategories = mergeCategoryOptions(
-        categories,
-        res.data.FCTM_company_category || []
-      );
+      // 2. Normalizamos selects
+      const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
 
-      const mergedSkills = mergeSkillOptions(
-        skillOptions,
-        res.data.FCTM_skills || []
-      );
+      const finalPayload = {
+        ...payloadNormalizado,
+        FCTM_skills: skillIds
+      };
 
-      const config = buildNormalizationConfig(mergedSkills, mergedCategories);
-
-      const normalized = normalizeFromApi(res.data, config);
-
-      setData(normalized);
-      setOriginalData(normalized);
-      setIsEditing(false);
-    } else {
-      showAlert(res.message || "Error al guardar los cambios", "error");
+      console.log(finalPayload)
+      const res = await sendRequest("PATCH", finalPayload, `/companies/${id}`);
+      
+      if (res.success) {
+        const normalized = normalizeFromApi(res.data, normalizationConfig);
+        //showAlert("Empresa actualizada con éxito", "success");
+        setData(normalized);
+        setOriginalData(normalized);
+        setIsEditing(false);
+        // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
+        //fetchCompany(); 
+      } else {
+        showAlert(res.message || "Error al guardar los cambios", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Error crítico", "error");
     }
   };
 
