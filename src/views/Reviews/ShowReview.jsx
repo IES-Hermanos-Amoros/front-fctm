@@ -3,7 +3,29 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { sendRequest, showAlert } from "../../utils/functions";
 import ShowHeader from "../../components/Show/ShowHeader";
+import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import useUserStore from "../../store/userStore";
+
+const FCTM_FIELDS = [
+  {
+    key: "FCTM_review_title",
+    label: "Título",
+    type: "text",
+    required: true,
+  },
+  {
+    key: "FCTM_review_rating",
+    label: "Calificación",
+    type: "star",
+    required: true,
+  },
+  {
+    key: "FCTM_review_text",
+    label: "Comentario",
+    type: "textarea",
+    required: true,
+  },
+];
 
 const ShowReview = () => {
   const { id } = useParams();
@@ -109,109 +131,29 @@ const ShowReview = () => {
     fetchReview();
   }, [fetchReview]);
 
-  if (loading) return <p className="p-5 text-center">Cargando resena...</p>;
-  if (!data) return <p className="p-5 text-center">No se encontro la resena</p>;
+  if (loading) return <p className="p-5 text-center">Cargando reseña...</p>;
+  if (!data) return <p className="p-5 text-center">No se encontro la reseña</p>;
 
-  // Valor actual para pintar estrellas activas/inactivas.
   const currentRating = Number(data?.FCTM_review_rating) || 0;
 
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Ficha de resena: ${data?.FCTM_review_title || "Detalle"}`}
+        title={`Ficha de reseña: ${data?.FCTM_review_title || "Detalle"}`}
         onBack={handleBack}
       />
 
-      <div className="card">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <strong>Informacion de la resena</strong>
-
-          {!isEditing && (
-            <button className="btn btn-primary" onClick={() => setIsEditing(true)}>
-              Editar
-            </button>
-          )}
-
-          {isEditing && (
-            <div className="d-flex gap-2">
-              <button type="button" className="btn btn-success" onClick={handleSave}>
-                Guardar
-              </button>
-              <button type="button" className="btn btn-outline-secondary" onClick={handleCancel}>
-                Cancelar
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="card-body">
-          <div className="mb-3">
-            <label className="form-label">
-              Titulo <span className="text-danger">*</span>
-            </label>
-            {/* FCTM_review_title -> Titulo */}
-            <input
-              className="form-control"
-              type="text"
-              value={data?.FCTM_review_title || ""}
-              onChange={(e) => handleChange("FCTM_review_title", e.target.value)}
-              readOnly={!isEditing}
-              required
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">
-              Calificacion (Estrellas) <span className="text-danger">*</span>
-            </label>
-            {/* FCTM_review_rating -> Pintado de estrellas (1 a 5) */}
-            <div className="d-flex align-items-center gap-2">
-              {[1, 2, 3, 4, 5].map((starValue) => {
-                const isActive = starValue <= currentRating;
-
-                if (isEditing) {
-                  // En edición, cada estrella es clicable para cambiar la calificación.
-                  return (
-                    <button
-                      key={starValue}
-                      type="button"
-                      className="btn btn-link p-0 border-0"
-                      onClick={() => handleChange("FCTM_review_rating", starValue)}
-                      aria-label={`Calificar con ${starValue} estrella${starValue > 1 ? "s" : ""}`}
-                    >
-                      <i className={`bi ${isActive ? "bi-star-fill text-warning" : "bi-star text-muted"}`} />
-                    </button>
-                  );
-                }
-
-                return (
-                  <i
-                    key={starValue}
-                    className={`bi ${isActive ? "bi-star-fill text-warning" : "bi-star text-muted"}`}
-                    aria-hidden="true"
-                  />
-                );
-              })}
-              <span className="text-muted">{currentRating}/5</span>
-            </div>
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">
-              Comentario <span className="text-danger">*</span>
-            </label>
-            {/* FCTM_review_text -> Comentario (Text Area) */}
-            <textarea
-              className="form-control"
-              rows={4}
-              value={data?.FCTM_review_text || ""}
-              onChange={(e) => handleChange("FCTM_review_text", e.target.value)}
-              readOnly={!isEditing}
-              required
-            />
-          </div>
-        </div>
-      </div>
+      <ShowEditableForm
+        formTitle="Información de la Reseña"
+        formId="reviewForm"
+        data={data}
+        fields={FCTM_FIELDS}
+        isEditing={isEditing}
+        onEdit={() => setIsEditing(true)}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        onChange={handleChange}
+      />
     </section>
   );
 };
