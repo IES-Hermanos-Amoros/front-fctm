@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
 
@@ -6,15 +6,8 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 
-const categoryOptions = [
-  { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
-  { _id: "69a82074499df1aec1d2477f", FCTM_category_name: "DESARROLLO DE APLICACIONES WEB" },
-  { _id: "69a82074499df1aec1d24780", FCTM_category_name: "EDUCACIÓN INFANTIL" },
-  { _id: "69a82074499df1aec1d24781", FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
-  { _id: "69a82074499df1aec1d24782", FCTM_category_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69a82074499df1aec1d24783", FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA" },
-  { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
-];
+import useCategoryStore from "../../store/categoryStore";
+
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -27,48 +20,51 @@ const SAO_FIELDS = [
   { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" },
 ];
 
-const FCTM_FIELDS = [
-  { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
-  {
-    key: "FCTM_teacher_observations",
-    label: "Observaciones",
-    type: "textarea",
-  },
-  { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
-  {
-    key: "FCTM_company_category",
-    label: "Categorías",
-    type: "select-multi",
-    options: categoryOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_category_name"
-  }
-];
-
-const normalizationConfig = [
-  {
-    field: "FCTM_company_category",
-    options: categoryOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_category_name",
-    type: "multi"
-  },
-  { field: "SAO_registryDate", type: "date" },
-  { field: "SAO_accessDate", type: "date" }
-];
-
 
 const ShowTeacher = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const categories = useCategoryStore((state) => state.categories);
+  const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
-  const hostAPI = getBackendHost()
+  // ✅ 1. Asegurar options siempre válidas
+  const safeCategories = useMemo(() => categories || [], [categories]);
 
+  const FCTM_FIELDS = useMemo(() =>[
+    { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
+    {
+      key: "FCTM_teacher_observations",
+      label: "Observaciones",
+      type: "textarea",
+    },
+    { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
+    {
+      key: "FCTM_company_category",
+      label: "Categorías",
+      type: "select-multi",
+      options: safeCategories,
+      optionValue: "_id",
+      optionLabel: "FCTM_category_name"
+    }
+  ], [safeCategories]);
+
+  const normalizationConfig = useMemo(() => [
+    {
+      field: "FCTM_company_category",
+      options: safeCategories,
+      optionValue: "_id",
+      optionLabel: "FCTM_category_name",
+      type: "multi"
+    },
+    { field: "SAO_registryDate", type: "date" },
+    { field: "SAO_accessDate", type: "date" }
+  ], [safeCategories]);
 
   const fetchTeacher = useCallback(async () => {
     if (!id) {
@@ -99,7 +95,7 @@ const ShowTeacher = () => {
     }
 
     setLoading(false);
-  }, [id]);
+  }, [id, normalizationConfig]);
 
   const handleSave = async () => {
     /*const payload = {
@@ -142,9 +138,19 @@ const ShowTeacher = () => {
     setIsEditing(false);
   };
 
+  // ✅ 3. Cargar categorías + teacher en orden correcto
   useEffect(() => {
-    fetchTeacher();
-  }, [fetchTeacher]);
+    const init = async () => {
+      await cargarCategorias();
+    };
+    init();
+  }, [cargarCategorias]);
+
+  useEffect(() => {
+    if (categories?.length > 0) {
+      fetchTeacher();
+    }
+  }, [categories, fetchTeacher]);
 
   if (loading) return <p>Cargando datos...</p>;
   if (!id) return <p>Falta el id del profesor en la URL.</p>;
