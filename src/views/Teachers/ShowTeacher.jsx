@@ -1,54 +1,33 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
+import {
+  sendRequest,
+  showAlert,
+  normalizeFromApi,
+  normalizeToApi,
+  pickFCTMFields
+} from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
-
-const categoryOptions = [
-  { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
-  { _id: "69a82074499df1aec1d2477f", FCTM_category_name: "DESARROLLO DE APLICACIONES WEB" },
-  { _id: "69a82074499df1aec1d24780", FCTM_category_name: "EDUCACIÓN INFANTIL" },
-  { _id: "69a82074499df1aec1d24781", FCTM_category_name: "GESTIÓN FORESTAL Y DEL MEDIO NATURAL" },
-  { _id: "69a82074499df1aec1d24782", FCTM_category_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69a82074499df1aec1d24783", FCTM_category_name: "PRODUCCIÓN AGROECOLÓGICA" },
-  { _id: "69a82074499df1aec1d24784", FCTM_category_name: "SISTEMAS MICROINFORMÁTICOS Y REDES" }
-];
+import useCategoryStore from "../../store/categoryStore";
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
   { key: "SAO_registryDate", label: "Fecha de Registro", type: "date" },
-  { key: "SAO_accessDate", label: "Último Acceso", type: "date" },
+  { key: "SAO_accessDate", label: "Ultimo Acceso", type: "date" },
   { key: "SAO_name", label: "Nombre Completo", type: "text" },
-  { key: "SAO_organization", label: "Organización / Centro", type: "text" },
+  { key: "SAO_organization", label: "Organizacion / Centro", type: "text" },
   { key: "SAO_group", label: "Grupo / Clase", type: "text" },
-  { key: "SAO_email", label: "Correo Electrónico", type: "email" },
-  { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" },
+  { key: "SAO_email", label: "Correo Electronico", type: "email" },
+  { key: "SAO_phone", label: "Telefono de Contacto", type: "text" }
 ];
 
-const FCTM_FIELDS = [
-  { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
-  {
-    key: "FCTM_teacher_observations",
-    label: "Observaciones",
-    type: "textarea",
-  },
-  { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
-  {
-    key: "FCTM_company_category",
-    label: "Categorías",
-    type: "select-multi",
-    options: categoryOptions,
-    optionValue: "_id",
-    optionLabel: "FCTM_category_name"
-  }
-];
-
-const normalizationConfig = [
+const buildNormalizationConfig = (categories) => [
   {
     field: "FCTM_company_category",
-    options: categoryOptions,
+    options: categories,
     optionValue: "_id",
     optionLabel: "FCTM_category_name",
     type: "multi"
@@ -57,18 +36,43 @@ const normalizationConfig = [
   { field: "SAO_accessDate", type: "date" }
 ];
 
-
 const ShowTeacher = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const categories = useCategoryStore((state) => state.categories);
+  const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
-  const hostAPI = getBackendHost()
 
+  const FCTM_FIELDS = useMemo(
+    () => [
+      { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
+      {
+        key: "FCTM_teacher_observations",
+        label: "Observaciones",
+        type: "textarea"
+      },
+      { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
+      {
+        key: "FCTM_company_category",
+        label: "Categorias",
+        type: "select-multi",
+        options: categories,
+        optionValue: "_id",
+        optionLabel: "FCTM_category_name"
+      }
+    ],
+    [categories]
+  );
+
+  const normalizationConfig = useMemo(
+    () => buildNormalizationConfig(categories),
+    [categories]
+  );
 
   const fetchTeacher = useCallback(async () => {
     if (!id) {
@@ -77,20 +81,14 @@ const ShowTeacher = () => {
     }
 
     setLoading(true);
+    await cargarCategorias();
 
+    const currentCategories = useCategoryStore.getState().getCategoryArray();
+    const currentNormalization = buildNormalizationConfig(currentCategories);
     const res = await sendRequest("GET", null, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
-      //const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
-      const dataNormalizada = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataNormalizada)
-
+      const dataNormalizada = normalizeFromApi(res.data, currentNormalization);
       setData(dataNormalizada);
       setOriginalData(dataNormalizada);
       setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
@@ -99,29 +97,17 @@ const ShowTeacher = () => {
     }
 
     setLoading(false);
-  }, [id]);
+  }, [id, cargarCategorias]);
 
   const handleSave = async () => {
-    /*const payload = {
-      FCTM_contact_email: data?.FCTM_contact_email || null,
-      FCTM_teacher_observations: data?.FCTM_teacher_observations || null,
-      FCTM_teacher_other_contact: data?.FCTM_teacher_other_contact || null,
-    };*/
-
+    const currentCategories = useCategoryStore.getState().getCategoryArray();
+    const currentNormalization = buildNormalizationConfig(currentCategories);
     const fctmOnly = pickFCTMFields(data);
-    const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
+    const payloadNormalizado = normalizeToApi(fctmOnly, currentNormalization);
     const res = await sendRequest("PATCH", payloadNormalizado, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
-      const dataFinal = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataFinal)
-      
+      const dataFinal = normalizeFromApi(res.data, currentNormalization);
       setData(dataFinal);
       setOriginalData(dataFinal);
       setIsEditing(false);
@@ -133,7 +119,7 @@ const ShowTeacher = () => {
   const handleChange = (field, value) => {
     setData((prev) => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }));
   };
 
@@ -170,7 +156,7 @@ const ShowTeacher = () => {
       />
 
       <ShowEditableForm
-        formTitle="Información de SAO"
+        formTitle="Informacion de SAO"
         formId="teacherSaoForm"
         data={data}
         fields={SAO_FIELDS}
