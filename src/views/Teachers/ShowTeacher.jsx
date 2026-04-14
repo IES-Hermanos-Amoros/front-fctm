@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
+import { 
+  sendRequest, 
+  showAlert, 
+  normalizeFromApi, 
+  normalizeToApi, 
+  pickFCTMFields, 
+  getBackendHost, 
+  validateStrongPassword 
+} from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword";
+
 
 const categoryOptions = [
   { _id: "69a82074499df1aec1d2477e", FCTM_category_name: "AGRO-JARDINERIA Y COMPOSICIONES FLORALES" },
@@ -29,11 +39,7 @@ const SAO_FIELDS = [
 
 const FCTM_FIELDS = [
   { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
-  {
-    key: "FCTM_teacher_observations",
-    label: "Observaciones",
-    type: "textarea",
-  },
+  { key: "FCTM_teacher_observations", label: "Observaciones", type: "textarea" },
   { key: "FCTM_teacher_other_contact", label: "Otro contacto", type: "text" },
   {
     key: "FCTM_company_category",
@@ -57,7 +63,6 @@ const normalizationConfig = [
   { field: "SAO_accessDate", type: "date" }
 ];
 
-
 const ShowTeacher = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,8 +72,9 @@ const ShowTeacher = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
-  const hostAPI = getBackendHost()
 
+
+  const [pwdDataParaEnviar, setPwdDataParaEnviar] = useState(null);
 
   const fetchTeacher = useCallback(async () => {
     if (!id) {
@@ -77,54 +83,54 @@ const ShowTeacher = () => {
     }
 
     setLoading(true);
-
     const res = await sendRequest("GET", null, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
-      //const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
       const dataNormalizada = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataNormalizada)
-
       setData(dataNormalizada);
       setOriginalData(dataNormalizada);
       setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
     } else {
       showAlert(res.message, "error");
     }
-
     setLoading(false);
   }, [id]);
 
   const handleSave = async () => {
-    /*const payload = {
-      FCTM_contact_email: data?.FCTM_contact_email || null,
-      FCTM_teacher_observations: data?.FCTM_teacher_observations || null,
-      FCTM_teacher_other_contact: data?.FCTM_teacher_other_contact || null,
-    };*/
+
+    if (pwdDataParaEnviar) {
+      const { password, newPassword, repeatPassword } = pwdDataParaEnviar;
+
+      if (!password || !newPassword || !repeatPassword) {
+        return showAlert("Debes rellenar todos los campos de contraseña", "error");
+      }
+      if (newPassword !== repeatPassword) {
+        return showAlert("La nueva contraseña y su repetición no coinciden", "error");
+      }
+      if (!validateStrongPassword(newPassword)) {
+        return showAlert("La nueva contraseña no cumple los requisitos de seguridad", "error");
+      }
+    }
+
 
     const fctmOnly = pickFCTMFields(data);
     const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
+
+
+    if (pwdDataParaEnviar) {
+      payloadNormalizado.password = pwdDataParaEnviar.password;
+      payloadNormalizado.newPassword = pwdDataParaEnviar.newPassword;
+    }
+
     const res = await sendRequest("PATCH", payloadNormalizado, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
       const dataFinal = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataFinal)
-      
       setData(dataFinal);
       setOriginalData(dataFinal);
       setIsEditing(false);
+      setPwdDataParaEnviar(null);
+      showAlert("Perfil de profesor actualizado correctamente", "success");
     } else {
       showAlert(res.message, "error");
     }
@@ -140,15 +146,16 @@ const ShowTeacher = () => {
   const handleCancel = () => {
     setData(originalData);
     setIsEditing(false);
+    setPwdDataParaEnviar(null);
   };
 
   useEffect(() => {
     fetchTeacher();
   }, [fetchTeacher]);
 
-  if (loading) return <p>Cargando datos...</p>;
-  if (!id) return <p>Falta el id del profesor en la URL.</p>;
-  if (!data) return <p>No se encontraron datos del profesor.</p>;
+  if (loading) return <p className="p-4 text-center">Cargando datos...</p>;
+  if (!id) return <p className="p-4 text-center">Falta el id del profesor en la URL.</p>;
+  if (!data) return <p className="p-4 text-center">No se encontraron datos del profesor.</p>;
 
   return (
     <section className="dashboard section">
@@ -187,6 +194,11 @@ const ShowTeacher = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      <SectionChangePassword 
+        isEditing={isEditing} 
+        onChange={(newData) => setPwdDataParaEnviar(newData)} 
       />
     </section>
   );
