@@ -135,7 +135,7 @@ const ShowCompany = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const skillOptions = useSkillStore(state => state.skills);
+
   const cargarSkills = useSkillStore(state => state.cargarSkills);
 
   const categories = useCategoryStore(state => state.categories);
