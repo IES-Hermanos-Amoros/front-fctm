@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
+import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, validateStrongPassword } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 
 const categoryOptions = [
@@ -61,8 +62,8 @@ const ShowAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [passwordData, setPasswordData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
-  const hostAPI = getBackendHost()
 
   const fetchAdmin = useCallback(async () => {
     if (!id) {
@@ -100,6 +101,36 @@ const ShowAdmin = () => {
     };*/
     const fctmOnly = pickFCTMFields(data);
     const payload = normalizeToApi(fctmOnly, normalizationConfig);
+
+    const isChangingPassword = !!passwordData;
+
+    if (isChangingPassword) {
+      const currentPassword = passwordData.password?.trim() || "";
+      const newPassword = passwordData.newPassword?.trim() || "";
+      const repeatPassword = passwordData.repeatPassword?.trim() || "";
+
+      if (!currentPassword || !newPassword || !repeatPassword) {
+        showAlert("Para cambiar la contraseña, debe rellenar los 3 campos", "error");
+        return;
+      }
+
+      if (!validateStrongPassword(newPassword)) {
+        showAlert(
+          "La nueva contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial",
+          "error"
+        );
+        return;
+      }
+
+      if (newPassword !== repeatPassword) {
+        showAlert("La nueva contraseña y su repetición no coinciden", "error");
+        return;
+      }
+
+      payload.password = currentPassword;
+      payload.newPassword = newPassword;
+    }
+
     console.log("Payload a enviar:", payload);
     const res = await sendRequest("PATCH", payload, `/administrators/${id}`);
 
@@ -113,6 +144,7 @@ const ShowAdmin = () => {
 
       setData(normalized);
       setOriginalData(normalized);
+      setPasswordData(null);
       setIsEditing(false);
     } else {
       showAlert(res.message, "error");
@@ -128,6 +160,7 @@ const ShowAdmin = () => {
 
   const handleCancel = () => {
     setData(originalData);
+    setPasswordData(null);
     setIsEditing(false);
   };
 
@@ -176,6 +209,11 @@ const ShowAdmin = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      <SectionChangePassword
+        isEditing={isEditing}
+        onChange={setPasswordData}
       />
     </section>
   );
