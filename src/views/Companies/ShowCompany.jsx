@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY,getBackendHost } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, normalizeFromApi, normalizeToApi, pickFCTMFields, formatDateDDMMYYYY,getBackendHost, ensureSkills } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -41,85 +41,7 @@ const categoryOptions = [
   }
 ];
 
-const skillOptions = [
-  { _id: "69bd6bb2e1aa8f195c71c305", FCTM_skill_name: "ADAPTABILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c31d", FCTM_skill_name: "ADMINISTRACIÓN DE SISTEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c339", FCTM_skill_name: "ADOBE ILLUSTRATOR" },
-  { _id: "69bd6bb2e1aa8f195c71c338", FCTM_skill_name: "ADOBE PHOTOSHOP" },
-  { _id: "69bd6bb2e1aa8f195c71c341", FCTM_skill_name: "AGRICULTURA ECOLÓGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c320", FCTM_skill_name: "ANGULAR" },
-  { _id: "69bd6bb2e1aa8f195c71c32b", FCTM_skill_name: "ANÁLISIS DE DATOS" },
-  { _id: "69bd6bb2e1aa8f195c71c32e", FCTM_skill_name: "ATENCIÓN AL CLIENTE" },
-  { _id: "69bd6bb2e1aa8f195c71c322", FCTM_skill_name: "AWS" },
-  { _id: "69bd6bb2e1aa8f195c71c323", FCTM_skill_name: "AZURE" },
-  { _id: "69bd6bb2e1aa8f195c71c344", FCTM_skill_name: "BOTÁNICA" },
-  { _id: "69bd6bb2e1aa8f195c71c325", FCTM_skill_name: "C#" },
-  { _id: "69bd6bb2e1aa8f195c71c326", FCTM_skill_name: "C++" },
-  { _id: "69bd6bb2e1aa8f195c71c316", FCTM_skill_name: "CIBERSEGURIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c315", FCTM_skill_name: "CLOUD COMPUTING" },
-  { _id: "69bd6bb2e1aa8f195c71c301", FCTM_skill_name: "COMUNICACIÓN EFECTIVA" },
-  { _id: "69bd6bb2e1aa8f195c71c332", FCTM_skill_name: "CONTENT MARKETING" },
-  { _id: "69bd6bb2e1aa8f195c71c345", FCTM_skill_name: "CONTROL DE PLAGAS" },
-  { _id: "69bd6bb2e1aa8f195c71c308", FCTM_skill_name: "CREATIVIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c310", FCTM_skill_name: "CSS3" },
-  { _id: "69bd6bb2e1aa8f195c71c329", FCTM_skill_name: "DESARROLLO DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c30b", FCTM_skill_name: "DESARROLLO WEB" },
-  { _id: "69bd6bb2e1aa8f195c71c335", FCTM_skill_name: "DISEÑO GRÁFICO" },
-  { _id: "69bd6bb2e1aa8f195c71c33b", FCTM_skill_name: "DOCENCIA" },
-  { _id: "69bd6bb2e1aa8f195c71c318", FCTM_skill_name: "DOCKER" },
-  { _id: "69bd6bb2e1aa8f195c71c334", FCTM_skill_name: "E-COMMERCE" },
-  { _id: "69bd6bb2e1aa8f195c71c33c", FCTM_skill_name: "E-LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c33a", FCTM_skill_name: "EDICIÓN DE VÍDEO" },
-  { _id: "69bd6bb2e1aa8f195c71c30a", FCTM_skill_name: "EMPATÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c328", FCTM_skill_name: "ESTRATEGIA DE NEGOCIO" },
-  { _id: "69bd6bb2e1aa8f195c71c337", FCTM_skill_name: "FIGMA" },
-  { _id: "69bd6bb2e1aa8f195c71c343", FCTM_skill_name: "GESTIÓN AMBIENTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c327", FCTM_skill_name: "GESTIÓN DE PROYECTOS" },
-  { _id: "69bd6bb2e1aa8f195c71c303", FCTM_skill_name: "GESTIÓN DEL TIEMPO" },
-  { _id: "69bd6bb2e1aa8f195c71c347", FCTM_skill_name: "GESTIÓN FORESTAL" },
-  { _id: "69bd6bb2e1aa8f195c71c317", FCTM_skill_name: "GIT" },
-  { _id: "69bd6bb2e1aa8f195c71c333", FCTM_skill_name: "GOOGLE ANALYTICS" },
-  { _id: "69bd6bb2e1aa8f195c71c309", FCTM_skill_name: "HABLAR EN PÚBLICO" },
-  { _id: "69bd6bb2e1aa8f195c71c30f", FCTM_skill_name: "HTML5" },
-  { _id: "69bd6bb2e1aa8f195c71c33e", FCTM_skill_name: "INTEGRACIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c31a", FCTM_skill_name: "INTELIGENCIA ARTIFICIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c307", FCTM_skill_name: "INTELIGENCIA EMOCIONAL" },
-  { _id: "69bd6bb2e1aa8f195c71c33d", FCTM_skill_name: "INTERVENCIÓN SOCIAL" },
-  { _id: "69bd6bb2e1aa8f195c71c348", FCTM_skill_name: "JARDINERÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30e", FCTM_skill_name: "JAVA" },
-  { _id: "69bd6bb2e1aa8f195c71c30c", FCTM_skill_name: "JAVASCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c319", FCTM_skill_name: "KUBERNETES" },
-  { _id: "69bd6bb2e1aa8f195c71c2ff", FCTM_skill_name: "LIDERAZGO" },
-  { _id: "69bd6bb2e1aa8f195c71c31b", FCTM_skill_name: "MACHINE LEARNING" },
-  { _id: "69bd6bb2e1aa8f195c71c32f", FCTM_skill_name: "MARKETING DIGITAL" },
-  { _id: "69bd6bb2e1aa8f195c71c306", FCTM_skill_name: "NEGOCIACIÓN" },
-  { _id: "69bd6bb2e1aa8f195c71c312", FCTM_skill_name: "NODE.JS" },
-  { _id: "69bd6bb2e1aa8f195c71c314", FCTM_skill_name: "NOSQL" },
-  { _id: "69bd6bb2e1aa8f195c71c340", FCTM_skill_name: "ORIENTACIÓN LABORAL" },
-  { _id: "69bd6bb2e1aa8f195c71c342", FCTM_skill_name: "PAISAJISMO" },
-  { _id: "69bd6bb2e1aa8f195c71c304", FCTM_skill_name: "PENSAMIENTO CRÍTICO" },
-  { _id: "69bd6bb2e1aa8f195c71c324", FCTM_skill_name: "PHP" },
-  { _id: "69bd6bb2e1aa8f195c71c32a", FCTM_skill_name: "PLANIFICACIÓN ESTRATÉGICA" },
-  { _id: "69bd6bb2e1aa8f195c71c33f", FCTM_skill_name: "PSICOLOGÍA" },
-  { _id: "69bd6bb2e1aa8f195c71c30d", FCTM_skill_name: "PYTHON" },
-  { _id: "69bd6bb2e1aa8f195c71c311", FCTM_skill_name: "REACT" },
-  { _id: "69bd6bb2e1aa8f195c71c32c", FCTM_skill_name: "RECURSOS HUMANOS" },
-  { _id: "69bd6bb2e1aa8f195c71c31e", FCTM_skill_name: "REDES DE COMPUTADORES" },
-  { _id: "69bd6bb2e1aa8f195c71c302", FCTM_skill_name: "RESOLUCIÓN DE PROBLEMAS" },
-  { _id: "69bd6bb2e1aa8f195c71c331", FCTM_skill_name: "SEM" },
-  { _id: "69bd6bb2e1aa8f195c71c330", FCTM_skill_name: "SEO" },
-  { _id: "69bd6bb2e1aa8f195c71c31c", FCTM_skill_name: "SOPORTE TÉCNICO" },
-  { _id: "69bd6bb2e1aa8f195c71c346", FCTM_skill_name: "SOSTENIBILIDAD" },
-  { _id: "69bd6bb2e1aa8f195c71c313", FCTM_skill_name: "SQL" },
-  { _id: "69bd6bb2e1aa8f195c71c300", FCTM_skill_name: "TRABAJO EN EQUIPO" },
-  { _id: "69bd6bb2e1aa8f195c71c31f", FCTM_skill_name: "TYPESCRIPT" },
-  { _id: "69bd6bb2e1aa8f195c71c336", FCTM_skill_name: "UI/UX" },
-  { _id: "69bd6bb2e1aa8f195c71c32d", FCTM_skill_name: "VENTAS" },
-  { _id: "69bd6bb2e1aa8f195c71c321", FCTM_skill_name: "VUE.JS" }
-];
-
-//Qué vamos a normalizar
-const normalizationConfig = [
+const normalizationConfigFactory = (skillOpts) => [
   {
     field: "FCTM_company_category",
     options: categoryOptions,
@@ -129,23 +51,12 @@ const normalizationConfig = [
   },
   {
     field: "FCTM_skills",
-    options: skillOptions,
+    options: skillOpts,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name",
     type: "multi"
   }
 ];
-
-/*const formatDateDDMMYYYY = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-};*/
 
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
@@ -170,28 +81,7 @@ const camposSAO = [
   { key: "SAO_company_deedDate", label: "Fecha de Escritura" }
 ];
 
-const camposFCTM = [
-  /*{ 
-    key: "FCTM_company_category", 
-    label: "Familia Profesional", 
-    type: "select", 
-    options: [
-      { _id: "698e16964ea3b9a3e39c3757", nombre: "Desarrollo de Aplicaciones Web" },
-      { _id: "698e16e54ea3b9a3e39c3759", nombre: "Integración Social" },
-      { _id: "698e16cb4ea3b9a3e39c3758", nombre: "Sistemas Microinformáticos y Redes" }
-      
-    ],
-    render: data => {
-        if (Array.isArray(data.FCTM_company_category) && data.FCTM_company_category.length > 0) {
-            return data.FCTM_company_category
-                .map(cat => cat.FCTM_category_name || cat.nombre)
-                .filter(Boolean)
-                .join(', ');
-        }
-        // Si no es array (está en modo edición/id suelto)
-        return data.FCTM_company_category?.nombre || data.FCTM_company_category || "Sin asignar";
-    }
-  },*/
+const camposFCTMFactory = (skillOpts) => [
   {
     key: "FCTM_company_category",
     label: "Familias Profesionales",
@@ -203,8 +93,8 @@ const camposFCTM = [
   {
     key: "FCTM_skills",
     label: "Aptitudes/Tecnologías",
-    type: "select-multi", 
-    options: skillOptions,
+    type: "select-multi-creatable", 
+    options: skillOpts,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
   },
@@ -234,25 +124,32 @@ const ShowCompany = () => {
   const [avatarUrl, setAvatarUrl] = useState("");
   const hostAPI = getBackendHost()
 
+  const [skillOptions, setSkillOptions] = useState([]);
+  
+  const normalizationConfig = useMemo(() => normalizationConfigFactory(skillOptions), [skillOptions]);
+  const camposFCTM = useMemo(() => camposFCTMFactory(skillOptions), [skillOptions]);
+
   const fetchCompany = useCallback(async () => {
     setLoading(true);
-    const res = await sendRequest("GET", null, `/companies/${id}`);
-    if (res.success) {
-      
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
-      /*const normalizedData = { ...res.data };
-      
-      // Normalizamos la categoría (si es objeto, sacamos el ID)
-      if (Array.isArray(res.data.FCTM_company_category) && res.data.FCTM_company_category.length > 0) {
-        const cat = res.data.FCTM_company_category[0];
-        normalizedData.FCTM_company_category = typeof cat === 'object' ? cat._id : cat;
-      }*/
+
+    const [resSkills, resCompany] = await Promise.all([
+      sendRequest("GET", null, "/skills"),
+      sendRequest("GET", null, `/companies/${id}`)
+    ]);
+
+    let loadedSkills = [];
+    if (resSkills.success) {
+      loadedSkills = resSkills.data;
+      setSkillOptions(loadedSkills);
+    }
+
+    if (resCompany.success) {
+      const currentNormConfig = normalizationConfigFactory(loadedSkills);
+      const normalized = normalizeFromApi(resCompany.data, currentNormConfig);
       
       setData(normalized);
-      //setOriginalData(JSON.parse(JSON.stringify(normalizedData)));
       setOriginalData(normalized);
-      setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
-
+      setAvatarUrl(resCompany.data?.FCTM_documents[0]?.FCTM_document_url || "");
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -322,31 +219,38 @@ const ShowCompany = () => {
   ]), [navigate, id, handleDeleteJobOffer]);
 
   const handleSave = async () => {
-    /*const payload = {
-      FCTM_company_category: data.FCTM_company_category ? [data.FCTM_company_category] : [], 
-      FCTM_company_openToHire: data.FCTM_company_openToHire,
-      FCTM_company_other_contact: data.FCTM_company_other_contact || "",
-      FCTM_company_observations: data.FCTM_company_observations || "",
-    };*/
-    // 1️⃣ Solo campos FCTM_
-    const fctmOnly = pickFCTMFields(data);
+    try {
+      // Create any missing skills and get array of _id's
+      const skillIds = await ensureSkills(data.FCTM_skills);
 
-    // 2️⃣ Normalizamos selects
-    const payload = normalizeToApi(fctmOnly, normalizationConfig);
+      // 1. Solo campos FCTM_
+      const fctmOnly = pickFCTMFields(data);
 
-    console.log(payload)
-    const res = await sendRequest("PATCH", payload, `/companies/${id}`);
-    
-    if (res.success) {
-      const normalized = normalizeFromApi(res.data, normalizationConfig);
-      //showAlert("Empresa actualizada con éxito", "success");
-      setData(normalized);
-      setOriginalData(normalized);
-      setIsEditing(false);
-      // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
-      //fetchCompany(); 
-    } else {
-      showAlert(res.message || "Error al guardar los cambios", "error");
+      // 2. Normalizamos selects
+      const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
+
+      const finalPayload = {
+        ...payloadNormalizado,
+        FCTM_skills: skillIds
+      };
+
+      console.log(finalPayload)
+      const res = await sendRequest("PATCH", finalPayload, `/companies/${id}`);
+      
+      if (res.success) {
+        const normalized = normalizeFromApi(res.data, normalizationConfig);
+        //showAlert("Empresa actualizada con éxito", "success");
+        setData(normalized);
+        setOriginalData(normalized);
+        setIsEditing(false);
+        // RECARGAMOS para recuperar el populate de las ofertas y que no desaparezcan de la tabla
+        //fetchCompany(); 
+      } else {
+        showAlert(res.message || "Error al guardar los cambios", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert("Error crítico", "error");
     }
   };
 
