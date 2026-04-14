@@ -7,7 +7,8 @@ import {
   formatDateDDMMYYYYHHmm,
   getBackendHost,
   normalizeFromApi,
-  normalizeToApi
+  normalizeToApi,
+  ensureSkills
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -104,7 +105,7 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
   {
     key: "FCTM_skills",
     label: "Skills",
-    type: "select-multi",
+    type: "select-multi-creatable",
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
@@ -230,15 +231,33 @@ const ShowStudent = () => {
   ========================= */
 
   const handleSave = async () => {
-    const fctmOnly = normalizeToApi(data, normalizationConfig);
+    try {
+      // 1. Asegurar que todas las skills existan (crea nuevas si es necesario)
+      const skillIds = await ensureSkills(data.FCTM_skills);
 
-    const res = await sendRequest("PATCH", fctmOnly, `/students/${id}`);
+      // 2. Normalizar TODO (incluyendo la estructura, las skills se ignoran en normalizeToApi)
+      const payloadNormalizado = normalizeToApi(data, normalizationConfig);
 
-    if (res.success) {
-      await fetchStudent();
-      setIsEditing(false);
-    } else {
-      showAlert(res.message, "error");
+      // 3. Inyectar los IDs finales manualmente (sobrescribe cualquier cosa)
+      const finalPayload = {
+        ...payloadNormalizado,
+        FCTM_skills: skillIds
+      };
+
+      console.log("Final Payload antes de enviar:", finalPayload);
+
+      // 4. Guardar el estudiante
+      const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
+
+      if (res.success) {
+        await fetchStudent();
+        setIsEditing(false);
+      } else {
+        showAlert(res.message, "error");
+      }
+    } catch (err) {
+      console.error("Error en handleSave:", err);
+      showAlert("Error crítico al guardar", "error");
     }
   };
 
