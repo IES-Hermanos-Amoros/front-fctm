@@ -14,6 +14,8 @@ import 'bootstrap/dist/js/bootstrap.min.js';
 import './styles/app.css'
 
 import useEnumStore from './store/enumStore';
+import useCategoryStore from './store/categoryStore';
+
 
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from "./views/Auth/Login"
@@ -27,11 +29,13 @@ import PrivateLayout from './layouts/PrivateLayout';
 function App() {
 
   const cargarEnums = useEnumStore((state) => state.cargarEnums);
+  const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
   useEffect(() => {
     // Se ejecuta una sola vez al arrancar la app
     cargarEnums();
-  }, [cargarEnums]);
+    cargarCategorias();
+  }, [cargarEnums, cargarCategorias]);
 
   return (
       <Routes>

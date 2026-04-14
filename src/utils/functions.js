@@ -392,6 +392,12 @@ export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
 export const normalizeFromApi = (data, configs = []) => {
   let normalized = { ...data };
 
+    // Definimos la lógica de fecha internamente para usarla cuando se necesite
+    const formatToInputDate = (value) => {
+        if (!value || typeof value !== "string") return "";
+        return value.includes("T") ? value.split("T")[0] : value;
+    };
+
   configs.forEach(config => {
     const {
       field,
@@ -403,6 +409,13 @@ export const normalizeFromApi = (data, configs = []) => {
 
     if (!normalized[field]) {
       normalized[field] = type === "multi" ? [] : null;
+      return;
+    }
+
+
+    // --- NUEVA LÓGICA PARA FECHAS ---
+    if (type === "date") {
+      normalized[field] = formatToInputDate(normalized[field]);
       return;
     }
 
@@ -447,6 +460,11 @@ export const normalizeToApi = (data, configs = []) => {
 
   configs.forEach(config => {
     const { field, type = "single" } = config;
+
+    // SI EL CAMPO NO ESTÁ EN LOS DATOS QUE QUEREMOS ENVIAR, NO HACEMOS NADA
+    if (!(field in normalized)) {
+      return; 
+    }
 
     if (!normalized[field]) {
       normalized[field] = type === "multi" ? [] : null;
@@ -531,4 +549,35 @@ export const validateStrongPassword = (password) => {
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._\-#])[A-Za-z\d@$!%*?&._\-#]{8,}$/;
 
   return strongPasswordRegex.test(password);
+};
+
+export const extractSkillNames = (skills) => {
+  if (!skills) return [];
+
+  return skills.map(s => {
+    let name = null;
+
+    if (typeof s === "string") name = s;
+    else if (s.label) name = s.label;
+    else if (s.FCTM_skill_name) name = s.FCTM_skill_name;
+
+    return name ? name.trim().toUpperCase() : null;
+  }).filter(Boolean);
+};
+
+export const ensureSkills = async (skills) => {
+
+  const names = extractSkillNames(skills);
+
+  const res = await sendRequest(
+    "POST",
+    { names },
+    "/skills/ensure"
+  );
+
+  if (!res.success) {
+    throw new Error("Error ensuring skills");
+  }
+
+  return res.data; // ids
 };

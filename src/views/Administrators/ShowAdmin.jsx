@@ -1,9 +1,18 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert } from "../../utils/functions";
+import {
+  sendRequest,
+  showAlert,
+  normalizeFromApi,
+  normalizeToApi,
+  pickFCTMFields
+} from "../../utils/functions";
+
+import useCategoryStore from "../../store/categoryStore";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
+import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -16,25 +25,47 @@ const SAO_FIELDS = [
   { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" }
 ];
 
-const FCTM_FIELDS = [
-  { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" }
-];
-
-const toInputDate = (value) => {
-  if (!value) return "";
-  if (typeof value !== "string") return "";
-  return value.includes("T") ? value.split("T")[0] : value;
-};
-
 const ShowAdmin = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const categories = useCategoryStore((state) => state.categories);
+  const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState("");
 
+  // ✅ 1. Asegurar options siempre válidas
+  const safeCategories = useMemo(() => categories || [], [categories]);
+
+  const normalizationConfig = useMemo(() => [
+    {
+      field: "FCTM_company_category",
+      options: safeCategories,
+      optionValue: "_id",
+      optionLabel: "FCTM_category_name",
+      type: "multi"
+    },
+    { field: "SAO_registryDate", type: "date" },
+    { field: "SAO_accessDate", type: "date" }
+  ], [safeCategories]);
+
+  const FCTM_FIELDS = useMemo(() => [
+    { key: "FCTM_contact_email", label: "Email de Contacto", type: "email" },
+    {
+      key: "FCTM_company_category",
+      label: "Categorías",
+      type: "select-multi",
+      options: safeCategories,
+      optionValue: "_id",
+      optionLabel: "FCTM_category_name"
+    }
+  ], [safeCategories]);
+
+  // ✅ 2. Fetch admin SOLO cuando categorías están listas
   const fetchAdmin = useCallback(async () => {
     if (!id) {
       setLoading(false);
@@ -46,35 +77,40 @@ const ShowAdmin = () => {
     const res = await sendRequest("GET", null, `/administrators/${id}`);
 
     if (res.success) {
-      const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate)
-      };
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
 
       setData(normalized);
       setOriginalData(normalized);
+      setAvatarUrl(res.data?.FCTM_documents?.[0]?.FCTM_document_url || "");
     } else {
       showAlert(res.message, "error");
     }
 
     setLoading(false);
-  }, [id]);
+  }, [id, normalizationConfig]);
+
+  // ✅ 3. Cargar categorías + admin en orden correcto
+  useEffect(() => {
+    const init = async () => {
+      await cargarCategorias();
+    };
+    init();
+  }, [cargarCategorias]);
+
+  useEffect(() => {
+    if (categories?.length > 0) {
+      fetchAdmin();
+    }
+  }, [categories, fetchAdmin]);
 
   const handleSave = async () => {
-    const payload = {
-      FCTM_contact_email: data?.FCTM_contact_email || null
-    };
+    const fctmOnly = pickFCTMFields(data);
+    const payload = normalizeToApi(fctmOnly, normalizationConfig);
 
     const res = await sendRequest("PATCH", payload, `/administrators/${id}`);
 
     if (res.success) {
-      const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate)
-      };
-
+      const normalized = normalizeFromApi(res.data, normalizationConfig);
       setData(normalized);
       setOriginalData(normalized);
       setIsEditing(false);
@@ -95,10 +131,6 @@ const ShowAdmin = () => {
     setIsEditing(false);
   };
 
-  useEffect(() => {
-    fetchAdmin();
-  }, [fetchAdmin]);
-
   if (loading) return <p>Cargando datos...</p>;
   if (!id) return <p>Falta el id del administrador en la URL.</p>;
   if (!data) return <p>No se encontraron datos del administrador.</p>;
@@ -107,13 +139,13 @@ const ShowAdmin = () => {
     <section className="dashboard section">
       <ShowHeader
         title={`Perfil de ${data?.SAO_name || "Administrador"}`}
-        onBack={() => {
-          if (window.history.length > 1) {
-            navigate(-1);
-          } else {
-            navigate("/");
-          }
-        }}
+        onBack={() => navigate(-1)}
+      />
+
+      <UserAvatarUploader
+        userId={id}
+        avatarUrl={avatarUrl}
+        onUploadSuccess={fetchAdmin}
       />
 
       <ShowEditableForm

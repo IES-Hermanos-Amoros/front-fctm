@@ -141,3 +141,19 @@
     background-color: var(--bgColor);
     color: #fff;
 }
+
+.header-nav .profile .dropdown-item.logout-item {
+    color: #dc3545;
+}
+
+.header-nav .profile .dropdown-item.logout-item:hover,
+.header-nav .profile .dropdown-item.logout-item:focus {
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.12), rgba(220, 53, 69, 0.22));
+    color: #dc3545;
+    transform: translateX(2px);
+}
+
+.header-nav .profile .dropdown-item.logout-item:hover i,
+.header-nav .profile .dropdown-item.logout-item:focus i {
+    color: #dc3545;
+}

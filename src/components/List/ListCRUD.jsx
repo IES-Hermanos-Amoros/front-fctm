@@ -1,5 +1,6 @@
 import React from "react";
 import ReactTableTanstack from "./ReactTableTanstack";
+import ReactTableToolBar from "./ReactTableToolBar";
 
 const ListCRUD = ({
   title = "",
@@ -10,16 +11,66 @@ const ListCRUD = ({
   mostrarCheckBox = false,
   selectedIds = [], // NUEVA PROP
   onSelectionChange, // NUEVA PROP
+  filters = {},
+  onFilterChange,
+  filtersConfig = [],
   children, // para botones externos si quieres
 }) => {
   return (
     <section className="dashboard section">
+
+      {/* FILTRO TEMPORAL INI */}
+      {/*<div className="row mb-2">
+        {filtersConfig.map(filter => (
+          <div className="col-md-4" key={filter.key}>
+            <select
+              className="form-select"
+              value={filters[filter.key] || ""}
+              onChange={(e) =>
+                onFilterChange(prev => ({
+                  ...prev,
+                  [filter.key]: e.target.value
+                }))
+              }
+            >
+              <option value="">Todos - {filter.label}</option>
+
+              {filter.options.map(opt => (
+                <option
+                  key={opt[filter.optionValue]}
+                  value={opt[filter.optionValue]}
+                >
+                  {opt[filter.optionLabel]}
+                </option>
+              ))}
+            </select>
+          </div>
+        ))}
+      </div>*/}
+      {/* FILTRO TEMPORAL FIN */}
+
+    
       <div className="row mb-3">
         <div className="col-12">
           {/*{title && <h3 className="m-0">{title}</h3>}*/}
           {children} {/* BOTON NUEVO - Ir al .../new */}
         </div>
       </div>
+
+      {/* TOOLBAR DE EXPORTACIÓN */}
+      <div className="row">
+        <div className="col-12">
+          <ReactTableToolBar 
+            data={datos}
+            columns={columnas}
+            title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
+            filters={filters}
+            onFilterChange={onFilterChange}
+            filtersConfig={filtersConfig}
+          />
+        </div>
+      </div>
+
 
       <div className="row">
         <div className="col-12">

@@ -3,7 +3,7 @@ const navList = [
     _id: 1,
     name: 'Perfil',
     icon: 'bi bi-person',
-    path: '/'
+    path: '/dashboard'
     },
     {
     _id: 2,
@@ -31,6 +31,12 @@ const navList = [
     },
     {
     _id: 6,
+    name: 'FCTs',
+    icon: 'bi bi-briefcase',
+    path: '/fcts'
+    },
+    {
+    _id: 7,
     name: 'Datos Dummy',
     icon: 'bi bi-envelope',
     path: '/dummy'

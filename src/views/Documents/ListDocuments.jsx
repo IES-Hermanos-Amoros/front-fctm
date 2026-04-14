@@ -1,151 +1,220 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react'
-import { sendRequest } from '../../utils/functions';
-import { useNavigate } from 'react-router-dom';
-import "./ListDocuments.css"
-import ListCRUD from "../../components/List/ListCRUD";
-
-
-let documentosOLD = [
-    { _id: 1,
-      nombre: "Decreto 485/2025",
-      ruta: "../documents/doc1.pdf",
-      autor: "María",
-      observaciones: "Es un documento muy bonito"
-     },
-     { _id: 2,
-      nombre: "Ley 1111",
-      ruta: "../documents/doc2.pdf",
-      autor: "María",
-      observaciones: "Es un documento muy bonito"
-     },
-     { _id: 3,
-      nombre: "Currículum Pepe",
-      ruta: "../documents/doc3.pdf",
-      autor: "María",
-      observaciones: "Es un documento muy bonito"
-     }
-  ]
-
-  const colDocumentosOLD = [
-        {   key:"_id", encabezado: "#"} ,
-        {   key:"nombre", encabezado: "Nombre"} ,
-        {   key:"ruta", encabezado: "Ruta"},
-        {   key:"autor", encabezado: "Autor"},
-        {   key:"observaciones", encabezado: "Observaciones"}        
-    ]
-
+import React, { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
+import {
+  sendRequest,
+  getBackendHost,
+  formatDateDDMMYYYYHHmm,
+  showAlert,
+} from '../../utils/functions'
+import './ListDocuments.css'
+import ListCRUD from '../../components/List/ListCRUD'
 
 const ListDocuments = () => {
+  const [documentos, setDocumentos] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const [documentos, setDocumentos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [nextId, setNextId] = useState(4); // Para simular ID incremental
-  const navigate = useNavigate();
+  const hostAPI = getBackendHost()
 
+  const handleDownload = async row => {
+    try {
+      // Intentamos la descarga mediante el endpoint protegido que hemos creado
+      // Usamos axios directamente para manejar el blob
+      const url = `${hostAPI}/documents/${row._id}/download`
 
+      const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'blob', // Importante para manejar archivos
+        withCredentials: true,
+      })
 
+      // Si llegamos aquí, el archivo existe y se ha descargado
+      const downloadUrl = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.setAttribute('download', row.FCTM_document_name || 'archivo')
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(downloadUrl)
+    } catch (err) {
+      console.error('Error en la descarga:', err)
 
-     // Fetch de empresas
-      const fetchData = useCallback(async () => {
-          setLoading(true);
-          setError(null);
-          try {
-              const res = await sendRequest('GET', null, '/documents');
-              if (res.success) setDocumentos(res.data);
-              else setError(res.message || 'Error al cargar documentos');
-          } catch (err) {
-              setError(err.message || 'Error al cargar documentos');
-          } finally {
-              setLoading(false);
-          }
-      }, []);
-
-    /*const getDocumentsFetch = async() => {
-         setLoading(true);
-        await fetch('http://localhost:4000/documents')
-          .then(res => res.json())
-          .then(data => {
-              setDocumentos(data);
-          })
-          .catch(e => console.log(e.message))
-          .finally(()=>{
-            setLoading(false);
-          })
-    }*/
-
-    // Simular GET
-    const getDocuments = () => {
-      setLoading(true);
-      setTimeout(() => {
-        setDocumentos(documentosOLD);
-        setLoading(false);
-      }, 500);
-    };
-
-
-    // Simular POST
-  const crearDocumento = () => {
-    const nuevo = {
-      _id: nextId,
-      nombre: `Documento ${nextId}`,
-      ruta: `../documents/doc${nextId}.pdf`
-    };
-    const nuevosDocs = [...documentosOLD, nuevo];
-    documentosOLD = nuevosDocs; // Persistimos en memoria
-    setDocumentos(nuevosDocs);
-    setNextId(prev => prev + 1);
-  };
-
-  // Simular DELETE
-  const eliminarDocumento = (id) => {
-    const confirmado = window.confirm("¿Estás seguro?");
-    if (confirmado) {
-      const nuevosDocs = documentosOLD.filter(doc => doc._id !== id);
-      documentosOLD = nuevosDocs; //Persistimos en memoria
-      setDocumentos(nuevosDocs);
+      // Si el error es 404, mostramos el mensaje de SweetAlert2
+      if (err.response && err.response.status === 404) {
+        showAlert('El archivo no existe en el servidor', 'error')
+      } else {
+        showAlert('Error al intentar descargar el archivo', 'error')
+      }
     }
-  };
+  }
 
-    useEffect(() => { fetchData(); }, [fetchData]);
+  // Fetch de documentos
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await sendRequest('GET', null, '/documents')
+      if (res.success) setDocumentos(res.data)
+      else setError(res.message || 'Error al cargar documentos')
+    } catch (err) {
+      setError(err.message || 'Error al cargar documentos')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-    
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
   const colDocumentos = [
-        {   key:"_id", encabezado: "#"} ,
-        {   key:"FCTM_document_name", encabezado: "Nombre"} ,
-        {   key:"FCTM_document_url", encabezado: "Ruta"},
-        {   key:"FCTM_document_description", encabezado: "Descripción"},
-        {   key:"FCTM_document_type", encabezado: "Tipo Doc."}        
-    ]
+    { key: 'FCTM_document_name', encabezado: 'Nombre' },
+    { key: 'FCTM_document_description', encabezado: 'Descripción' },
+    { key: 'FCTM_document_type', encabezado: 'Tipo' },
+    {
+      key: 'related_to',
+      encabezado: 'Relacionado con',
+      render: row => {
+        const relations = []
 
-  
+        // Oferta de trabajo
+        if (row.oferta_relacionada && row.oferta_relacionada.length > 0) {
+          row.oferta_relacionada.forEach(oferta => {
+            relations.push(
+              <div
+                key={`offer-${oferta._id}`}
+                className="badge bg-primary me-1"
+                title="Oferta de Trabajo"
+              >
+                <i className="bi bi-briefcase me-1"></i>
+                {oferta.FCTM_job_title}{' '}
+                {oferta.empresa ? `(${oferta.empresa.SAO_name})` : ''}
+              </div>
+            )
+          })
+        }
 
-  function verFicha(id){
-    navigate(`/documents/${id}`);
-  }
+        // Usuarios (Alumnos/Profesores/Empresas)
+        if (row.usuarios_relacionados && row.usuarios_relacionados.length > 0) {
+          row.usuarios_relacionados.forEach(user => {
+            let badgeClass = 'bg-secondary'
+            let iconClass = 'bi-person'
 
-  function eliminar(){
-    alert("Eliminando...")
-  }
+            if (user.SAO_profile === 'ALUMNO') {
+              badgeClass = 'bg-success'
+              iconClass = 'bi-mortarboard'
+            } else if (user.SAO_profile === 'PROFESOR') {
+              badgeClass = 'bg-info text-dark'
+              iconClass = 'bi-person-badge'
+            }
+
+            relations.push(
+              <div
+                key={`user-${user._id}`}
+                className={`badge ${badgeClass} me-1`}
+                title={user.SAO_profile}
+              >
+                <i className={`bi ${iconClass} me-1`}></i>
+                {user.SAO_name}
+              </div>
+            )
+          })
+        }
+
+        // Acciones
+        if (row.acciones_relacionadas && row.acciones_relacionadas.length > 0) {
+          row.acciones_relacionadas.forEach(accion => {
+            relations.push(
+              <div
+                key={`action-${accion._id}`}
+                className="badge bg-warning text-dark me-1"
+                title="Acción"
+              >
+                <i className="bi bi-activity me-1"></i>
+                {accion.FCTM_action_title || accion.FCTM_action_type}
+              </div>
+            )
+          })
+        }
+
+        return relations.length > 0 ? (
+          <div className="d-flex flex-wrap gap-1">{relations}</div>
+        ) : (
+          <span className="text-muted small">Sin relación</span>
+        )
+      },
+    },
+    {
+      key: 'FCTM_inserted_date',
+      encabezado: 'Fecha Subida',
+      render: row => (
+        <span className="small">
+          {formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)}
+        </span>
+      ),
+    },
+    {
+      key: 'FCTM_document_created_by',
+      encabezado: 'Subido por',
+      render: row =>
+        row.FCTM_document_created_by ? (
+          row.FCTM_document_created_by.SAO_name
+        ) : (
+          <span className="text-muted">-</span>
+        ),
+    },
+    {
+      key: 'FCTM_document_url',
+      encabezado: 'Descarga',
+      render: row => {
+        if (!row || !row.FCTM_document_url)
+          return <span className="text-muted">-</span>
+
+        return (
+          <button
+            onClick={() => handleDownload(row)}
+            className="btn btn-sm btn-outline-primary"
+            title="Descargar archivo"
+          >
+            <i className="bi bi-download"></i>
+          </button>
+        )
+      },
+    },
+  ]
 
   return (
-    <>            
-            {loading && <p>Cargando documentos...</p>}
-            {!loading && error && <p className="text-danger">{error}</p>}
-            {!loading && !error && documentos.length === 0 && (
-                <p className="text-muted">No hay documentos disponibles</p>
-            )}
-            {!loading && !error && documentos.length > 0 && (                
-                <ListCRUD
-                  title="Gestión Documental"
-                  datos={documentos}
-                  columnas={colDocumentos}
-                  tableId="documentos"                          
-                >                          
-                </ListCRUD>
-            )}
-        </>
-);
+    <div className="container-fluid py-4">
+      <div className="row">
+        <div className="col-12">
+          {loading && (
+            <div className="text-center my-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Cargando...</span>
+              </div>
+              <p className="mt-2">Cargando documentos...</p>
+            </div>
+          )}
+          {!loading && error && (
+            <div className="alert alert-danger" role="alert">
+              <i className="bi bi-exclamation-triangle me-2"></i>
+              {error}
+            </div>
+          )}
+          {!loading && !error && (
+            <ListCRUD
+              title="Repositorio Documental"
+              datos={documentos}
+              columnas={colDocumentos}
+              tableId="documentos"
+            ></ListCRUD>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default ListDocuments
