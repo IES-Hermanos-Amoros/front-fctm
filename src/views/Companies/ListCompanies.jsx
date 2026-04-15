@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest,stringToColor } from '../../utils/functions';
+import { sendRequest,stringToColor,formatDateDDMMYYYY } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
 
@@ -16,26 +16,11 @@ const ListCompanies = () => {
         { key: 'SAO_username', encabezado: 'CIF' },
         { key: 'SAO_name', encabezado: 'Nombre' },
         { key: 'SAO_company_FCT_Number', encabezado: 'Nº Convenio FE' },
+        { key: 'SAO_company_FCT_Date', 
+          encabezado: 'Fecha Convenio FE',
+          render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
+        },
         { key: 'SAO_company_city', encabezado: 'Localidad' },
-        /*{
-            key: 'FCTM_company_category',
-            encabezado: 'Familia',
-            render: row => {
-                // Si es array y tiene datos, mostrar todos los nombres separados por coma
-                if (Array.isArray(row.FCTM_company_category) && row.FCTM_company_category.length > 0) {
-                    return row.FCTM_company_category
-                        .map(cat => cat.FCTM_category_name)
-                        .filter(Boolean)
-                        .join(', ');
-                }
-                // Si es objeto
-                if (row.FCTM_company_category?.FCTM_category_name) {
-                    return row.FCTM_company_category.FCTM_category_name;
-                }
-                // Si no hay familia
-                return 'Sin familia';
-            }
-        },*/
         { key: "FCTM_company_category",
               encabezado: "Familias Profesionales",
               // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR

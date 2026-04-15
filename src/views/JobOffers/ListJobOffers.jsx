@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { sendRequest, confirmation, showAlert, stringToColor } from '../../utils/functions'
+import { sendRequest, confirmation, showAlert, stringToColor, formatDateDDMMYYYY } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
 
@@ -11,17 +11,6 @@ const ListJobOffers = () => {
 
   const navigate = useNavigate()
 
-  // Formateador de fechas
-  const formatDate = dateString => {
-    if (!dateString) return '-'
-    const date = new Date(dateString)
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  }
-
   // =======================
   // COLUMNAS MEMORIZADAS
   // =======================
@@ -32,13 +21,13 @@ const ListJobOffers = () => {
       {
         key: 'FCTM_job_start_date',
         encabezado: 'Fec.Ini',
-        render: row => formatDate(row.FCTM_job_start_date),
+        render: row => formatDateDDMMYYYY(row.FCTM_job_start_date),
       },
 
       {
         key: 'FCTM_job_end_date',
         encabezado: 'Fec.Fin',
-        render: row => formatDate(row.FCTM_job_end_date),
+        render: row => formatDateDDMMYYYY(row.FCTM_job_end_date),
       },
 
       {
