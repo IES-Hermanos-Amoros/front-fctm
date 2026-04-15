@@ -5,7 +5,8 @@ import {
   showAlert,
   normalizeFromApi,
   normalizeToApi,
-  pickFCTMFields
+  pickFCTMFields,
+  validateStrongPassword // ✅ Importamos validación
 } from "../../utils/functions";
 
 import useCategoryStore from "../../store/categoryStore";
@@ -13,6 +14,7 @@ import useCategoryStore from "../../store/categoryStore";
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword"; // ✅ Importamos sección
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -37,6 +39,7 @@ const ShowAdmin = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [passwordData, setPasswordData] = useState(null); // ✅ Nuevo estado para password
 
   // ✅ 1. Asegurar options siempre válidas
   const safeCategories = useMemo(() => categories || [], [categories]);
@@ -107,12 +110,42 @@ const ShowAdmin = () => {
     const fctmOnly = pickFCTMFields(data);
     const payload = normalizeToApi(fctmOnly, normalizationConfig);
 
+    // ✅ Lógica de Password integrada
+    const isChangingPassword = !!passwordData;
+    if (isChangingPassword) {
+      const currentPassword = passwordData.password?.trim() || "";
+      const newPassword = passwordData.newPassword?.trim() || "";
+      const repeatPassword = passwordData.repeatPassword?.trim() || "";
+
+      if (!currentPassword || !newPassword || !repeatPassword) {
+        showAlert("Para cambiar la contraseña, debe rellenar los 3 campos", "error");
+        return;
+      }
+
+      if (!validateStrongPassword(newPassword)) {
+        showAlert(
+          "La nueva contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial",
+          "error"
+        );
+        return;
+      }
+
+      if (newPassword !== repeatPassword) {
+        showAlert("La nueva contraseña y su repetición no coinciden", "error");
+        return;
+      }
+
+      payload.password = currentPassword;
+      payload.newPassword = newPassword;
+    }
+
     const res = await sendRequest("PATCH", payload, `/administrators/${id}`);
 
     if (res.success) {
       const normalized = normalizeFromApi(res.data, normalizationConfig);
       setData(normalized);
       setOriginalData(normalized);
+      setPasswordData(null); // Limpiamos datos de password
       setIsEditing(false);
     } else {
       showAlert(res.message, "error");
@@ -128,6 +161,7 @@ const ShowAdmin = () => {
 
   const handleCancel = () => {
     setData(originalData);
+    setPasswordData(null); // Limpiamos datos de password al cancelar
     setIsEditing(false);
   };
 
@@ -166,6 +200,12 @@ const ShowAdmin = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      {/* ✅ Nueva sección de password */}
+      <SectionChangePassword
+        isEditing={isEditing}
+        onChange={setPasswordData}
       />
     </section>
   );

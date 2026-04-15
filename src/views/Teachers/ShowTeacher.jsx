@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, normalizeFromApi, normalizeToApi, pickFCTMFields, getBackendHost } from "../../utils/functions";
+import { 
+  sendRequest, 
+  showAlert, 
+  normalizeFromApi, 
+  normalizeToApi, 
+  pickFCTMFields, 
+  validateStrongPassword // ✅ Importado
+} from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword"; // ✅ Importado
 
 import useCategoryStore from "../../store/categoryStore";
-
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -19,7 +26,6 @@ const SAO_FIELDS = [
   { key: "SAO_email", label: "Correo Electrónico", type: "email" },
   { key: "SAO_phone", label: "Teléfono de Contacto", type: "text" },
 ];
-
 
 const ShowTeacher = () => {
   const { id } = useParams();
@@ -33,6 +39,8 @@ const ShowTeacher = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [passwordData, setPasswordData] = useState(null); // ✅ Nuevo estado para password
+
   // ✅ 1. Asegurar options siempre válidas
   const safeCategories = useMemo(() => categories || [], [categories]);
 
@@ -73,53 +81,59 @@ const ShowTeacher = () => {
     }
 
     setLoading(true);
-
     const res = await sendRequest("GET", null, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
-      //const configSoloCategorias = normalizationConfig.filter(c => c.field === "FCTM_category");
       const dataNormalizada = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataNormalizada)
-
       setData(dataNormalizada);
       setOriginalData(dataNormalizada);
       setAvatarUrl(res.data?.FCTM_documents[0]?.FCTM_document_url || "");
     } else {
       showAlert(res.message, "error");
     }
-
     setLoading(false);
   }, [id, normalizationConfig]);
 
   const handleSave = async () => {
-    /*const payload = {
-      FCTM_contact_email: data?.FCTM_contact_email || null,
-      FCTM_teacher_observations: data?.FCTM_teacher_observations || null,
-      FCTM_teacher_other_contact: data?.FCTM_teacher_other_contact || null,
-    };*/
-
     const fctmOnly = pickFCTMFields(data);
-    const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
-    const res = await sendRequest("PATCH", payloadNormalizado, `/teachers/${id}`);
+    const payload = normalizeToApi(fctmOnly, normalizationConfig);
+
+    // ✅ Lógica de Password integrada
+    const isChangingPassword = !!passwordData;
+    if (isChangingPassword) {
+      const currentPassword = passwordData.password?.trim() || "";
+      const newPassword = passwordData.newPassword?.trim() || "";
+      const repeatPassword = passwordData.repeatPassword?.trim() || "";
+
+      if (!currentPassword || !newPassword || !repeatPassword) {
+        showAlert("Para cambiar la contraseña, debe rellenar los 3 campos", "error");
+        return;
+      }
+
+      if (!validateStrongPassword(newPassword)) {
+        showAlert(
+          "La nueva contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial",
+          "error"
+        );
+        return;
+      }
+
+      if (newPassword !== repeatPassword) {
+        showAlert("La nueva contraseña y su repetición no coinciden", "error");
+        return;
+      }
+
+      payload.password = currentPassword;
+      payload.newPassword = newPassword;
+    }
+
+    const res = await sendRequest("PATCH", payload, `/teachers/${id}`);
 
     if (res.success) {
-      /*const normalized = {
-        ...res.data,
-        SAO_registryDate: toInputDate(res.data?.SAO_registryDate),
-        SAO_accessDate: toInputDate(res.data?.SAO_accessDate),
-      };*/
-
       const dataFinal = normalizeFromApi(res.data, normalizationConfig);
-      console.log(dataFinal)
-      
       setData(dataFinal);
       setOriginalData(dataFinal);
+      setPasswordData(null); // ✅ Reset password tras éxito
       setIsEditing(false);
     } else {
       showAlert(res.message, "error");
@@ -135,10 +149,10 @@ const ShowTeacher = () => {
 
   const handleCancel = () => {
     setData(originalData);
+    setPasswordData(null); // ✅ Reset password tras cancelar
     setIsEditing(false);
   };
 
-  // ✅ 3. Cargar categorías + teacher en orden correcto
   useEffect(() => {
     const init = async () => {
       await cargarCategorias();
@@ -160,13 +174,7 @@ const ShowTeacher = () => {
     <section className="dashboard section">
       <ShowHeader
         title={`Perfil de ${data?.SAO_name || "Profesor"}`}
-        onBack={() => {
-          if (window.history.length > 1) {
-            navigate(-1);
-          } else {
-            navigate("/");
-          }
-        }}
+        onBack={() => navigate(-1)}
       />
 
       <UserAvatarUploader
@@ -193,6 +201,12 @@ const ShowTeacher = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      {/* ✅ Nueva sección de cambio de contraseña */}
+      <SectionChangePassword
+        isEditing={isEditing}
+        onChange={setPasswordData}
       />
     </section>
   );
