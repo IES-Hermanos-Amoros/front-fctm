@@ -7,13 +7,15 @@ import {
   getBackendHost,
   normalizeFromApi,
   normalizeToApi,
-  ensureSkills // IMPORTANTE: Importar para procesar nuevas skills
+  ensureSkills,
+  validateStrongPassword // IMPORTANTE: Importar validación
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword"; // IMPORTANTE: Importar sección
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
@@ -93,7 +95,7 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
   {
     key: "FCTM_skills",
     label: "Skills",
-    type: "select-multi-creatable", // CAMBIO: Ahora permite crear skills
+    type: "select-multi-creatable",
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
@@ -114,6 +116,7 @@ const ShowStudent = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [passwordData, setPasswordData] = useState(null); // NUEVO
   const hostAPI = getBackendHost();
 
   useEffect(() => {
@@ -121,7 +124,6 @@ const ShowStudent = () => {
     cargarCategorias();
   }, [cargarSkills, cargarCategorias]);
 
-  // Mezclamos opciones del store con las que ya tiene el estudiante (para no perder etiquetas)
   const currentSkillOptions = useMemo(() => 
     mergeSkillOptions(skillOptionsStore, originalData?.FCTM_skills || []),
     [skillOptionsStore, originalData]
@@ -196,42 +198,79 @@ const ShowStudent = () => {
   useEffect(() => { fetchStudent(); }, [fetchStudent]);
 
   /* =========================
-     HANDLE SAVE (CON ENSURE SKILLS)
+     HANDLE SAVE (CON PASSWORD)
   ========================= */
   const handleSave = async () => {
     try {
-      // 1. Procesar skills (crear las nuevas y obtener IDs)
+      // 1. Procesar skills
       const skillIds = await ensureSkills(data.FCTM_skills);
 
-      // 2. Normalizar datos para la API
+      // 2. Normalizar datos
       const payloadNormalizado = normalizeToApi(data, normalizationConfig);
 
-      // 3. Inyectar IDs de skills procesadas
+      // 3. Lógica de Password integrada
+      const isChangingPassword = !!passwordData;
+      if (isChangingPassword) {
+        const currentPassword = passwordData.password?.trim() || "";
+        const newPassword = passwordData.newPassword?.trim() || "";
+        const repeatPassword = passwordData.repeatPassword?.trim() || "";
+
+        console.log({
+          current: passwordData.password,
+          newPassword: passwordData.newPassword,
+          repeatPassword: passwordData.repeatPassword
+        });
+
+        if (!currentPassword || !newPassword || !repeatPassword) {
+          showAlert("Para cambiar la contraseña, debe rellenar los 3 campos", "error");
+          return;
+        }
+
+        if (!validateStrongPassword(newPassword)) {
+          showAlert(
+            "La nueva contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial",
+            "error"
+          );
+          return;
+        }
+
+        if (newPassword !== repeatPassword) {
+          showAlert("La nueva contraseña y su repetición no coinciden", "error");
+          return;
+        }
+
+        payloadNormalizado.password = currentPassword;
+        payloadNormalizado.newPassword = newPassword;
+      }
+
       const finalPayload = {
         ...payloadNormalizado,
         FCTM_skills: skillIds,
-        // Aseguramos el booleano para el campo openToWork
         FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
       };
 
       const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
 
       if (res.success) {
-        // Opcional: refrescar el store global de skills si hubo creaciones
         cargarSkills();
         await fetchStudent();
+        setPasswordData(null); // Reset password data
         setIsEditing(false);
       } else {
         showAlert(res.message, "error");
       }
     } catch (err) {
       console.error(err);
-      showAlert("Error al procesar las skills", "error");
+      showAlert("Error al procesar la solicitud", "error");
     }
   };
 
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
-  const handleCancel = () => { setData(originalData); setIsEditing(false); };
+  const handleCancel = () => { 
+    setData(originalData); 
+    setPasswordData(null); // Reset password data
+    setIsEditing(false); 
+  };
 
   const columnasDocuments = [
     { key: "FCTM_document_name", encabezado: "Nombre" },
@@ -278,6 +317,11 @@ const ShowStudent = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      <SectionChangePassword
+        isEditing={isEditing}
+        onChange={setPasswordData}
       />
 
       {data.FCTM_documents?.length > 0 && (

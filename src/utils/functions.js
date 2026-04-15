@@ -4,7 +4,7 @@ import withReactContent from "sweetalert2-react-content"
 
 
 
-export const sendRequest = async (method, params, url, skipComponentReset = false, redir = '') => {
+export const sendRequest = async (method, params, url, skipComponentReset = false, redir = '', mostrarMensaje = true) => {
     let res = {
         success: false,
         status: null,
@@ -33,7 +33,7 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
         res.data = response.data.data ?? response.data;
         res.message = response.data.msg ?? response.data.message ?? "Operación exitosa";
 
-        if (method !== "GET" && res.message) {
+        if (method !== "GET" && res.message && mostrarMensaje) {
             await showAlert(res.message, "success");
         }
 
@@ -572,7 +572,10 @@ export const ensureSkills = async (skills) => {
   const res = await sendRequest(
     "POST",
     { names },
-    "/skills/ensure"
+    "/skills/ensure",
+    false,
+    "",
+    false
   );
 
   if (!res.success) {

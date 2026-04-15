@@ -8,18 +8,20 @@ import {
   normalizeToApi,
   pickFCTMFields,
   formatDateDDMMYYYY,
-  ensureSkills // IMPORTANTE: Asegúrate de importar esto
+  ensureSkills,
+  validateStrongPassword // IMPORTANTE: Añadida validación
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
+import SectionChangePassword from "../../components/User/SectionChangePassword"; // IMPORTANTE: Añadida sección
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
 
-// --- HELPERS DE MERGE ---
+// --- HELPERS DE MERGE (Sin cambios) ---
 const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
   const merged = [...storeSkills];
   const seen = new Set(storeSkills.map(s => s._id));
@@ -44,7 +46,7 @@ const mergeCategoryOptions = (storeCategories = [], entityCategories = []) => {
   return merged;
 };
 
-// --- CAMPOS ---
+// --- CAMPOS (Sin cambios) ---
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -69,7 +71,7 @@ const buildCamposFCTM = (skillOptions, categoryOptions) => [
   {
     key: "FCTM_skills",
     label: "Aptitudes/Tecnologías",
-    type: "select-multi-creatable", // Habilita la creación de nuevas skills
+    type: "select-multi-creatable",
     options: skillOptions,
     optionValue: "_id",
     optionLabel: "FCTM_skill_name"
@@ -119,13 +121,15 @@ const ShowCompany = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  
+  // NUEVO: Estado para password
+  const [passwordData, setPasswordData] = useState(null);
 
   useEffect(() => {
     cargarSkills();
     cargarCategorias();
   }, [cargarSkills, cargarCategorias]);
 
-  // Memoización de opciones mezcladas para el formulario
   const currentSkillOptions = useMemo(() => 
     mergeSkillOptions(skillOptionsStore, originalData?.FCTM_skills || []),
     [skillOptionsStore, originalData]
@@ -151,7 +155,6 @@ const ShowCompany = () => {
     const res = await sendRequest("GET", null, `/companies/${id}`);
 
     if (res.success) {
-      // Normalizamos con los campos actuales
       const config = buildNormalizationConfig(
         mergeSkillOptions(skillOptionsStore, res.data.FCTM_skills || []),
         mergeCategoryOptions(categoriesStore, res.data.FCTM_company_category || [])
@@ -169,26 +172,53 @@ const ShowCompany = () => {
 
   useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
-  // --- SAVE ACTUALIZADO (ESTILO SHOWDUMMY) ---
+  // --- SAVE ACTUALIZADO CON LÓGICA DE PASSWORD ---
   const handleSave = async () => {
     try {
-      // 1. Asegurar que las nuevas skills se creen en BD y obtener IDs
+      // 1. Lógica de Skills (Tu lógica actual intacta)
       const skillIds = await ensureSkills(data.FCTM_skills);
-
-      // 2. Extraer solo campos FCTM y normalizar (para categorías, etc.)
       const fctmOnly = pickFCTMFields(data);
-      const payloadNormalizado = normalizeToApi(fctmOnly, normalizationConfig);
+      const payload = normalizeToApi(fctmOnly, normalizationConfig);
 
-      // 3. Inyectar los IDs de las skills procesadas
+      // 2. Lógica de Password (Integrada)
+      const isChangingPassword = !!passwordData;
+
+      if (isChangingPassword) {
+        const currentPassword = passwordData.password?.trim() || "";
+        const newPassword = passwordData.newPassword?.trim() || "";
+        const repeatPassword = passwordData.repeatPassword?.trim() || "";
+
+        if (!currentPassword || !newPassword || !repeatPassword) {
+          showAlert("Para cambiar la contraseña, debe rellenar los 3 campos", "error");
+          return;
+        }
+
+        if (!validateStrongPassword(newPassword)) {
+          showAlert(
+            "La nueva contraseña debe tener al menos 8 caracteres, incluir mayúsculas, minúsculas, números y un carácter especial",
+            "error"
+          );
+          return;
+        }
+
+        if (newPassword !== repeatPassword) {
+          showAlert("La nueva contraseña y su repetición no coinciden", "error");
+          return;
+        }
+
+        payload.password = currentPassword;
+        payload.newPassword = newPassword;
+      }
+
+      // 3. Payload final con Skill IDs
       const finalPayload = {
-        ...payloadNormalizado,
+        ...payload,
         FCTM_skills: skillIds
       };
 
       const res = await sendRequest("PATCH", finalPayload, `/companies/${id}`);
 
       if (res.success) {
-        // Al recibir la respuesta, volvemos a normalizar para refrescar la UI
         const config = buildNormalizationConfig(
           mergeSkillOptions(skillOptionsStore, res.data.FCTM_skills || []),
           mergeCategoryOptions(categoriesStore, res.data.FCTM_company_category || [])
@@ -197,15 +227,15 @@ const ShowCompany = () => {
         
         setData(normalized);
         setOriginalData(normalized);
+        setPasswordData(null); // Limpiar password tras éxito
         setIsEditing(false);
-        // Opcional: Recargar store global si se crearon nuevas skills
         cargarSkills(); 
       } else {
         showAlert(res.message || "Error al guardar los cambios", "error");
       }
     } catch (err) {
       console.error(err);
-      showAlert("Error crítico al procesar skills", "error");
+      showAlert("Error crítico al procesar la solicitud", "error");
     }
   };
 
@@ -241,7 +271,12 @@ const ShowCompany = () => {
   ], [navigate, id, handleDeleteJobOffer]);
 
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
-  const handleCancel = () => { setData(originalData); setIsEditing(false); };
+  
+  const handleCancel = () => { 
+    setData(originalData); 
+    setPasswordData(null); // Limpiar password al cancelar
+    setIsEditing(false); 
+  };
 
   if (loading) return <p>Cargando información...</p>;
   if (!data) return <p>Empresa no encontrada.</p>;
@@ -272,6 +307,12 @@ const ShowCompany = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+      />
+
+      {/* NUEVO: Sección de cambio de contraseña */}
+      <SectionChangePassword
+        isEditing={isEditing}
+        onChange={setPasswordData}
       />
 
       <hr />

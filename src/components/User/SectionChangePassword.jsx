@@ -9,7 +9,6 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
     repeatPassword: ''
   });
 
-  // Si salimos del modo edición general, reseteamos el estado interno
   useEffect(() => {
     if (!isEditing) {
       handleCancel();
@@ -18,7 +17,11 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    // CORRECCIÓN CRÍTICA: Primero creamos el objeto con el valor nuevo
     const newData = { ...pwdData, [name]: value };
+    
+    // Actualizamos el estado local para que el input se mueva visualmente
     setPwdData(newData);
     
     // Notificamos al padre (ShowCompany) los nuevos valores
@@ -52,7 +55,7 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
               type="password"
               name="password"
               className="form-control"
-              placeholder="********"
+              // Si no modificamos, mostramos asteriscos. Si sí, el valor real.
               value={isModifying ? pwdData.password : '********'}
               onChange={handleInputChange}
               disabled={!isModifying}
