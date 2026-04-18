@@ -2,14 +2,37 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest,stringToColor,formatDateDDMMYYYY } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
+import useCategoryStore from '../../store/categoryStore';
 
 
 const ListCompanies = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({});
+
+    const categories = useCategoryStore((state) => state.categories);
+    const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
     const navigate = useNavigate();
+
+    const filtersConfig = useMemo(() => [
+      {
+        key: "category",
+        label: "Familias profesionales",
+        options: categories,
+        optionValue: "_id",
+        optionLabel: "FCTM_category_name"
+      }
+    ], [categories]);
+
+    const filteredData = useMemo(() => {
+      if (!filters.category) return data;
+
+      return data.filter((row) =>
+        row.FCTM_company_category?.some((cat) => (cat._id || cat) === filters.category)
+      );
+    }, [data, filters]);
 
     // Columnas para la tabla
     const columnas = useMemo(() => [
@@ -112,6 +135,7 @@ const ListCompanies = () => {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => { cargarCategorias(); }, [cargarCategorias]);
 
     return (
         <>            
@@ -123,9 +147,12 @@ const ListCompanies = () => {
             {!loading && !error && data.length > 0 && (                
                 <ListCRUD
                   title="Listado de Empresas"
-                  datos={data}
+                  datos={filteredData}
                   columnas={columnas}
-                  tableId="empresas"                          
+                  tableId="empresas"
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  filtersConfig={filtersConfig}
                 >                          
                 </ListCRUD>
             )}
