@@ -7,6 +7,14 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import SectionChangePassword from "../../components/User/SectionChangePassword";
 
+import { useStatsStore } from "../../store/useStatsStore";
+import BarChart from "../../components/Charts/BarChart";
+import PieChart from "../../components/Charts/PieChart";
+import RadarChart from "../../components/Charts/RadarChart";
+import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
+
+import StatsLayout from "../../components/Charts/StatsLayout";
+
 // --- CONSTANTES ---
 const dummyTypes = [
   { "_id": "TEXTO", "nombre": "TEXTO" },
@@ -164,6 +172,9 @@ const ShowDummy = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
 
+  const { stats, isLoadingStats } = useStatsStore();
+  //if (isLoadingStats) return <p>Cargando estadísticas...</p>;
+
   // --- FUNCIÓN DE CARGA ---
   const fetchDummy = useCallback(async () => {
     setLoading(true);
@@ -239,12 +250,57 @@ const ShowDummy = () => {
     fetchDummy();
   }, [fetchDummy]);
 
-  if (loading) return <p className="p-5 text-center">Cargando...</p>;
+  if (loading || isLoadingStats) return <p className="p-5 text-center">Cargando...</p>;
   if (!data) return <p className="p-5 text-center">Sin datos</p>;
 
   return (
     <section className="dashboard section">
       <ShowHeader title={`Ficha de ${data?.SAO_username || 'Dummy'}`} onBack={() => navigate('/dummy')} />
+
+      <StatsLayout>
+        <BarChart 
+          title="Convenios por Curso" 
+          labels={stats.conveniosPorCurso.labels} 
+          values={stats.conveniosPorCurso.data} 
+        />
+
+        <BarChart 
+          title="FCTs por Curso" 
+          labels={stats.fctPorCurso.labels} 
+          values={stats.fctPorCurso.data} 
+          color="#3498db" 
+        />
+      </StatsLayout>
+
+      <StatsLayout>
+        <PieChart 
+          title="Tecnologías más demandadas" 
+          data={stats.tecnologiasDemandadas} 
+        />
+
+        <PieChart 
+          title="Habilidades Alumnos" 
+          data={stats.habilidadesAlumnos} 
+        />
+
+        <RadarChart 
+            title="Perfil de Habilidades" 
+            data={stats.habilidadesAlumnos} 
+          />
+
+        <HorizontalBarChart 
+          title="Demanda de Tecnologías" 
+          data={stats.tecnologiasDemandadas} 
+        />
+
+        <HorizontalBarChart 
+          title="Alumnado por Localidad" 
+          data={stats.alumnadoPorLocalidad} 
+          color="#74b9ff" // Un azul suave para diferenciar de tecnologías
+        />
+      </StatsLayout>
+        
+      
 
       <ShowEditableForm
         formTitle="Información de SAO"

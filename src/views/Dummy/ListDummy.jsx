@@ -172,7 +172,7 @@ const ListDummy = () => {
   // COLUMNAS MEMORIZADAS
   // =======================
   const columnas = useMemo(() => [
-    { key: "_id", encabezado: "#" },
+    //{ key: "_id", encabezado: "#" },
     { key: "SAO_id", encabezado: "SAO ID" },
     { key: "SAO_username", encabezado: "SAO Username" },
     { key: "SAO_email", encabezado: "SAO Email" },

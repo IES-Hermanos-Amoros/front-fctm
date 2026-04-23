@@ -94,7 +94,9 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
             res.message = error.message || "Error inesperado";
         }
 
-        showAlert(res.message, "error");
+        if(mostrarMensaje){
+          showAlert(res.message, "error");
+        }
 
         if (redir) {
             setTimeout(() => window.location.href = redir, 500);
