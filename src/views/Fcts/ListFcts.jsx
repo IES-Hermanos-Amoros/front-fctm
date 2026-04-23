@@ -64,14 +64,14 @@ const ListFcts = () => {
 
   return (
     <>            
-            {loading && <p>Cargando FCTs...</p>}
+            {loading && <p>Cargando F.E....</p>}
             {!loading && error && <p className="text-danger">{error}</p>}
             {!loading && !error && fcts.length === 0 && (
-                <p className="text-muted">No hay FCTs disponibles</p>
+                <p className="text-muted">No hay F.E. disponibles</p>
             )}
             {!loading && !error && fcts.length > 0 && (                
                 <ListCRUD
-                  title="Listado de FCTs"
+                  title="Listado de F.E."
                   datos={fcts}
                   columnas={columnas}
                   tableId="fcts"                          

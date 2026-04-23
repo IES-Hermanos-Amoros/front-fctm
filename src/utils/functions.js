@@ -586,3 +586,42 @@ export const ensureSkills = async (skills) => {
 
   return res.data; // ids
 };
+
+
+
+export const getProfilePath = (userRole, userId) => {
+    switch (userRole) {
+        case 'ADMINISTRADOR': return `/administrators/${userId}`;
+        case 'PROFESOR':      return `/teachers/${userId}`;
+        case 'ALUMNO':        return `/students/${userId}`;
+        case 'EMPRESA':       return `/companies/${userId}`;
+        default:              return '/dashboard';
+    }
+};
+
+
+/**
+ * Realiza el logout en el servidor y ejecuta las limpiezas locales.
+ * @param {Function} clearUser - La función del store (Zustand) para limpiar datos.
+ * @param {Function} navigate - La función de navegación de React Router.
+ */
+export const externLogout = async (clearUser, navigate) => {
+    // 1. Llamada al servidor (usando tu sendRequest ya existente)
+    // Pasamos mostrarMensaje=false porque solemos poner un Swal antes o no queremos ruido
+    const res = await sendRequest("POST", null, "/auth/logout", false, "", false);
+
+    if (res?.success) {
+        // 2. Limpiar el store de Zustand
+        if (typeof clearUser === 'function') {
+            clearUser();
+        }
+
+        // 3. Redirigir al login o raíz
+        if (typeof navigate === 'function') {
+            navigate('/');
+        }
+        return true;
+    }
+    
+    return false;
+};

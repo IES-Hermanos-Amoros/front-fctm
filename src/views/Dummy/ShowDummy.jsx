@@ -265,7 +265,7 @@ const ShowDummy = () => {
         />
 
         <BarChart 
-          title="FCTs por Curso" 
+          title="F.E. por Curso" 
           labels={stats.fctPorCurso.labels} 
           values={stats.fctPorCurso.data} 
           color="#3498db" 

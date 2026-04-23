@@ -20,12 +20,12 @@ function MainDashboard() {
       '/documents': 'Documentos',      
       '/dummy': 'Datos Dummy de Ejemplo',
       '/actions': 'Acciones',
-      '/fcts': 'FCTs',
+      '/fcts': 'Gestión F.E.',
       '/reviews': 'Reseñas',
       '/sinc/empresas': 'Sincronizar Empresas con SAO',
       '/sinc/alumnos': 'Sincronizar Alumnos con SAO',
       '/sinc/profesores': "Sincronizar Profesores - Administradores con SAO",
-      '/sinc/fcts':'Sincronizar FCTs'
+      '/sinc/fcts':'Sincronizar F.E.'
     }
     return routes[pathname] || 'Panel'
   }
