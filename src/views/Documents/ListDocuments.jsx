@@ -6,6 +6,7 @@ import {
   formatDateDDMMYYYYHHmm,
   showAlert,
 } from '../../utils/functions'
+import Swal from 'sweetalert2'
 import './ListDocuments.css'
 import ListCRUD from '../../components/List/ListCRUD'
 
@@ -13,6 +14,32 @@ const ListDocuments = () => {
   const [documentos, setDocumentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [userId, setUserId] = useState(null)
+  // Obtener el id del usuario logueado del localStorage (ajusta según tu auth)
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'))
+    setUserId(user?._id || user?.id || null)
+  }, [])
+  const handleDelete = async row => {
+    const confirm = await Swal.fire({
+      title: '¿Eliminar documento?',
+      text: 'Esta acción no se puede deshacer. ¿Seguro que quieres eliminar el documento?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    })
+    if (!confirm.isConfirmed) return
+    try {
+      const res = await sendRequest('DELETE', null, `/documents/${row._id}`)
+      if (res.success) {
+        showAlert('Documento eliminado correctamente', 'success')
+        fetchData()
+      }
+    } catch (err) {
+      showAlert('Error al eliminar el documento', 'error')
+    }
+  }
 
   const hostAPI = getBackendHost()
 
@@ -170,19 +197,40 @@ const ListDocuments = () => {
     },
     {
       key: 'FCTM_document_url',
-      encabezado: 'Descarga',
+      encabezado: 'Acciones',
       render: row => {
         if (!row || !row.FCTM_document_url)
           return <span className="text-muted">-</span>
 
         return (
-          <button
-            onClick={() => handleDownload(row)}
-            className="btn btn-sm btn-outline-primary"
-            title="Descargar archivo"
-          >
-            <i className="bi bi-download"></i>
-          </button>
+          <div className="d-flex gap-2">
+            <button
+              onClick={() => handleDownload(row)}
+              className="btn btn-sm btn-outline-primary"
+              title="Descargar archivo"
+            >
+              <i className="bi bi-download"></i>
+            </button>
+            <a
+              href={`/documents/${row._id}`}
+              className="btn btn-sm btn-outline-info"
+              title="Ver detalles"
+            >
+              <i className="bi bi-eye"></i>
+            </a>
+            {userId &&
+              row.FCTM_document_created_by &&
+              (row.FCTM_document_created_by._id === userId ||
+                row.FCTM_document_created_by === userId) && (
+                <button
+                  onClick={() => handleDelete(row)}
+                  className="btn btn-sm btn-outline-danger"
+                  title="Eliminar documento"
+                >
+                  <i className="bi bi-trash"></i>
+                </button>
+              )}
+          </div>
         )
       },
     },
