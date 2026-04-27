@@ -67,6 +67,9 @@ const ListDocuments = () => {
 
   useEffect(() => {
     fetchData()
+    const onFocus = () => fetchData()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [fetchData])
 
   const colDocumentos = [
@@ -209,7 +212,18 @@ const ListDocuments = () => {
               datos={documentos}
               columnas={colDocumentos}
               tableId="documentos"
-            ></ListCRUD>
+            >
+              <div className="d-flex justify-content-end mb-2">
+                <a
+                  href="/documents/new"
+                  className="btn btn-success"
+                  style={{ minWidth: 180 }}
+                >
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Nuevo Documento
+                </a>
+              </div>
+            </ListCRUD>
           )}
         </div>
       </div>
