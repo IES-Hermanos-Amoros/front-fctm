@@ -112,6 +112,7 @@ const ShowStudent = () => {
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
 
   const [data, setData] = useState(null);
+  const [file, setFile] = useState(null); // Para un único archivo
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
@@ -155,6 +156,42 @@ const ShowStudent = () => {
     () => buildFCTMFields(currentSkillOptions, currentCategoryOptions),
     [currentSkillOptions, currentCategoryOptions]
   );
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0]; // Tomamos solo el primero
+    if (selectedFile) {
+      // Opcional: Validar que sea PDF
+      if (selectedFile.type !== "application/pdf") {
+        showAlert("Por favor, selecciona un archivo PDF", "error");
+        e.target.value = null; // Limpiar input
+        return;
+      }
+      setFile(selectedFile);
+    }
+  };
+
+  const handleUploadCV = async () => {
+    if (!file) {
+      showAlert("Debes seleccionar un archivo primero", "error");
+      return;
+    }
+
+    const formData = new FormData();    
+    formData.append("files", file); 
+    formData.append("type", "CURRÍCULUM VITAE"); // Identificador para el CV
+    formData.append("userId", id);
+
+    // 3. ¡IMPORTANTE! Llama a la ruta /documents/upload
+    const res = await sendRequest('POST', formData, '/documents/upload')
+
+    if(res.success){
+      setFile(null);
+      fetchStudent();
+    } else {
+      showAlert(res.message, 'error')
+    }
+  
+  }
 
   const fetchStudent = useCallback(async () => {
     setLoading(true);
@@ -279,8 +316,10 @@ const ShowStudent = () => {
       key: "FCTM_document_url",
       encabezado: "Descarga",
       render: row =>
-        row?.FCTM_document_url ? (
-          <a href={hostAPI + row.FCTM_document_url} target="_blank" rel="noreferrer">Descargar</a>
+        row?.FCTM_document_url ? (          
+          <a href={hostAPI + row.FCTM_document_url} target="_blank" rel="noopener noreferrer">
+            <i className="bi bi-download"></i> {/* Icono de descarga */}
+          </a>
         ) : "No disponible"
     },
     {
@@ -323,6 +362,28 @@ const ShowStudent = () => {
         isEditing={isEditing}
         onChange={setPasswordData}
       />
+
+      {isEditing && (
+        <div className="card p-3 mt-3 shadow-sm">
+          <h5>Adjuntar Currículum Vitae</h5>
+          <p className="text-muted small">Formatos permitidos: PDF (Máx. 1 archivo)</p>
+
+          <input
+            type="file"
+            accept=".pdf" // Restringe la selección en el explorador de archivos
+            className="form-control"
+            onChange={handleFileChange}
+          />
+
+          <button 
+            className="btn btn-primary mt-2" 
+            onClick={handleUploadCV}
+            disabled={!file} // Deshabilitar si no hay archivo seleccionado
+          >
+            <i className="bi bi-cloud-upload me-2"></i> Subir C.V.
+          </button>
+        </div>
+      )}
 
       {data.FCTM_documents?.length > 0 && (
         <ListCRUD title="Documentos" datos={data.FCTM_documents} columnas={columnasDocuments} />
