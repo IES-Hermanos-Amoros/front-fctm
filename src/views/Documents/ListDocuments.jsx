@@ -7,6 +7,7 @@ import {
   showAlert,
 } from '../../utils/functions'
 import Swal from 'sweetalert2'
+import useUserStore from '../../store/userStore'
 import './ListDocuments.css'
 import ListCRUD from '../../components/List/ListCRUD'
 
@@ -14,12 +15,9 @@ const ListDocuments = () => {
   const [documentos, setDocumentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [userId, setUserId] = useState(null)
-  // Obtener el id del usuario logueado del localStorage (ajusta según tu auth)
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'))
-    setUserId(user?._id || user?.id || null)
-  }, [])
+  const user = useUserStore(state => state.user)
+  const userId =
+    user?._id || user?.id || user?.user?._id || user?.user?.id || null
   const handleDelete = async row => {
     const confirm = await Swal.fire({
       title: '¿Eliminar documento?',
@@ -45,18 +43,15 @@ const ListDocuments = () => {
 
   const handleDownload = async row => {
     try {
-      // Intentamos la descarga mediante el endpoint protegido que hemos creado
-      // Usamos axios directamente para manejar el blob
       const url = `${hostAPI}/documents/${row._id}/download`
 
       const response = await axios({
         url,
         method: 'GET',
-        responseType: 'blob', // Importante para manejar archivos
+        responseType: 'blob',
         withCredentials: true,
       })
 
-      // Si llegamos aquí, el archivo existe y se ha descargado
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = downloadUrl
@@ -68,7 +63,6 @@ const ListDocuments = () => {
     } catch (err) {
       console.error('Error en la descarga:', err)
 
-      // Si el error es 404, mostramos el mensaje de SweetAlert2
       if (err.response && err.response.status === 404) {
         showAlert('El archivo no existe en el servidor', 'error')
       } else {
