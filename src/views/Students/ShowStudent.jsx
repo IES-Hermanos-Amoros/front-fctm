@@ -8,7 +8,8 @@ import {
   normalizeFromApi,
   normalizeToApi,
   ensureSkills,
-  validateStrongPassword // IMPORTANTE: Importar validación
+  validateStrongPassword, // IMPORTANTE: Importar validación
+  confirmation
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -170,6 +171,21 @@ const ShowStudent = () => {
     }
   };
 
+  const handleDelete = async docId => {
+      const confirmado = await confirmation(
+        '¿Seguro que quieres eliminar este documento?'
+      )
+      if (!confirmado) return
+  
+      const res = await sendRequest('DELETE', undefined, `/documents/${docId}?userId=${id}`)
+  
+      if (res.success) {
+        fetchStudent()
+      } else {
+        showAlert(res.message, 'error')
+      }
+    }
+
   const handleUploadCV = async () => {
     if (!file) {
       showAlert("Debes seleccionar un archivo primero", "error");
@@ -326,6 +342,19 @@ const ShowStudent = () => {
       key: "FCTM_inserted_date",
       encabezado: "Fecha",
       render: row => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
+    },
+    {
+      key: '__delete',
+      encabezado: 'Eliminar',
+      render: row => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDelete(row._id)}
+          title="Eliminar Documento"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      ),
     }
   ];
 
