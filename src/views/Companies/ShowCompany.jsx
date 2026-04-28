@@ -247,6 +247,62 @@ const ShowCompany = () => {
     else showAlert("Error al eliminar", "error");
   }, [id, fetchCompany]);
 
+  // Función para eliminar una acción
+  const handleDeleteAction = useCallback(async (actionId) => {
+    const confirmed = await confirmation("¿Estás seguro de que deseas eliminar esta acción?")
+    if (!confirmed) return
+
+    const res = await sendRequest("DELETE", null, `/actions/${actionId}`)
+    if (res.success) {
+      // Recargamos la empresa para que el array FCTM_actions se actualice
+      await fetchCompany();
+      showAlert("Acción eliminada correctamente", "success")
+    } else {
+      showAlert("Error al eliminar la acción", "error")
+    }
+  }, [id, fetchCompany]);
+
+  // Configuración de columnas para la tabla de Acciones
+  const columnasAcciones = useMemo(() => [
+    { 
+      key: "FCTM_action_type", 
+      encabezado: "Tipo" 
+    },
+    { 
+      key: "FCTM_action_datetime", 
+      encabezado: "Fecha",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_action_datetime) 
+    },
+    { 
+      key: "FCTM_action_title", 
+      encabezado: "Descripción/Título" 
+    },
+    {
+      key: "__show",
+      encabezado: "Ver/Edit",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-primary" 
+          onClick={() => navigate(`/actions/${row._id}`, { state: { companyId: id } })}
+        >
+          <i className="bi bi-pencil"></i>
+        </button>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Borrar",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-danger" 
+          onClick={() => handleDeleteAction(row._id)}
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [navigate, id, handleDeleteAction])
+
   const columnasOfertas = useMemo(() => [
     { key: "FCTM_job_title", encabezado: "Título" },
     { key: "FCTM_job_status", encabezado: "Estado" },
@@ -320,6 +376,21 @@ const ShowCompany = () => {
       <ListCRUD title="Ofertas Relacionadas" datos={data.FCTM_job_offers || []} columnas={columnasOfertas}>
         <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
           Nueva Oferta
+        </button>
+      </ListCRUD>
+
+      <hr />
+
+      <ListCRUD 
+        title="Historial de Acciones (Visitas/Llamadas)" 
+        datos={data.FCTM_actions || []} 
+        columnas={columnasAcciones}
+      >
+        <button 
+          className="btn btn-primary" 
+          onClick={() => navigate("/actions/new", { state: { companyId: id } })}
+        >
+          Nueva Acción
         </button>
       </ListCRUD>
     </section>
