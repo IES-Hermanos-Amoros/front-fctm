@@ -3,6 +3,7 @@ import { sendRequest, stringToColor, confirmation, showAlert } from '../../utils
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
 import Select from 'react-select'
+import useSkillStore from "../../store/skillStore";
 
 
 const ListStudents = () => {
@@ -16,6 +17,17 @@ const ListStudents = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [skillOptions, setSkillOptions] = useState([]);
   const [selectedSkills, setSelectedSkills] = useState([]);
+
+  const skillOptionsStore = useSkillStore(state => state.skills);
+  const cargarSkills = useSkillStore(state => state.cargarSkills);
+
+  // Transforma las skills del store al formato { value, label }
+  const formattedSkills = useMemo(() => {
+    return skillOptionsStore.map(skill => ({
+      value: skill._id,
+      label: skill.FCTM_skill_name
+    }));
+  }, [skillOptionsStore]);
 
     // Fetch de alumnos
   const fetchData = useCallback(async () => {
@@ -36,7 +48,7 @@ const ListStudents = () => {
 
   // Fetch de skills para el multiselector
   useEffect(() => {
-    const fetchSkills = async () => {
+    /*const fetchSkills = async () => {
       try {
         const res = await sendRequest('GET', null, '/skills');
         if (res.success) {
@@ -50,8 +62,9 @@ const ListStudents = () => {
         console.error("Error al obtener aptitudes", error);
       }
     };
-    fetchSkills();
-  }, []);
+    fetchSkills();*/
+    cargarSkills()
+  }, [cargarSkills]);
 
   // Función para acción masiva
   const handleBulkUpdate = async () => {
@@ -72,6 +85,7 @@ const ListStudents = () => {
 
     if (res.success) {
       showAlert("Aptitudes actualizadas correctamente", "success");
+      //cargarSkills(); // Recargar aptitudes para actualizar el store
       setSelectedIds([]);
       setSelectedSkills([]);
       fetchData();
@@ -153,7 +167,7 @@ const ListStudents = () => {
                           <label className="form-label fw-bold small mb-1">Aptitudes</label>
                           <Select
                             isMulti
-                            options={skillOptions}
+                            options={formattedSkills}
                             value={selectedSkills}
                             onChange={setSelectedSkills}
                             placeholder="Selecciona aptitudes..."
