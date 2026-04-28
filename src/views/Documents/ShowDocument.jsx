@@ -1,43 +1,51 @@
-let documentos = [
-    { _id: 1,
-      nombre: "Decreto 485/2025",
-      ruta: "../documents/doc1.pdf"
-     },
-     { _id: 2,
-      nombre: "Ley 1111",
-      ruta: "../documents/doc2.pdf"
-     },
-     { _id: 3,
-      nombre: "Currículum Pepe",
-      ruta: "../documents/doc3.pdf"
-     }
-  ]
-
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { sendRequest, getBackendHost } from '../../utils/functions'
 
 const ShowDocument = () => {
-    const {id} = useParams()
-  const navigate = useNavigate();
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [documento, setDocumento] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const documento =  documentos.find(doc => doc._id.toString() === id);
+  useEffect(() => {
+    const fetchDoc = async () => {
+      setLoading(true)
+      setError(null)
+      const res = await sendRequest('GET', null, `/documents/${id}`)
+      if (res.success) setDocumento(res.data)
+      else setError(res.message || 'No se pudo cargar el documento')
+      setLoading(false)
+    }
+    fetchDoc()
+  }, [id])
 
-
-  if (!documento) {
+  if (loading) {
+    return <div className="text-center my-5">Cargando...</div>
+  }
+  if (error || !documento) {
     return (
-      <section className='dashboard section'>
-        <div className='alert alert-danger'>Documento no encontrado</div>
-        <button className='btn btn-secondary' onClick={() => navigate(-1)}>Volver</button>
+      <section className="dashboard section">
+        <div className="alert alert-danger">
+          {error || 'Documento no encontrado'}
+        </div>
+        <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+          Volver
+        </button>
       </section>
-    );
+    )
   }
 
   return (
-    <section className='dashboard section'>
+    <section className="dashboard section">
       <div className="row mb-3">
         <div className="col-12">
           <h3>Ficha del Documento</h3>
-          <button className='btn btn-secondary mt-2' onClick={() => navigate(-1)}>
+          <button
+            className="btn btn-secondary mt-2"
+            onClick={() => navigate(-1)}
+          >
             Volver
           </button>
         </div>
@@ -48,21 +56,77 @@ const ShowDocument = () => {
           <div className="card p-4 shadow-sm rounded-3">
             <div className="mb-3">
               <label className="form-label fw-bold">ID</label>
-              <input type="text" className="form-control" value={documento._id} disabled />
+              <input
+                type="text"
+                className="form-control"
+                value={documento._id}
+                disabled
+              />
             </div>
             <div className="mb-3">
               <label className="form-label fw-bold">Nombre</label>
-              <input type="text" className="form-control" value={documento.nombre} disabled />
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_name}
+                disabled
+              />
             </div>
             <div className="mb-3">
-              <label className="form-label fw-bold">Ruta</label>
-              <input type="text" className="form-control" value={documento.ruta} disabled />
+              <label className="form-label fw-bold">Descripción</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_description || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Tipo</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_type}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Subido por</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_created_by?.SAO_name || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Fecha subida</label>
+              <input
+                type="text"
+                className="form-control"
+                value={
+                  documento.FCTM_inserted_date
+                    ? new Date(documento.FCTM_inserted_date).toLocaleString()
+                    : ''
+                }
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <a
+                href={getBackendHost() + documento.FCTM_document_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline-primary"
+              >
+                Ver/Descargar
+              </a>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default ShowDocument;
+export default ShowDocument

@@ -6,6 +6,8 @@ import {
   formatDateDDMMYYYYHHmm,
   showAlert,
 } from '../../utils/functions'
+import Swal from 'sweetalert2'
+import useUserStore from '../../store/userStore'
 import './ListDocuments.css'
 import ListCRUD from '../../components/List/ListCRUD'
 
@@ -13,23 +15,43 @@ const ListDocuments = () => {
   const [documentos, setDocumentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const user = useUserStore(state => state.user)
+  const userId =
+    user?._id || user?.id || user?.user?._id || user?.user?.id || null
+  const handleDelete = async row => {
+    const confirm = await Swal.fire({
+      title: '¿Eliminar documento?',
+      text: 'Esta acción no se puede deshacer. ¿Seguro que quieres eliminar el documento?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    })
+    if (!confirm.isConfirmed) return
+    try {
+      const res = await sendRequest('DELETE', null, `/documents/${row._id}`)
+      if (res.success) {
+        showAlert('Documento eliminado correctamente', 'success')
+        fetchData()
+      }
+    } catch (err) {
+      showAlert('Error al eliminar el documento', 'error')
+    }
+  }
 
   const hostAPI = getBackendHost()
 
   const handleDownload = async row => {
     try {
-      // Intentamos la descarga mediante el endpoint protegido que hemos creado
-      // Usamos axios directamente para manejar el blob
       const url = `${hostAPI}/documents/${row._id}/download`
 
       const response = await axios({
         url,
         method: 'GET',
-        responseType: 'blob', // Importante para manejar archivos
+        responseType: 'blob',
         withCredentials: true,
       })
 
-      // Si llegamos aquí, el archivo existe y se ha descargado
       const downloadUrl = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = downloadUrl
@@ -41,7 +63,6 @@ const ListDocuments = () => {
     } catch (err) {
       console.error('Error en la descarga:', err)
 
-      // Si el error es 404, mostramos el mensaje de SweetAlert2
       if (err.response && err.response.status === 404) {
         showAlert('El archivo no existe en el servidor', 'error')
       } else {
@@ -67,6 +88,9 @@ const ListDocuments = () => {
 
   useEffect(() => {
     fetchData()
+    const onFocus = () => fetchData()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
   }, [fetchData])
 
   const colDocumentos = [
@@ -167,19 +191,40 @@ const ListDocuments = () => {
     },
     {
       key: 'FCTM_document_url',
-      encabezado: 'Descarga',
+      encabezado: 'Acciones',
       render: row => {
         if (!row || !row.FCTM_document_url)
           return <span className="text-muted">-</span>
 
         return (
-          <button
-            onClick={() => handleDownload(row)}
-            className="btn btn-sm btn-outline-primary"
-            title="Descargar archivo"
-          >
-            <i className="bi bi-download"></i>
-          </button>
+          <div className="d-flex gap-2">
+            <button
+              onClick={() => handleDownload(row)}
+              className="btn btn-sm btn-outline-primary"
+              title="Descargar archivo"
+            >
+              <i className="bi bi-download"></i>
+            </button>
+            <a
+              href={`/documents/${row._id}`}
+              className="btn btn-sm btn-outline-info"
+              title="Ver detalles"
+            >
+              <i className="bi bi-eye"></i>
+            </a>
+            {userId &&
+              row.FCTM_document_created_by &&
+              (row.FCTM_document_created_by._id === userId ||
+                row.FCTM_document_created_by === userId) && (
+                <button
+                  onClick={() => handleDelete(row)}
+                  className="btn btn-sm btn-outline-danger"
+                  title="Eliminar documento"
+                >
+                  <i className="bi bi-trash"></i>
+                </button>
+              )}
+          </div>
         )
       },
     },
@@ -209,7 +254,18 @@ const ListDocuments = () => {
               datos={documentos}
               columnas={colDocumentos}
               tableId="documentos"
-            ></ListCRUD>
+            >
+              <div className="d-flex justify-content-end mb-2">
+                <a
+                  href="/documents/new"
+                  className="btn btn-success"
+                  style={{ minWidth: 180 }}
+                >
+                  <i className="bi bi-plus-circle me-2"></i>
+                  Nuevo Documento
+                </a>
+              </div>
+            </ListCRUD>
           )}
         </div>
       </div>
