@@ -198,20 +198,28 @@ const ListDocuments = () => {
 
         return (
           <div className="d-flex gap-2">
-            <button
+            {/*<button
               onClick={() => handleDownload(row)}
               className="btn btn-sm btn-outline-primary"
               title="Descargar archivo"
             >
               <i className="bi bi-download"></i>
-            </button>
+            </button>*/}            
+            <a href={hostAPI + row.FCTM_document_url} 
+                title="Descargar documento"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-sm btn-outline-success"
+            >
+              <i className="bi bi-download"></i> {/* Icono de descarga */}
+            </a>            
             <a
               href={`/documents/${row._id}`}
               className="btn btn-sm btn-outline-info"
               title="Ver detalles"
             >
-              <i className="bi bi-eye"></i>
-            </a>
+              <i className="bi bi-search"></i>
+            </a>            
             {userId &&
               row.FCTM_document_created_by &&
               (row.FCTM_document_created_by._id === userId ||
