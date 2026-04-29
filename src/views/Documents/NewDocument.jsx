@@ -1,7 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { sendRequest, showAlert } from '../../utils/functions'
+import { showAlert, normalizeToApi } from '../../utils/functions'
+import axios from 'axios'
+import ShowHeader from '../../components/Show/ShowHeader'
+import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
+// Tipos de documento
 const documentTypes = [
   { _id: 'GENERAL', nombre: 'GENERAL' },
   { _id: 'MANUAL', nombre: 'MANUAL' },
@@ -11,145 +15,153 @@ const documentTypes = [
   { _id: 'AVATAR', nombre: 'AVATAR' },
 ]
 
+// Perfiles de usuario visibles
+const userProfiles = [
+  { value: 'ADMINISTRADOR', label: 'Administrador' },
+  { value: 'PROFESOR', label: 'Profesor' },
+  { value: 'ALUMNO', label: 'Alumno' },
+  { value: 'EMPRESA', label: 'Empresa' },
+]
+
+// Configuración de normalización
+const normalizationConfig = [
+  {
+    field: 'visible_to_profiles',
+    options: userProfiles,
+    optionValue: 'value',
+    optionLabel: 'label',
+    type: 'multi',
+  },
+  {
+    field: 'type',
+    options: documentTypes,
+    optionValue: '_id',
+    optionLabel: 'nombre',
+    type: 'single',
+  },
+]
+
+// Campos para ShowEditableForm
+const FCTM_fields = [
+  { key: 'name', label: 'Nombre', type: 'text', required: true },
+  { key: 'description', label: 'Descripción', type: 'text' },
+  {
+    key: 'type',
+    label: 'Tipo',
+    type: 'select',
+    options: documentTypes,
+    optionValue: '_id',
+    optionLabel: 'nombre',
+    required: true,
+  },
+  {
+    key: 'visible_to_profiles',
+    label: 'Perfiles que pueden ver',
+    type: 'select-multi',
+    options: userProfiles,
+    optionValue: 'value',
+    optionLabel: 'label',
+    required: true,
+  },
+]
+
 const NewDocument = () => {
   const navigate = useNavigate()
+
   const [data, setData] = useState({
     name: '',
     description: '',
     type: 'GENERAL',
-    file: null,
+    visible_to_profiles: [],
   })
+  const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const handleChange = e => {
-    const { name, value, type, files } = e.target
-    if (type === 'file') {
-      setData(prev => ({ ...prev, file: files[0] }))
-    } else {
-      setData(prev => ({ ...prev, [name]: value }))
-    }
+  const handleChange = (field, value) => {
+    setData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    if (!data.file) {
+  // Guardar documento
+  const handleSave = async () => {
+    if (!file) {
       showAlert('Debes adjuntar un archivo.', 'error')
       return
     }
     setLoading(true)
     try {
+      const normalized = normalizeToApi(data, normalizationConfig)
       const formData = new FormData()
       formData.append('name', data.name)
       formData.append('description', data.description)
-      formData.append('type', data.type)
-      formData.append('files', data.file)
-      const res = await sendRequest('POST', formData, '/documents/upload', {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
-      if (res.success) {
-        showAlert('Documento creado correctamente', 'success')
-        navigate('/documents')
-      } else {
-        showAlert(res.message || 'Error al crear documento', 'error')
-      }
+      formData.append('type', normalized.type || data.type)
+      const perfiles = normalized.visible_to_profiles || []
+      perfiles.forEach(p => formData.append('visible_to_profiles', p))
+      formData.append('files', file)
+
+      const response = await axios.post('/documents/upload', formData)
+      showAlert(
+        response.data?.msg || 'Documento creado correctamente',
+        'success'
+      )
+      navigate('/documents')
     } catch (err) {
-      showAlert(err.message || 'Error al crear documento', 'error')
+      const msg =
+        err.response?.data?.msg ||
+        err.response?.data?.error ||
+        err.message ||
+        'Error al crear documento'
+      showAlert(msg, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="container py-4">
-      <div className="row justify-content-center">
-        <div className="col-md-8 col-lg-6">
-          <div className="card shadow">
-            <div className="card-header bg-primary text-white">
-              <h4 className="mb-0">Nuevo Documento</h4>
-            </div>
-            <form className="p-4" onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="name">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="name"
-                  name="name"
-                  value={data.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="description">
-                  Descripción
-                </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="description"
-                  name="description"
-                  value={data.description}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="type">
-                  Tipo
-                </label>
-                <select
-                  className="form-select"
-                  id="type"
-                  name="type"
-                  value={data.type}
-                  onChange={handleChange}
-                  required
-                >
-                  {documentTypes.map(opt => (
-                    <option key={opt._id} value={opt._id}>
-                      {opt.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="file">
-                  Adjuntar archivo (PDF, DOC, etc.)
-                </label>
-                <input
-                  type="file"
-                  className="form-control"
-                  id="file"
-                  name="file"
-                  accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="d-flex justify-content-between">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => navigate('/documents')}
-                  disabled={loading}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? 'Creando...' : 'Crear Documento'}
-                </button>
-              </div>
-            </form>
+    <section className="dashboard section">
+      <ShowHeader
+        title="Nuevo Documento"
+        onBack={() => navigate('/documents')}
+      />
+
+      <ShowEditableForm
+        formTitle="Información del Documento"
+        formId="documentForm"
+        data={data}
+        fields={FCTM_fields}
+        isEditing={true}
+        hideEditButton={true}
+        onSave={handleSave}
+        onCancel={() => navigate('/documents')}
+        onChange={handleChange}
+      />
+
+      {/* Input file fuera de ShowEditableForm porque requiere e.target.files, no e.target.value */}
+      <div className="card mt-3">
+        <div className="card-header">
+          <strong>Archivo adjunto</strong>
+        </div>
+        <div className="card-body">
+          <div className="mb-3">
+            <label className="form-label">
+              Adjuntar archivo (PDF, DOC, etc.){' '}
+              <span className="text-danger">*</span>
+            </label>
+            <input
+              type="file"
+              className="form-control"
+              accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              onChange={e => setFile(e.target.files[0] || null)}
+              disabled={loading}
+            />
+            {file && (
+              <small className="text-muted mt-1 d-block">
+                Seleccionado: {file.name}
+              </small>
+            )}
           </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }
 
