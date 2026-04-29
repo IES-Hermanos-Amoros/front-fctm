@@ -39,8 +39,18 @@ const ListCompanies = () => {
         { key: 'SAO_username', encabezado: 'CIF' },
         { key: 'SAO_name', encabezado: 'Nombre' },
         { key: 'SAO_company_FCT_Number', encabezado: 'Nº Convenio FE' },
-        { key: 'SAO_company_FCT_Date', 
+        /*{ key: 'SAO_company_FCT_Date', 
           encabezado: 'Fecha Convenio FE',
+          render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
+        },*/
+        { 
+          key: 'SAO_company_FCT_Date', 
+          encabezado: 'Fecha Convenio FE',
+          // 1. Usamos accessorFn para devolver un objeto Date o un número (timestamp)
+          // Esto es lo que TanStack usará internamente para comparar/ordenar
+          accessorFn: row => row.SAO_company_FCT_Date ? new Date(row.SAO_company_FCT_Date).getTime() : 0,
+
+          // 2. Usamos render para definir cómo lo ve el usuario final
           render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
         },
         { key: 'SAO_company_city', encabezado: 'Localidad' },
