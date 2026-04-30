@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from "react-router-dom";
 import axios from 'axios'
 import {
   sendRequest,
@@ -11,11 +12,12 @@ import useUserStore from '../../store/userStore'
 import './ListDocuments.css'
 import ListCRUD from '../../components/List/ListCRUD'
 
-const ListDocuments = () => {
+const ListDocuments = () => {  
   const [documentos, setDocumentos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const user = useUserStore(state => state.user)
+  const navigate = useNavigate();
   const userId =
     user?._id || user?.id || user?.user?._id || user?.user?.id || null
   const handleDelete = async row => {
@@ -263,7 +265,7 @@ const ListDocuments = () => {
               columnas={colDocumentos}
               tableId="documentos"
             >
-              <div className="d-flex justify-content-end mb-2">
+              {/*<div className="d-flex justify-content-end mb-2">
                 <a
                   href="/documents/new"
                   className="btn btn-success"
@@ -272,7 +274,10 @@ const ListDocuments = () => {
                   <i className="bi bi-plus-circle me-2"></i>
                   Nuevo Documento
                 </a>
-              </div>
+              </div>*/}
+              <button className="btn btn-primary" onClick={() => navigate("/documents/new")}>
+                Nuevo Documento
+              </button>
             </ListCRUD>
           )}
         </div>
