@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, confirmation,formatDateDDMMYYYY } from "../../utils/functions";
+import { sendRequest, showAlert, confirmation, formatDateDDMMYYYY, getBackendHost } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -65,6 +65,10 @@ const ShowFcts = () => {
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
+  const [documentData, setDocumentData] = useState([]);
+  const [files, setFiles] = useState([]);
+
+  const hostAPI = getBackendHost();
 
   // --- CARGA DE DATOS ---
   const fetchFct = useCallback(async () => {
@@ -73,9 +77,19 @@ const ShowFcts = () => {
 
     if (res.success) {
       console.log("Datos de FCT:", res.data); // Debug
-      // Si tuvieras select-multi usaríamos normalizeFromApi aquí
+      // Asegurar que FCTM_documents existe
+      if (!res.data.FCTM_documents) {
+        res.data.FCTM_documents = [];
+      }
       setData(res.data);
       setOriginalData(res.data);
+
+      // Los documentos ya vienen populados desde el backend
+      const docs = res.data.FCTM_documents || [];
+      const sortedDocuments = [...docs].sort(
+        (a, b) => new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date)
+      );
+      setDocumentData(sortedDocuments);
     } else {
       showAlert(res.message, "error");
     }
@@ -109,6 +123,108 @@ const ShowFcts = () => {
   const handleCancel = () => {
     setData(originalData);
     setIsEditing(false);
+  };
+
+  // --- MANEJO DE DOCUMENTOS ---
+  const columnasDocuments = [
+    { key: 'FCTM_document_name', encabezado: 'Nombre' },
+    { key: 'FCTM_document_type', encabezado: 'Tipo' },
+    {
+      key: 'FCTM_document_url',
+      encabezado: 'Descarga',
+      render: row => {
+        if (!row || !row.FCTM_document_url) return 'No disponible';
+        const url = row.FCTM_document_url;
+        return (
+          <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
+            <i className="bi bi-download"></i>
+          </a>
+        );
+      },
+    },
+    {
+      key: 'FCTM_inserted_date',
+      encabezado: 'Fecha',
+      render: row => formatDateDDMMYYYY(row.FCTM_inserted_date),
+    },
+    {
+      key: '__delete',
+      encabezado: 'Eliminar',
+      render: row => (
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => handleDeleteDocument(row._id)}
+          title="Eliminar Documento"
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      ),
+    },
+  ];
+
+  const handleDeleteDocument = async docId => {
+    const confirmado = await confirmation('¿Seguro que quieres eliminar este documento?');
+    if (!confirmado) return;
+
+    const res = await sendRequest('DELETE', undefined, `/documents/${docId}?fctId=${encodeURIComponent(id)}`);
+
+    if (res.success) {
+      showAlert('Documento eliminado correctamente', 'success');
+      fetchFct();
+    } else {
+      showAlert(res.message, 'error');
+    }
+  };
+
+  const handleFileChange = e => {
+    const selectedFiles = Array.from(e.target.files);
+    if (selectedFiles.length > 10) {
+      showAlert('Solo puedes subir un máximo de 10 documentos', 'error');
+      return;
+    }
+    setFiles(selectedFiles);
+  };
+
+  const handleUploadDocs = async () => {
+    if (files.length === 0) {
+      showAlert('Debes seleccionar al menos un archivo', 'error');
+      return;
+    }
+
+    // Asegurar que FCTM_documents existe
+    const currentDocs = data.FCTM_documents || [];
+
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file);
+    }
+
+    formData.append('FCTM_document_type', 'GENERAL');
+    formData.append('fctId', id);
+
+    const res = await sendRequest('POST', formData, '/documents/upload');
+
+    if (res.success) {
+      showAlert('Documentos subidos correctamente', 'success');
+      const newDocIds = Array.isArray(res.data)
+        ? res.data.map(d => d._id)
+        : [res.data._id];
+      const updatedDocuments = [...currentDocs, ...newDocIds];
+
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/fct/${id}`
+      );
+
+      if (patchRes.success) {
+        setData(prev => ({ ...prev, FCTM_documents: updatedDocuments }));
+        setFiles([]);
+        fetchFct();
+      }
+    } else {
+      showAlert(res.message, 'error');
+    }
   };
 
   // --- MANEJO DE RESEÑAS ---
@@ -248,6 +364,33 @@ const ShowFcts = () => {
         onCancel={handleCancel}
         onChange={handleChange}
       />
+
+      {/* SECCIÓN DOCUMENTOS - Solo visible al editar (igual que JobOffer) */}
+      {isEditing && (
+        <div className="card p-3 mt-3">
+          <h5>Adjuntar Documentos</h5>
+          <input
+            type="file"
+            multiple
+            className="form-control"
+            onChange={handleFileChange}
+          />
+          <button className="btn btn-primary mt-2" onClick={handleUploadDocs}>
+            Adjuntar Docs.
+          </button>
+        </div>
+      )}
+
+      {/* Tabla de Documentos Relacionados - Justo después de Adjuntar */}
+      {documentData.length === 0 ? (
+        <h4>FCT sin documentos</h4>
+      ) : (
+        <ListCRUD
+          title="Documentos Relacionados"
+          datos={documentData}
+          columnas={columnasDocuments}
+        />
+      )}
 
       {/* SECCIÓN RESEÑAS */}
       <ListCRUD
