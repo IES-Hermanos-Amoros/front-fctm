@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from "react-router-dom";
 import axios from 'axios'
 import {
@@ -90,12 +90,13 @@ const ListDocuments = () => {
 
   useEffect(() => {
     fetchData()
-    const onFocus = () => fetchData()
+    //EVITAMOS RENDERIZADOS INNECESARIOS
+    /*const onFocus = () => fetchData()
     window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)*/
   }, [fetchData])
 
-  const colDocumentos = [
+  const colDocumentos = useMemo(() => [
     { key: 'FCTM_document_name', encabezado: 'Nombre' },
     { key: 'FCTM_document_description', encabezado: 'Descripción' },
     { key: 'FCTM_document_type', encabezado: 'Tipo' },
@@ -238,7 +239,7 @@ const ListDocuments = () => {
         )
       },
     },
-  ]
+  ], [userId, hostAPI]);
 
   return (
     <div className="container-fluid py-4">
