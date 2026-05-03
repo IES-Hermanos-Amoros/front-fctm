@@ -20,6 +20,7 @@ import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 // --- HELPERS DE MERGE (Sin cambios) ---
 const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
@@ -115,6 +116,10 @@ const ShowCompany = () => {
   const cargarSkills = useSkillStore(state => state.cargarSkills);
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
+  const user = useUserStore(state => state.user);
+
+  const userRole = user?.user?.profile || user?.profile;
+  const canCreateActions = ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -270,6 +275,21 @@ const ShowCompany = () => {
     }
   ], [navigate, id, handleDeleteJobOffer]);
 
+  const columnasAcciones = useMemo(() => [
+    { key: "FCTM_action_title", encabezado: "Título" },
+    { key: "FCTM_action_type", encabezado: "Tipo" },
+    {
+      key: "FCTM_action_datetime",
+      encabezado: "Fecha y hora",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_action_datetime),
+    },
+    {
+      key: "FCTM_documents",
+      encabezado: "Adjuntos",
+      render: (row) => row?.FCTM_documents?.length || 0,
+    },
+  ], []);
+
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
   
   const handleCancel = () => { 
@@ -321,6 +341,16 @@ const ShowCompany = () => {
         <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
           Nueva Oferta
         </button>
+      </ListCRUD>
+
+      <hr />
+
+      <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
+        {canCreateActions && (
+          <button className="btn btn-primary" onClick={() => navigate("/actions/new", { state: { companyId: id } })}>
+            Nueva Acción
+          </button>
+        )}
       </ListCRUD>
     </section>
   );
