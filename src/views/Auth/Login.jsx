@@ -9,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [buttonText, setButtonText] = useState('Entrando...')
+  const [showPassword, setShowPassword] = useState(false)
 
   const navigate = useNavigate()
 
@@ -228,13 +229,26 @@ const Login = () => {
               <i className="bi bi-lock auth-input-icon"></i>
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"} // ← Cambio dinámico
                 className="auth-input"
                 value={password}
                 onChange={e =>
                   setPassword(e.target.value)
                 }
                 required
+              />
+              {/* Icono del ojo */}
+              <i 
+                className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'} auth-input-icon-right`} 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ 
+                  cursor: 'pointer', 
+                  position: 'absolute', 
+                  right: '15px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
               />
 
             </div>
