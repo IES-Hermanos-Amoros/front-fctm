@@ -8,7 +8,6 @@ import ListDocuments from '../views/Documents/ListDocuments'
 import ListJobOffers from '../views/JobOffers/ListJobOffers'
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
-import EditDocument from '../views/Documents/EditDocument'
 import ShowDummy from '../views/Dummy/ShowDummy'
 import ShowStudent from '../views/Students/ShowStudent'
 import ShowCompany from '../views/Companies/ShowCompany'
@@ -24,17 +23,14 @@ import NewJobOffer from '../views/JobOffers/NewJobOffer'
 import ListStudents from '../views/Students/ListStudents'
 import ListCompanies from '../views/Companies/ListCompanies'
 import ListFcts from '../views/Fcts/ListFcts'
-import VerifyEmailPage from '../views/Auth/VerifyEmailPage'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 import ShowTeacher from '../views/Teachers/ShowTeacher'
 import ShowFct from '../views/Fcts/ShowFcts'
 import NewReview from '../views/Reviews/NewReview'
 import NewAction from '../views/Actions/NewAction'
-
 import ValidateReviews from '../views/Administrators/ValidateReviews'
 import ValidateSkills from '../views/Administrators/ValidateSkills'
 
-// Importa más vistas...
 
 export default function AppRouter() {
   return (
@@ -47,7 +43,6 @@ export default function AppRouter() {
 
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
-      <Route path="/documents/:id/edit" element={<EditDocument />} />
       <Route path="/documents/new" element={<NewDocument />} />
       {/*<Route path="/joboffers" element={<ListJobOffers />} />*/}
       <Route

@@ -403,6 +403,7 @@ const ShowCompany = () => {
           </button>
           <small className="text-muted">Ej: Convenio A1 de SAO</small>
         </div>
+      </ListCRUD>
       <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
         {canCreateActions && (
           <button className="btn btn-primary" onClick={() => navigate("/actions/new", { state: { companyId: id } })}>
