@@ -331,6 +331,18 @@ const ShowCompany = () => {
       encabezado: "Adjuntos",
       render: (row) => row?.FCTM_documents?.length || 0,
     },
+    {
+    key: "__show",
+    encabezado: "Ver",
+    render: (row) => (
+      <button 
+        className="btn btn-sm btn-outline-primary" 
+        onClick={() => navigate(`/actions/${row._id}`)}
+      >
+        <i className="bi bi-search"></i>
+      </button>
+    )
+  }
   ], []);
 
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
