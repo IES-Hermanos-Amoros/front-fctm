@@ -20,6 +20,7 @@ import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 // --- HELPERS DE MERGE (Sin cambios) ---
 const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
@@ -115,6 +116,10 @@ const ShowCompany = () => {
   const cargarSkills = useSkillStore(state => state.cargarSkills);
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
+  const user = useUserStore(state => state.user);
+
+  const userRole = user?.user?.profile || user?.profile;
+  const canCreateActions = ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -247,62 +252,6 @@ const ShowCompany = () => {
     else showAlert("Error al eliminar", "error");
   }, [id, fetchCompany]);
 
-  // Función para eliminar una acción
-  const handleDeleteAction = useCallback(async (actionId) => {
-    const confirmed = await confirmation("¿Estás seguro de que deseas eliminar esta acción?")
-    if (!confirmed) return
-
-    const res = await sendRequest("DELETE", null, `/actions/${actionId}`)
-    if (res.success) {
-      // Recargamos la empresa para que el array FCTM_actions se actualice
-      await fetchCompany();
-      showAlert("Acción eliminada correctamente", "success")
-    } else {
-      showAlert("Error al eliminar la acción", "error")
-    }
-  }, [id, fetchCompany]);
-
-  // Configuración de columnas para la tabla de Acciones
-  const columnasAcciones = useMemo(() => [
-    { 
-      key: "FCTM_action_type", 
-      encabezado: "Tipo" 
-    },
-    { 
-      key: "FCTM_action_datetime", 
-      encabezado: "Fecha",
-      render: (row) => formatDateDDMMYYYY(row.FCTM_action_datetime) 
-    },
-    { 
-      key: "FCTM_action_title", 
-      encabezado: "Descripción/Título" 
-    },
-    {
-      key: "__show",
-      encabezado: "Ver/Edit",
-      render: (row) => (
-        <button 
-          className="btn btn-sm btn-outline-primary" 
-          onClick={() => navigate(`/actions/${row._id}`, { state: { companyId: id } })}
-        >
-          <i className="bi bi-pencil"></i>
-        </button>
-      )
-    },
-    {
-      key: "__delete",
-      encabezado: "Borrar",
-      render: (row) => (
-        <button 
-          className="btn btn-sm btn-outline-danger" 
-          onClick={() => handleDeleteAction(row._id)}
-        >
-          <i className="bi bi-trash"></i>
-        </button>
-      )
-    }
-  ], [navigate, id, handleDeleteAction])
-
   const columnasOfertas = useMemo(() => [
     { key: "FCTM_job_title", encabezado: "Título" },
     { key: "FCTM_job_status", encabezado: "Estado" },
@@ -325,6 +274,104 @@ const ShowCompany = () => {
       )
     }
   ], [navigate, id, handleDeleteJobOffer]);
+
+  const handleDeleteDocument = useCallback(async (docId) => {
+    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");
+    if (!confirmado) return;
+
+    const res = await sendRequest("DELETE", undefined, `/documents/${docId}?companyId=${id}`);
+
+    if (res.success) {
+      showAlert("Documento eliminado y desvinculado", "success");
+      await fetchCompany(); 
+    } else {
+      showAlert(res.message || "Error al eliminar", "error");
+    }
+  }, [id, fetchCompany]);
+
+  const columnasDocumentos = useMemo(() => [
+    { 
+      key: "FCTM_document_name", 
+      encabezado: "Nombre del Documento" 
+    },
+    { 
+      key: "FCTM_inserted_date", 
+      encabezado: "Fecha",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_inserted_date) 
+    },
+    {
+      key: "__download",
+      encabezado: "Ver",
+      render: (row) => (
+        <a href={row.FCTM_document_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-info">
+          <i className="bi bi-download"></i>
+        </a>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Borrar",
+      render: (row) => (
+        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteDocument(row._id)}>
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [handleDeleteDocument]);
+
+  const handleDeleteAction = useCallback(async (actionId) => {
+    const confirmed = await confirmation("¿Seguro que quieres eliminar esta acción y desvincularla de la empresa?");
+    if (!confirmed) return;
+
+    // Enviamos el ID de la empresa en la URL para que el backend sepa de dónde quitar el ID de la acción
+    const res = await sendRequest("DELETE", null, `/actions/${actionId}?companyId=${id}`);
+
+    if (res.success) {
+      showAlert("Acción eliminada y desvinculada de la empresa", "success");
+      await fetchCompany(); // Esto refresca la empresa y verás que el array FCTM_actions ya no tiene ese ID
+    } else {
+      showAlert(res.message || "Error al eliminar la acción", "error");
+    }
+  }, [id, fetchCompany]);
+
+  const columnasAcciones = useMemo(() => [
+    { key: "FCTM_action_title", encabezado: "Título" },
+    { key: "FCTM_action_type", encabezado: "Tipo" },
+    {
+      key: "FCTM_action_datetime",
+      encabezado: "Fecha y hora",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_action_datetime),
+    },
+    {
+      key: "FCTM_documents",
+      encabezado: "Adjuntos",
+      render: (row) => row?.FCTM_documents?.length || 0,
+    },
+    {
+      key: "__show",
+      encabezado: "Ver",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-primary" 
+          onClick={() => navigate(`/actions/${row._id}`)}
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Borrar",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-danger" 
+          onClick={() => handleDeleteAction(row._id)}
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [navigate, handleDeleteAction]);
 
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
   
@@ -382,16 +429,27 @@ const ShowCompany = () => {
       <hr />
 
       <ListCRUD 
-        title="Historial de Acciones (Visitas/Llamadas)" 
-        datos={data.FCTM_actions || []} 
-        columnas={columnasAcciones}
+        title="Documentación de Empresa (Convenios, etc.)" 
+        datos={data.FCTM_documents || []} 
+        columnas={columnasDocumentos}
       >
-        <button 
-          className="btn btn-primary" 
-          onClick={() => navigate("/actions/new", { state: { companyId: id } })}
-        >
-          Nueva Acción
-        </button>
+        <div className="d-flex align-items-center gap-2">
+          <button 
+            className="btn btn-success" 
+            onClick={() => navigate("/documents/new", { state: { companyId: id, type: "CONVENIO" } })}
+          >
+            <i className="bi bi-file-earmark-plus me-2"></i>
+            Adjuntar Documento
+          </button>
+          <small className="text-muted">Ej: Convenio A1 de SAO</small>
+        </div>
+      </ListCRUD>
+      <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
+        {canCreateActions && (
+          <button className="btn btn-primary" onClick={() => navigate("/actions/new", { state: { companyId: id } })}>
+            Nueva Acción
+          </button>
+        )}
       </ListCRUD>
     </section>
   );
