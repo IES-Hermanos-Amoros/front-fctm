@@ -8,6 +8,7 @@ import ListDocuments from '../views/Documents/ListDocuments'
 import ListJobOffers from '../views/JobOffers/ListJobOffers'
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
+import EditDocument from '../views/Documents/EditDocument'
 import ShowDummy from '../views/Dummy/ShowDummy'
 import ShowStudent from '../views/Students/ShowStudent'
 import ShowCompany from '../views/Companies/ShowCompany'
@@ -28,6 +29,7 @@ import ShowAdmin from '../views/Administrators/ShowAdmin'
 import ShowTeacher from '../views/Teachers/ShowTeacher'
 import ShowFct from '../views/Fcts/ShowFcts'
 import NewReview from '../views/Reviews/NewReview'
+import NewAction from '../views/Actions/NewAction'
 
 import ValidateReviews from '../views/Administrators/ValidateReviews'
 import ValidateSkills from '../views/Administrators/ValidateSkills'
@@ -45,6 +47,7 @@ export default function AppRouter() {
 
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
+      <Route path="/documents/:id/edit" element={<EditDocument />} />
       <Route path="/documents/new" element={<NewDocument />} />
       {/*<Route path="/joboffers" element={<ListJobOffers />} />*/}
       <Route
@@ -60,6 +63,14 @@ export default function AppRouter() {
 
       <Route path="/joboffers/new" element={<NewJobOffer />} />
       <Route path="/joboffers/:id" element={<ShowJobOffer />} />
+      <Route
+        path="/actions/new"
+        element={
+          <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR']}>
+            <NewAction />
+          </ProtectedRoutes>
+        }
+      />
 
       {/*<Route path="/companies" element={<ListCompanies />} />*/}
       {/* 🏢 RESTRICCIÓN EMPRESA: No puede ver listado de empresas ni ofertas */}
