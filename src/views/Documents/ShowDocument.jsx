@@ -1,244 +1,360 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { sendRequest, showAlert, getBackendHost } from "../../utils/functions";
-
-import ShowHeader from "../../components/Show/ShowHeader";
-import ShowEditableForm from "../../components/Show/ShowEditableForm";
-
-// --- CONSTANTES ---
-// Espejo del enum DOCUMENT_TYPE (back-fctm/models/enum.js)
-const documentTypes = [
-  { _id: "GENERAL", nombre: "GENERAL" },
-  { _id: "MANUAL", nombre: "MANUAL" },
-  { _id: "DECRETO/ORDEN/CURRÍCULUM", nombre: "DECRETO/ORDEN/CURRÍCULUM" },
-  { _id: "CURRÍCULUM VITAE", nombre: "CURRÍCULUM VITAE" },
-  { _id: "OTRO", nombre: "OTRO" },
-  { _id: "AVATAR", nombre: "AVATAR" }
-];
-
-// Espejo del enum USER_PROFILES (back-fctm/models/enum.js)
-const profileOptions = [
-  { _id: "ADMINISTRADOR", nombre: "ADMINISTRADOR" },
-  { _id: "PROFESOR", nombre: "PROFESOR" },
-  { _id: "ALUMNO", nombre: "ALUMNO" },
-  { _id: "EMPRESA", nombre: "EMPRESA" }
-];
-
-// Campos editables — Alejandro permite modificar (S7-085 Edit).
-// El archivo adjunto (FCTM_document_url) y la relación con oferta/alumno
-// NO se pueden modificar (requisito issue #145).
-const editableFields = [
-  { key: "FCTM_document_name", label: "Nombre", type: "text", required: true },
-  { key: "FCTM_document_description", label: "Descripción", type: "textarea" },
-  {
-    key: "FCTM_document_type",
-    label: "Tipo",
-    type: "select",
-    options: documentTypes,
-    optionValue: "_id",
-    optionLabel: "nombre",
-    required: true
-  },
-  {
-    key: "FCTM_visible_to_profiles",
-    label: "Perfiles que pueden ver el documento",
-    type: "select-multi",
-    options: profileOptions,
-    optionValue: "_id",
-    optionLabel: "nombre"
-  }
-];
-
-// Campos read-only — nunca editables (archivo adjunto, autor, fechas, relaciones).
-const readOnlyFields = [
-  { key: "_id", label: "ID", type: "text" },
-  { key: "FCTM_document_url", label: "Ruta del archivo", type: "text" },
-  { key: "FCTM_document_created_by_name", label: "Subido por", type: "text" },
-  { key: "FCTM_inserted_date_fmt", label: "Fecha de subida", type: "text" },
-  { key: "FCTM_updated_date_fmt", label: "Última actualización", type: "text" },
-  { key: "oferta_relacionada_titulo", label: "Oferta relacionada", type: "text" }
-];
-
-// Normaliza la respuesta del back para que ShowEditableForm pueda pintar
-// los campos de tipo select-multi (espera array de objetos con value/label).
-const normalizeFromApi = (raw) => {
-  const visible = Array.isArray(raw.FCTM_visible_to_profiles)
-    ? raw.FCTM_visible_to_profiles.map((p) =>
-        typeof p === "string" ? { value: p, label: p } : p
-      )
-    : [];
-
-  return {
-    ...raw,
-    FCTM_visible_to_profiles: visible,
-    FCTM_document_created_by_name:
-      raw.FCTM_document_created_by?.SAO_name || "—",
-    FCTM_inserted_date_fmt: raw.FCTM_inserted_date
-      ? new Date(raw.FCTM_inserted_date).toLocaleString()
-      : "—",
-    FCTM_updated_date_fmt: raw.FCTM_updated_date
-      ? new Date(raw.FCTM_updated_date).toLocaleString()
-      : "—",
-    oferta_relacionada_titulo:
-      raw.oferta_relacionada?.[0]?.FCTM_job_title || "—"
-  };
-};
-
-// Devuelve un payload limpio listo para PATCH /documents/:id.
-// react-select devuelve {value,label}; el back espera array de strings.
-const normalizeToApi = (data) => {
-  const visible = Array.isArray(data.FCTM_visible_to_profiles)
-    ? data.FCTM_visible_to_profiles
-        .map((p) => p?.value || p?._id || p)
-        .filter(Boolean)
-    : [];
-
-  return {
-    FCTM_document_name: data.FCTM_document_name,
-    FCTM_document_description: data.FCTM_document_description || "",
-    FCTM_document_type: data.FCTM_document_type,
-    FCTM_visible_to_profiles: visible
-  };
-};
+import React, { useEffect, useMemo, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getBackendHost, sendRequest, showAlert } from '../../utils/functions'
+import ShowHeader from '../../components/Show/ShowHeader'
+import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
 const ShowDocument = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const { id } = useParams()
+  const navigate = useNavigate()
 
-  const [data, setData] = useState(null);
-  const [originalData, setOriginalData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [documento, setDocumento] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // --- CARGA ---
-  const fetchDocument = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    const res = await sendRequest("GET", null, `/documents/${id}`);
-    if (res.success) {
-      const normalized = normalizeFromApi(res.data);
-      setData(normalized);
-      setOriginalData(normalized);
-    } else {
-      setError(res.message || "No se pudo cargar el documento");
-    }
-    setLoading(false);
-  }, [id]);
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [formData, setFormData] = useState({
+    FCTM_document_name: '',
+    FCTM_document_description: '',
+  })
+  const [originalFormData, setOriginalFormData] = useState({
+    FCTM_document_name: '',
+    FCTM_document_description: '',
+  })
+
+  const editableFields = useMemo(
+    () => [
+      {
+        key: 'FCTM_document_name',
+        label: 'Nombre',
+        type: 'text',
+        required: true,
+      },
+      {
+        key: 'FCTM_document_description',
+        label: 'Descripcion',
+        type: 'textarea',
+      },
+    ],
+    []
+  )
 
   useEffect(() => {
-    fetchDocument();
-  }, [fetchDocument]);
+    const fetchDoc = async () => {
+      setLoading(true)
+      setError(null)
 
-  // --- HANDLERS DE EDICIÓN ---
-  const handleEdit = () => setIsEditing(true);
+      const res = await sendRequest('GET', null, `/documents/${id}`)
 
-  const handleChange = (field, value) => {
-    setData((prev) => ({ ...prev, [field]: value }));
-  };
+      if (res.success && res.data) {
+        const doc = res.data
+        const nextFormData = {
+          FCTM_document_name: doc.FCTM_document_name || '',
+          FCTM_document_description: doc.FCTM_document_description || '',
+        }
 
-  const handleCancel = () => {
-    setData(originalData);
-    setIsEditing(false);
-  };
-
-  // ────────────────────────────────────────────────────────────────────────
-  // HANDOVER ALEJANDRO — Issue #145 (S7-085 Edit Documents)
-  //
-  // Esta función ya está cableada con un PATCH funcional contra
-  // /documents/:id. Lo que tienes que pulir tú:
-  //
-  //   1. Validación de campos antes de enviar (nombre no vacío, tipo válido).
-  //   2. Mensajes de error específicos del back: 403 → "No tienes permiso
-  //      para editar este documento", 404 → "Documento ya no existe",
-  //      500 → mensaje genérico.
-  //   3. Si el back devuelve campos extra (acciones_relacionadas, etc.),
-  //      conserva data o llama de nuevo a fetchDocument() para refrescar.
-  //   4. (Opcional) Confirmar con el usuario antes de guardar si cambia
-  //      FCTM_visible_to_profiles (afecta a quién puede leer el documento).
-  //
-  // Endpoint correcto: PATCH (no PUT) según back-fctm/routes/document.routes.js.
-  // ────────────────────────────────────────────────────────────────────────
-  const handleSave = async () => {
-    try {
-      const payload = normalizeToApi(data);
-      const res = await sendRequest("PATCH", payload, `/documents/${id}`);
-
-      if (!res.success) {
-        showAlert(res.message || "Error al actualizar el documento", "error");
-        return;
+        setDocumento(doc)
+        setFormData(nextFormData)
+        setOriginalFormData(nextFormData)
+      } else {
+        setError(res.message || 'No se pudo cargar el documento')
       }
 
-      const normalized = normalizeFromApi(res.data);
-      setData(normalized);
-      setOriginalData(normalized);
-      setIsEditing(false);
-      showAlert("Documento actualizado correctamente", "success");
-    } catch (err) {
-      console.error(err);
-      showAlert("Error crítico al guardar", "error");
+      setLoading(false)
     }
-  };
 
-  // --- RENDER ---
-  if (loading) {
-    return <p className="p-5 text-center">Cargando...</p>;
+    fetchDoc()
+  }, [id])
+
+  const handleEdit = () => {
+    const nextFormData = {
+      FCTM_document_name: documento?.FCTM_document_name || '',
+      FCTM_document_description: documento?.FCTM_document_description || '',
+    }
+
+    setFormData(nextFormData)
+    setOriginalFormData(nextFormData)
+    setIsEditing(true)
   }
 
-  if (error || !data) {
+  const handleChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const getRelationText = doc => {
+    if (!doc) return 'Sin relacion'
+
+    if (doc.FCTM_relacion_id) {
+      if (typeof doc.FCTM_relacion_id === 'string') return doc.FCTM_relacion_id
+      return (
+        doc.FCTM_relacion_id.SAO_name ||
+        doc.FCTM_relacion_id.FCTM_job_title ||
+        doc.FCTM_relacion_id._id ||
+        'Sin relacion'
+      )
+    }
+
+    const related = []
+
+    if (Array.isArray(doc.oferta_relacionada) && doc.oferta_relacionada.length) {
+      doc.oferta_relacionada.forEach(item => {
+        related.push(item?.FCTM_job_title || item?._id || 'Oferta')
+      })
+    }
+
+    if (
+      Array.isArray(doc.usuarios_relacionados) &&
+      doc.usuarios_relacionados.length
+    ) {
+      doc.usuarios_relacionados.forEach(item => {
+        related.push(item?.SAO_name || item?._id || 'Usuario')
+      })
+    }
+
+    if (
+      Array.isArray(doc.acciones_relacionadas) &&
+      doc.acciones_relacionadas.length
+    ) {
+      doc.acciones_relacionadas.forEach(item => {
+        related.push(item?.FCTM_action_title || item?.FCTM_action_type || item?._id || 'Accion')
+      })
+    }
+
+    if (Array.isArray(doc.fct_relacionada) && doc.fct_relacionada.length) {
+      doc.fct_relacionada.forEach(item => {
+        related.push(item?._id || 'FCT')
+      })
+    }
+
+    return related.length ? related.join(' | ') : 'Sin relacion'
+  }
+
+  const handleCancel = () => {
+    setFormData(originalFormData)
+    setIsEditing(false)
+  }
+
+  const handleSave = async () => {
+    const name = formData.FCTM_document_name?.trim()
+
+    if (!name) {
+      showAlert('El nombre del documento es obligatorio', 'error')
+      return
+    }
+
+    const payload = {
+      FCTM_document_name: name,
+      FCTM_document_description: formData.FCTM_document_description?.trim() || '',
+    }
+
+    setSaving(true)
+    const res = await sendRequest('PATCH', payload, `/documents/${id}`)
+    setSaving(false)
+
+    if (!res.success) return
+
+    const updatedDocument = {
+      ...documento,
+      ...(res.data || {}),
+      FCTM_document_name: payload.FCTM_document_name,
+      FCTM_document_description: payload.FCTM_document_description,
+    }
+
+    setDocumento(updatedDocument)
+
+    const nextFormData = {
+      FCTM_document_name: updatedDocument.FCTM_document_name || '',
+      FCTM_document_description: updatedDocument.FCTM_document_description || '',
+    }
+
+    setFormData(nextFormData)
+    setOriginalFormData(nextFormData)
+    setIsEditing(false)
+  }
+
+  if (loading) {
+    return <div className="text-center my-5">Cargando...</div>
+  }
+
+  if (error || !documento) {
     return (
       <section className="dashboard section">
         <div className="alert alert-danger">
-          {error || "Documento no encontrado"}
+          {error || 'Documento no encontrado'}
         </div>
         <button className="btn btn-secondary" onClick={() => navigate(-1)}>
           Volver
         </button>
       </section>
-    );
+    )
   }
+
+  const hostFileUrl = documento.FCTM_document_url
+    ? getBackendHost() + documento.FCTM_document_url
+    : ''
 
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Ficha del documento: ${data.FCTM_document_name || ""}`}
-        onBack={() => navigate("/documents")}
+        title={`Ficha del documento: ${documento.FCTM_document_name || ''}`}
+        onBack={() => navigate('/documents')}
       />
 
-      <ShowEditableForm
-        formTitle="Datos del documento"
-        formId="documentForm"
-        data={data}
-        fields={editableFields}
-        isEditing={isEditing}
-        onEdit={handleEdit}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        onChange={handleChange}
-      />
+      <div className="row">
+        <div className="col-lg-12">
+          <div className="card p-4 shadow-sm rounded-3">
+            <div className="mb-3">
+              <label className="form-label fw-bold">ID</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento._id}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Nombre</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_name || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Descripcion</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_description || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Tipo</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_type || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Subido por</label>
+              <input
+                type="text"
+                className="form-control"
+                value={documento.FCTM_document_created_by?.SAO_name || ''}
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <label className="form-label fw-bold">Fecha subida</label>
+              <input
+                type="text"
+                className="form-control"
+                value={
+                  documento.FCTM_inserted_date
+                    ? new Date(documento.FCTM_inserted_date).toLocaleString()
+                    : ''
+                }
+                disabled
+              />
+            </div>
+            <div className="mb-3">
+              <a
+                href={hostFileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-outline-primary"
+              >
+                Ver/Descargar
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <ShowEditableForm
-        formTitle="Información del archivo (no editable)"
-        formId="documentReadOnlyForm"
-        data={data}
-        fields={readOnlyFields}
-        hideEditButton={true}
-      />
+      <div className="mt-4">
+        <ShowEditableForm
+          formTitle="Datos del Documento"
+          formId="documentForm"
+          data={formData}
+          fields={editableFields}
+          isEditing={isEditing}
+          onEdit={handleEdit}
+          onSave={handleSave}
+          onCancel={handleCancel}
+          onChange={handleChange}
+        />
+      </div>
 
-      <div className="card mt-3">
-        <div className="card-body">
-          <a
-            href={getBackendHost() + data.FCTM_document_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-outline-primary"
-          >
-            Ver/Descargar archivo
-          </a>
+      <div className="row">
+        <div className="col-lg-12">
+          <div className="card mt-4 shadow-sm rounded-3">
+            <div className="card-header">
+              <strong>Campos Protegidos</strong>
+            </div>
+            <div className="card-body">
+              <div className="form-group mb-3">
+                <label className="form-label fw-bold">FCTM_document_type</label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={documento.FCTM_document_type || ''}
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group mb-3">
+                <label className="form-label fw-bold">FCTM_relacion_id</label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={getRelationText(documento)}
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group mb-3">
+                <label className="form-label fw-bold">Nombre del archivo</label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={documento.FCTM_document_name || ''}
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group mb-3">
+                <label className="form-label fw-bold">Ruta del archivo</label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={documento.FCTM_document_url || ''}
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label fw-bold">Acceso al archivo</label>
+                <input
+                  type="text"
+                  className="form-control bg-light"
+                  value={hostFileUrl}
+                  readOnly
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default ShowDocument;
+export default ShowDocument
