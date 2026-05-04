@@ -8,6 +8,7 @@ import ListDocuments from '../views/Documents/ListDocuments'
 import ListJobOffers from '../views/JobOffers/ListJobOffers'
 import NotFound from '../views/NotFound'
 import ShowDocument from '../views/Documents/ShowDocument'
+import EditDocument from '../views/Documents/EditDocument'
 import ShowDummy from '../views/Dummy/ShowDummy'
 import ShowStudent from '../views/Students/ShowStudent'
 import ShowCompany from '../views/Companies/ShowCompany'
@@ -46,6 +47,7 @@ export default function AppRouter() {
 
       <Route path="/documents" element={<ListDocuments />} />
       <Route path="/documents/:id" element={<ShowDocument />} />
+      <Route path="/documents/:id/edit" element={<EditDocument />} />
       <Route path="/documents/new" element={<NewDocument />} />
       {/*<Route path="/joboffers" element={<ListJobOffers />} />*/}
       <Route
