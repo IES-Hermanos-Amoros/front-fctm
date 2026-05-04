@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest,stringToColor,formatDateDDMMYYYY } from '../../utils/functions';
-import { useNavigate } from 'react-router-dom'
+import { sendRequest, stringToColor, formatDateDDMMYYYY, showAlert, confirmation } from '../../utils/functions';
+import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import ListCRUD from "../../components/List/ListCRUD";
 import useCategoryStore from '../../store/categoryStore';
 
@@ -10,6 +11,8 @@ const ListCompanies = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [filters, setFilters] = useState({});
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [selectedCategoriesBulk, setSelectedCategoriesBulk] = useState([]);
 
     const categories = useCategoryStore((state) => state.categories);
     const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
@@ -33,6 +36,35 @@ const ListCompanies = () => {
         row.FCTM_company_category?.some((cat) => (cat._id || cat) === filters.category)
       );
     }, [data, filters]);
+
+    const categoryOptionsSelect = useMemo(() => 
+      categories.map(cat => ({ value: cat._id, label: cat.FCTM_category_name })), 
+      [categories]
+    );
+
+    const handleBulkUpdate = async () => {
+      if (selectedIds.length === 0) return showAlert("No hay empresas seleccionadas", "warning");
+      if (selectedCategoriesBulk.length === 0) return showAlert("No hay familias seleccionadas", "warning");
+
+      const confirmado = await confirmation(`¿Actualizar familias para ${selectedIds.length} empresas?`);
+      if (!confirmado) return;
+
+      const payload = {
+          ids: selectedIds,
+          categoryIds: selectedCategoriesBulk.map(c => c.value)
+      };
+
+      const res = await sendRequest("PATCH", payload, "/companies/bulk-update");
+
+      if (res.success) {
+          showAlert("Empresas actualizadas correctamente", "success");
+          setSelectedIds([]);
+          setSelectedCategoriesBulk([]);
+          fetchData();
+      } else {
+          showAlert(res.message, "error");
+      }
+    };
 
     // Columnas para la tabla
     const columnas = useMemo(() => [
@@ -160,10 +192,45 @@ const ListCompanies = () => {
                   datos={filteredData}
                   columnas={columnas}
                   tableId="empresas"
+                  mostrarCheckBox
+                  selectedIds={selectedIds}
+                  onSelectionChange={setSelectedIds}
                   filters={filters}
                   onFilterChange={setFilters}
                   filtersConfig={filtersConfig}
-                >                          
+                >       
+                  {selectedIds.length > 0 && (
+                      <div className="card p-3 mb-3 bg-light border-warning shadow-sm">
+                          <h6 className="mb-3 text-warning-emphasis fw-bold">
+                            <i className="bi bi-pencil-square me-2"></i>
+                            Actualización masiva: Familias Profesionales
+                          </h6>
+                          <div className="row align-items-end g-3">
+                              <div className="col-md-8">
+                                  <label className="form-label small fw-bold">Seleccionar Familias a añadir:</label>
+                                  <Select
+                                      isMulti
+                                      options={categoryOptionsSelect}
+                                      value={selectedCategoriesBulk}
+                                      onChange={setSelectedCategoriesBulk}
+                                      placeholder="Busca y selecciona familias..."
+                                      classNamePrefix="react-select"
+                                      menuPortalTarget={document.body} 
+                                      styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                                  />
+                              </div>
+                              <div className="col-md-4">
+                                  <button 
+                                      className="btn btn-warning w-100 fw-bold" 
+                                      onClick={handleBulkUpdate}
+                                      disabled={selectedCategoriesBulk.length === 0}
+                                  >
+                                      Actualizar {selectedIds.length} empresas
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  )}                   
                 </ListCRUD>
             )}
         </>
