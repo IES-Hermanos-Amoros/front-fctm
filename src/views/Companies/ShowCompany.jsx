@@ -270,6 +270,50 @@ const ShowCompany = () => {
     }
   ], [navigate, id, handleDeleteJobOffer]);
 
+  const handleDeleteDocument = useCallback(async (docId) => {
+    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");
+    if (!confirmado) return;
+
+    const res = await sendRequest("DELETE", undefined, `/documents/${docId}?companyId=${id}`);
+
+    if (res.success) {
+      showAlert("Documento eliminado y desvinculado", "success");
+      await fetchCompany(); 
+    } else {
+      showAlert(res.message || "Error al eliminar", "error");
+    }
+  }, [id, fetchCompany]);
+
+  const columnasDocumentos = useMemo(() => [
+    { 
+      key: "FCTM_document_name", 
+      encabezado: "Nombre del Documento" 
+    },
+    { 
+      key: "FCTM_inserted_date", 
+      encabezado: "Fecha",
+      render: (row) => formatDateDDMMYYYY(row.FCTM_inserted_date) 
+    },
+    {
+      key: "__download",
+      encabezado: "Ver",
+      render: (row) => (
+        <a href={row.FCTM_document_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-info">
+          <i className="bi bi-download"></i>
+        </a>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Borrar",
+      render: (row) => (
+        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteDocument(row._id)}>
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [handleDeleteDocument]);
+
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
   
   const handleCancel = () => { 
@@ -321,6 +365,25 @@ const ShowCompany = () => {
         <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
           Nueva Oferta
         </button>
+      </ListCRUD>
+
+      <hr />
+
+      <ListCRUD 
+        title="Documentación de Empresa (Convenios, etc.)" 
+        datos={data.FCTM_documents || []} 
+        columnas={columnasDocumentos}
+      >
+        <div className="d-flex align-items-center gap-2">
+          <button 
+            className="btn btn-success" 
+            onClick={() => navigate("/documents/new", { state: { companyId: id, type: "CONVENIO" } })}
+          >
+            <i className="bi bi-file-earmark-plus me-2"></i>
+            Adjuntar Documento
+          </button>
+          <small className="text-muted">Ej: Convenio A1 de SAO</small>
+        </div>
       </ListCRUD>
     </section>
   );
