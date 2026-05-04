@@ -216,13 +216,20 @@ const ListDocuments = () => {
             >
               <i className="bi bi-download"></i> {/* Icono de descarga */}
             </a>            
-            <a
+            {/*<a
               href={`/documents/${row._id}`}
               className="btn btn-sm btn-outline-info"
               title="Ver detalles"
             >
               <i className="bi bi-search"></i>
-            </a>            
+            </a>*/}
+            <button
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => navigate(`/documents/${row._id}`)}
+              title="Ver documento"
+            >
+              <i className="bi bi-search"></i>
+            </button>
             {userId &&
               row.FCTM_document_created_by &&
               (row.FCTM_document_created_by._id === userId ||

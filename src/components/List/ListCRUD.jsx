@@ -50,12 +50,11 @@ const ListCRUD = ({
       {/* FILTRO TEMPORAL FIN */}
 
     
-      <div className="row mb-3">
-        <div className="col-12">
-          {/*{title && <h3 className="m-0">{title}</h3>}*/}
-          {children} {/* BOTON NUEVO - Ir al .../new */}
+      {/*<div className="row mb-3">
+        <div className="col-12">          
+          {children}
         </div>
-      </div>
+      </div>*/}
 
       {/* TOOLBAR DE EXPORTACIÓN */}
       <div className="row">
@@ -67,7 +66,10 @@ const ListCRUD = ({
             filters={filters}
             onFilterChange={onFilterChange}
             filtersConfig={filtersConfig}
-          />
+          >
+          {/* Pasamos los hijos aquí */}
+          {children}
+          </ReactTableToolBar>
         </div>
       </div>
 

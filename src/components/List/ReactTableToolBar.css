@@ -1,40 +1,90 @@
+/* ======================================================
+   REACT TABLE TOOLBAR - ALINEACIÓN A LA DERECHA
+   ====================================================== */
+
 .react-table-toolbar {
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-bottom: 20px;
-  padding: 8px 0;
+  flex-wrap: wrap;
+  align-items: center;
+  /* Ya no necesitamos space-between porque usaremos margins automáticos */
+  justify-content: flex-start; 
+  gap: 15px;
+  margin-bottom: 25px;
+  
+  background-color: var(--card-bg) !important; 
+  padding: 16px 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(1, 41, 112, 0.12) !important;
+  border: 1px solid var(--bs-border-color);
 }
+
+/* 1. ACCIONES (IZQUIERDA) */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none; /* No crece */
+}
+
+/* 2. FILTROS (PEGADOS A LA DERECHA) */
+.toolbar-filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  /* ESTA ES LA CLAVE: Empuja los filtros y todo lo que sigue a la derecha */
+  margin-left: auto; 
+}
+
+/* 3. EXPORTACIÓN (PEGADOS A LOS FILTROS) */
+.toolbar-export-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex: none;
+}
+
+/* Estilos de inputs y botones (Mantener igual) */
+.toolbar-filters .form-select {
+  width: auto;
+  min-width: 180px;
+  height: 40px;
+  font-size: 14px;
+  border-radius: 6px;
+  background-color: var(--bs-tertiary-bg);
+  color: var(--text-color);
+  border: 1px solid var(--bs-border-color);
+}
+
 .toolbar-btn {
-  padding: 9px 18px;
+  height: 40px;
+  padding: 0 18px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-weight: 600;
   font-size: 14px;
   display: flex;
   align-items: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-.toolbar-btn:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.1); 
-  box-shadow: 0 4px 6px rgba(0,0,0,0.12);
-}
-.excel-btn {
-  background-color: #28a745; 
-  color: white;
-}
-.pdf-btn {
-  background-color: #f44336; 
-  color: white;
+  white-space: nowrap;
 }
 
-.toolbar-filters {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-  align-items: center; /* 👈 clave */
+.excel-btn { background-color: #28a745; color: #fff; }
+.pdf-btn { background-color: #f44336; color: #fff; }
+
+/* Limpieza de márgenes */
+.toolbar-actions > *, .toolbar-filters > *, .toolbar-export-buttons > * {
+  margin: 0 !important;
 }
 
+/* Responsive: en pantallas pequeñas todo al centro */
+@media (max-width: 992px) {
+  .toolbar-filters {
+    margin-left: 0;
+    justify-content: center;
+    width: 100%;
+  }
+  .react-table-toolbar {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
