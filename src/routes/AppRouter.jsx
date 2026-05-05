@@ -28,6 +28,7 @@ import ShowTeacher from '../views/Teachers/ShowTeacher'
 import ShowFct from '../views/Fcts/ShowFcts'
 import NewReview from '../views/Reviews/NewReview'
 import NewAction from '../views/Actions/NewAction'
+import ShowAction from '../views/Actions/ShowAction'
 import ValidateReviews from '../views/Administrators/ValidateReviews'
 import ValidateSkills from '../views/Administrators/ValidateSkills'
 
@@ -63,6 +64,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR']}>
             <NewAction />
+          </ProtectedRoutes>
+        }
+      />
+      <Route
+        path="/actions/:id"
+        element={
+          <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR']}>
+            <ShowAction />
           </ProtectedRoutes>
         }
       />

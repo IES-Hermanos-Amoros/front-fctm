@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest, stringToColor, formatDateDDMMYYYY, showAlert, confirmation } from '../../utils/functions';
-import { useNavigate } from 'react-router-dom';
-import Select from 'react-select';
+import { sendRequest,stringToColor,formatDateDDMMYYYY, confirmation, showAlert } from '../../utils/functions';
+import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
 import useCategoryStore from '../../store/categoryStore';
+import useSkillStore from '../../store/skillStore';
+import Select from 'react-select';
 
 
 const ListCompanies = () => {
@@ -13,9 +14,12 @@ const ListCompanies = () => {
     const [filters, setFilters] = useState({});
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedCategoriesBulk, setSelectedCategoriesBulk] = useState([]);
+    const [selectedSkills, setSelectedSkills] = useState([]);
 
     const categories = useCategoryStore((state) => state.categories);
     const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
+    const skillOptionsStore = useSkillStore((state) => state.skills);
+    const cargarSkills = useSkillStore((state) => state.cargarSkills);
 
     const navigate = useNavigate();
 
@@ -65,6 +69,12 @@ const ListCompanies = () => {
           showAlert(res.message, "error");
       }
     };
+    const formattedSkills = useMemo(() => {
+      return skillOptionsStore.map(skill => ({
+        value: skill._id,
+        label: skill.FCTM_skill_name
+      }));
+    }, [skillOptionsStore]);
 
     // Columnas para la tabla
     const columnas = useMemo(() => [
@@ -178,6 +188,29 @@ const ListCompanies = () => {
 
     useEffect(() => { fetchData(); }, [fetchData]);
     useEffect(() => { cargarCategorias(); }, [cargarCategorias]);
+    useEffect(() => { cargarSkills(); }, [cargarSkills]);
+
+    const handleBulkUpdate = async () => {
+      if (selectedIds.length === 0) return showAlert("No hay empresas seleccionadas", "warning");
+      if (selectedSkills.length === 0) return showAlert("Debes seleccionar al menos una aptitud", "warning");
+
+      const confirmado = await confirmation(`¿Añadir ${selectedSkills.length} aptitudes a ${selectedIds.length} empresas?`);
+      if (!confirmado) return;
+
+      const skillsIds = selectedSkills.map(skill => skill.value);
+      const payload = { ids: selectedIds, skills: skillsIds };
+
+      const res = await sendRequest("PATCH", payload, "/companies/bulk-update");
+
+      if (res.success) {
+        showAlert("Aptitudes actualizadas correctamente", "success");
+        setSelectedIds([]);
+        setSelectedSkills([]);
+        fetchData();
+      } else {
+        showAlert(res.message, "error");
+      }
+    };
 
     return (
         <>            
@@ -231,6 +264,30 @@ const ListCompanies = () => {
                           </div>
                       </div>
                   )}                   
+                >
+                  <div className="d-flex flex-wrap gap-2 mb-3 align-items-end">
+                    {selectedIds.length > 0 && (
+                      <>
+                        <div style={{ minWidth: '300px' }}>
+                          <label className="form-label fw-bold small mb-1">¿Con qué trabajan?</label>
+                          <Select
+                            isMulti
+                            options={formattedSkills}
+                            value={selectedSkills}
+                            onChange={setSelectedSkills}
+                            placeholder="Selecciona aptitudes..."
+                            noOptionsMessage={() => "No hay más aptitudes"}
+                            className="react-select-container"
+                            classNamePrefix="react-select"
+                          />
+                        </div>
+                        <button className="btn btn-warning" onClick={handleBulkUpdate}>
+                          <i className="bi bi-pencil-square me-1"></i>
+                          Actualizar aptitudes ({selectedIds.length})
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </ListCRUD>
             )}
         </>
