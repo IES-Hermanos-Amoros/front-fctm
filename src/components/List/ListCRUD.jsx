@@ -20,7 +20,7 @@ const ListCRUD = ({
     <section className="dashboard section">
 
       {/* TOOLBAR DE EXPORTACIÓN */}
-      <div className="row mb-1">
+      <div className="row g-0">
         <div className="col-12">
           <ReactTableToolBar 
             data={datos}
@@ -37,7 +37,7 @@ const ListCRUD = ({
       </div>
 
 
-      <div className="row mt-0">
+      <div className="row g-0">
         <div className="col-12">
           <ReactTableTanstack
             tableTitle={title}

@@ -2,7 +2,7 @@
    CONTENEDOR TIPO CARD
 ======================= */
 
-.rt-card {
+/*.rt-card {
   width: 100%;
   overflow-x: auto;
   background-color: var(--card-bg);
@@ -10,6 +10,26 @@
   border-radius: 0.375rem;
   box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
   transition: background-color 0.3s ease, color 0.3s ease;
+}*/
+.rt-card {
+  width: 100%;
+  overflow-x: auto;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  
+  /* Solo redondeamos la parte de abajo */
+  border-radius: 0 0 12px 12px; 
+  
+  /* Quitamos el borde físico de arriba para la fusión */
+  border: 1px solid var(--bs-border-color);
+  border-top: none;
+
+  /* EFECTO DEGRADADO DESAPARECIENDO (Arriba) */
+  -webkit-mask-image: linear-gradient(to top, black 98%, transparent 100%);
+  mask-image: linear-gradient(to top, black 98%, transparent 100%);
+  
+  box-shadow: 0 10px 30px rgba(1, 41, 112, 0.1);
+  transition: background-color 0.3s ease;
 }
 
 .rt-card-body {

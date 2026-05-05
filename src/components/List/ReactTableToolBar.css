@@ -2,11 +2,11 @@
    REACT TABLE TOOLBAR - ALINEACIÓN A LA DERECHA
    ====================================================== */
 
+   /*
 .react-table-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  /* Ya no necesitamos space-between porque usaremos margins automáticos */
+  align-items: center;  
   justify-content: flex-start; 
   gap: 15px;
   margin-bottom: 0px;
@@ -16,7 +16,36 @@
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(1, 41, 112, 0.12) !important;
   border: 1px solid var(--bs-border-color);
+}*/
+
+.react-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start; 
+  gap: 15px;
+  
+  /* Reducimos el margen al mínimo para que se toquen */
+  margin-bottom: -1px; 
+  
+  background-color: var(--card-bg) !important; 
+  padding: 16px 24px;
+  
+  /* Solo redondeamos la parte de arriba */
+  border-radius: 12px 12px 0 0; 
+  
+  /* Quitamos el borde físico de abajo */
+  border: 1px solid var(--bs-border-color);
+  border-bottom: none;
+
+  /* EFECTO DEGRADADO DESAPARECIENDO (Abajo) */
+  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  
+  /* Ajustamos la sombra para que no se corte feo */
+  box-shadow: 0 4px 20px rgba(1, 41, 112, 0.08) !important;
 }
+
 
 /* 1. ACCIONES (IZQUIERDA) */
 .toolbar-actions {
