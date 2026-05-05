@@ -9,9 +9,9 @@
   /* Ya no necesitamos space-between porque usaremos margins automáticos */
   justify-content: flex-start; 
   gap: 15px;
-  margin-bottom: 25px;
+  margin-bottom: 0px;
   
-  background-color: var(--card-bg) !important; 
+  background-color: var(--card-bg, #fff) !important; 
   padding: 16px 24px;
   border-radius: 12px;
   box-shadow: 0 8px 20px rgba(1, 41, 112, 0.12) !important;

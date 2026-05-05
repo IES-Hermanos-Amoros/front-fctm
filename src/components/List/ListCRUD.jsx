@@ -19,45 +19,8 @@ const ListCRUD = ({
   return (
     <section className="dashboard section">
 
-      {/* FILTRO TEMPORAL INI */}
-      {/*<div className="row mb-2">
-        {filtersConfig.map(filter => (
-          <div className="col-md-4" key={filter.key}>
-            <select
-              className="form-select"
-              value={filters[filter.key] || ""}
-              onChange={(e) =>
-                onFilterChange(prev => ({
-                  ...prev,
-                  [filter.key]: e.target.value
-                }))
-              }
-            >
-              <option value="">Todos - {filter.label}</option>
-
-              {filter.options.map(opt => (
-                <option
-                  key={opt[filter.optionValue]}
-                  value={opt[filter.optionValue]}
-                >
-                  {opt[filter.optionLabel]}
-                </option>
-              ))}
-            </select>
-          </div>
-        ))}
-      </div>*/}
-      {/* FILTRO TEMPORAL FIN */}
-
-    
-      {/*<div className="row mb-3">
-        <div className="col-12">          
-          {children}
-        </div>
-      </div>*/}
-
       {/* TOOLBAR DE EXPORTACIÓN */}
-      <div className="row">
+      <div className="row mb-1">
         <div className="col-12">
           <ReactTableToolBar 
             data={datos}
@@ -74,7 +37,7 @@ const ListCRUD = ({
       </div>
 
 
-      <div className="row">
+      <div className="row mt-0">
         <div className="col-12">
           <ReactTableTanstack
             tableTitle={title}
