@@ -12,6 +12,95 @@ const ReactTableToolBar = ({
 }) => {
     // Para normalizar el nombre del archivo (quitar espacios)
     const fileNameBase = title.replace(/\s+/g, '_')
+
+    // Columnas válidas comunes para ambos
+    const getValidColumns = (excluded) => columns.filter(col =>
+        col.key &&
+        !excluded.includes(col.key.toLowerCase()) &&
+        !excluded.includes((col.encabezado || "").toLowerCase())
+    )
+
+    const formatDate = (value) => {
+      if (value && typeof value === 'string' && value.includes('T') && !isNaN(Date.parse(value))) {
+        const date = new Date(value)
+        const day = String(date.getDate()).padStart(2, '0')
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const year = date.getFullYear()
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        return `${day}/${month}/${year} ${hours}:${minutes}`
+      }
+      return value      
+    }
+
+    const getCellValue = (row, col) => {
+      let value = row[col.key]
+
+      // Caso espcecial: related_to (Ofertas, usuarios y acciones)
+      if (col.key === 'related_to') {
+        const textRelations = []
+
+        if (row.oferta_relacionada?.length > 0) {
+          row.oferta_relacionada.forEach(o =>
+            textRelations.push(`${o.FCTM_job_title}${o.empresa ? ` (${o.empresa.SAO_name})` : ''}`)
+          )
+        }
+
+        if (row.usuarios_relacionados?.length > 0) {
+          row.usuarios_relacionados.forEach(u => textRelations.push(u.SAO_name))
+        }
+
+        if (row.acciones_relacionadas?.length > 0) {
+          row.acciones_relacionadas.forEach(a =>
+            textRelations.push(`${a.FCTM_action_title || a.FCTM_action_type}`)
+          )
+        }
+        return textRelations.length > 0 ? textRelations.join(' | ') : "-";
+      }
+
+      // Caso especial: Creado por / Subido por
+      if (col.key === "FCTM_document_created_by" || col.encabezado.toLowerCase().includes("subido")) {
+        return row.FCTM_document_created_by?.SAO_name || "-"
+      }
+
+      // Fallback para empresas y localidades si el valor directo falla
+      if (!value && row.empresa) {
+        if (col.key.toLowerCase().includes("localidad")) return row.empresa.SAO_company_city || "-"
+        if (col.key.toLowerCase().includes("empresa")) return row.empresa.SAO_name || "-"
+      }
+
+      // Manejo de Arrays (Categorías, aptitudes, etc.)
+      if (Array.isArray(value)) {
+        return value.map(v => {
+          if (typeof v === 'object' && v !== null) {
+            return v.FCTM_category_name || v.FCTM_skill_name || v.SAO_name || v.SAO_company_city || JSON.stringify(v)
+          }
+          return v
+        }).join(", ")
+      }
+
+      // Manejo de objetos (Empresas, usuarios, etc.)
+      if (typeof value === "object" && value !== null) {
+        if (col.key.toLowerCase().includes("empresa")) return value.SAO_name || "-"
+        if (col.key.toLowerCase().includes("localidad")) return value.SAO_company_city || "-"
+        return value.FCTM_category_name || value.FCTM_skill_name || value.FCTM_user_name || JSON.stringify(value) || "-"
+      }
+
+      // Formateo de fechas
+      const formattedValue = formatDate(value)
+      if (typeof formattedValue === 'string' && formattedValue.startsWith('{')) return "Ver detalle"
+
+      return formattedValue ?? "-"
+    }
+
+    const descargarArchivo = (blob, name) => {
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = name
+      link.click()
+      URL.revokeObjectURL(link.href)
+    }
+
     const exportExcel = async () => {
         //TO DO: Implementar exportación a Excel usando XLSX o similar
         // Hemos usado las librerías exceljs y file-saver para exportar a Excel. Asegúrate de instalarlas en tu proyecto:
@@ -21,13 +110,7 @@ const ReactTableToolBar = ({
         const workbook = new ExcelJS.Workbook()
         const worksheet = workbook.addWorksheet(title) // Nombre de la pestaña dinámico
         // Para excluir los botones y acciones que no queremos exportar
-        const excludedKeys = ['acciones', 'ver', 'eliminar']
-
-        const validColumns = columns.filter(col =>
-          col.key &&
-          !excludedKeys.includes(col.key.toLowerCase()) &&
-          !excludedKeys.includes((col.encabezado || "").toLowerCase())
-        )
+        const validColumns = getValidColumns(['acciones', 'ver', 'eliminar'])
         // Mapeamos los encabezados y definimos un ancho base
         worksheet.columns = validColumns.map(col => ({
           header: col.encabezado || col.key || "Sin nombre",
@@ -38,43 +121,7 @@ const ReactTableToolBar = ({
         data.forEach(row => {
           const formattedRow = {}
           validColumns.forEach(col => {
-            let value = row[col.key]
-            // Si no hay valor directo, intentamos extraerlo de objetos relacionados (Empresas, Localidades, etc.)
-            if (!value && row.empresa) {
-                if (col.key.toLowerCase().includes("localidad")) {
-                    value = row.empresa.SAO_company_city;
-                } else if (col.key.toLowerCase().includes("empresa")) {
-                    value = row.empresa.SAO_name;
-                }
-            }
-            // Convertir datos en un Array (Categorías o aptitudes)
-            if (Array.isArray(value)) {
-                value = value.map(v => {
-                    // Priorizamos extraer el nombre si es un objeto
-                    if (typeof v === 'object' && v !== null) {
-                        return v.FCTM_category_name || 
-                              v.FCTM_skill_name || 
-                              v.SAO_name || 
-                              v.SAO_company_city || 
-                              JSON.stringify(v); // Solo si no encontramos ninguna de las anteriores
-                    }
-                    return v; // Si ya es un texto o número, lo dejamos tal cual
-                }).join(", ");
-            // Convertir objetos a texto (Empresas, localidades, etc.)
-            } else if(typeof value === "object" && value !== null) {
-              if (col.key.toLowerCase().includes("empresa")) value = value.SAO_name
-              else if (col.key.toLowerCase().includes("localidad")) value = value.SAO_company_city
-              else value = value.FCTM_category_name || value.FCTM_skill_name || JSON.stringify(value)
-            }
-            // Formatear fechas 
-            if (value && (typeof value === 'string' && value.includes('T') && !isNaN(Date.parse(value)))){
-              const date = new Date(value)
-              const day = String(date.getDate()).padStart(2, '0')
-              const month = String(date.getMonth() + 1).padStart(2, '0')
-              const year = date.getFullYear()
-              value = `${day}/${month}/${year}`
-            }
-            formattedRow[col.key] = value ?? ""
+            formattedRow[col.key] = getCellValue(row, col)
           })
           worksheet.addRow(formattedRow)
         })
@@ -128,12 +175,7 @@ const ReactTableToolBar = ({
         const blob = new Blob([buffer], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
-        // Link
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = `${fileNameBase}_${new Date().getTime()}.xlsx`
-        link.click()
-        URL.revokeObjectURL(link.href)
+        descargarArchivo(blob, `${fileNameBase}_${new Date().getTime()}.xlsx`)
       }
     
     const exportPDF = async () => {
@@ -144,44 +186,13 @@ const ReactTableToolBar = ({
         pdfMake.vfs = pdfFonts.vfs
 
         // Definir columnas que no queremos poner en el PDF
-        const excludedKeys = ['acciones', 'ver', 'eliminar']
+        const validColumns = getValidColumns(['acciones', 'ver', 'eliminar', '_checkbox'])
 
-        const validColumns = columns.filter(col =>
-          col.key && !excludedKeys.includes(col.key.toLowerCase()) &&
-          !excludedKeys.includes(col.encabezado?.toLowerCase())
-        )
         // Encabezados
         const headers = validColumns.map(col => col.encabezado || col.key || "Sin nombre")
         // Filas
         const rows = data.map(row =>
-          validColumns.map(col => {
-              let value = row[col.key]
-              // Si no hay valor directo, intentamos extraerlo de objetos relacionados (Empresas, Localidades, etc.)
-              if (!value && row.empresa) {
-                if (col.key.toLowerCase().includes("localidad")) {
-                    value = row.empresa.SAO_company_city;
-                } else if (col.key.toLowerCase().includes("empresa")) {
-                    value = row.empresa.SAO_name;
-                }
-              }
-              // Convertir arrays y objetos a texto
-              if(Array.isArray(value)){
-                value = value.map(v => v.FCTM_category_name || v.FCTM_skill_name || v.SAO_company_city || v.SAO_name || (typeof v === "object" ? JSON.stringify(v) : v)).join(", ")
-              } else if (typeof value === "object" && value !== null) {
-                if (col.key.toLowerCase().includes("empresa")) value = value.SAO_name
-                else if (col.key.toLowerCase().includes("localidad")) value = value.SAO_company_city
-                else value = value.FCTM_category_name || value.FCTM_skill_name || JSON.stringify(value)
-            }
-              // Formatear fechas    
-              if (value && typeof value === 'string' && value.includes('T') && !isNaN(Date.parse(value))) {
-                  const date = new Date(value)
-                  const day = String(date.getDate()).padStart(2, '0')
-                  const month = String(date.getMonth() + 1).padStart(2, '0')
-                  const year = date.getFullYear()
-                  value = `${day}/${month}/${year}`
-              }        
-              return value?.toString() ?? ""
-            })
+          validColumns.map(col => getCellValue(row, col).toString())
         )
         // Definición del documento
         const docDefinition = {
@@ -217,12 +228,12 @@ const ReactTableToolBar = ({
           ],
           styles: {
             header: {
-              fontSize: 18,
+              fontSize: 16,
               bold: true,
               color: '#1F4E78'
             },
             subheader: {
-              fontSize: 12,
+              fontSize: 10,
               bold: true,
               color: '#666666'
             },

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactTableTanstack from "./ReactTableTanstack";
 import ReactTableToolBar from "./ReactTableToolBar";
 
@@ -15,7 +15,25 @@ const ListCRUD = ({
   onFilterChange,
   filtersConfig = [],
   children, // para botones externos si quieres
+  // Nuevas props extraídas de ReactTableTanstack
+  globalFilter,
+  setGlobalFilter,
 }) => {
+
+  // Lógica de filtrado para exportación
+  const datosFiltrados = useMemo(() => {
+    // Si globalFilter es undefined o vacío, devolvemos todos los datos
+    if (!globalFilter) return datos;
+
+    const target = globalFilter.toLowerCase();
+    return datos.filter(fila => {
+      // Usar Object.values es más seguro que JSON.stringify para evitar IDs ocultos
+      return Object.values(fila).some(val => 
+        String(val).toLowerCase().includes(target)
+      );
+    });
+  }, [datos, globalFilter]);
+  
   return (
     <section className="dashboard section">
 
@@ -61,7 +79,7 @@ const ListCRUD = ({
       <div className="row">
         <div className="col-12">
           <ReactTableToolBar 
-            data={datos}
+            data={datosFiltrados} // PASAR LOS DATOS FILTRADOS
             columns={columnas}
             title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
             filters={filters}
@@ -82,6 +100,9 @@ const ListCRUD = ({
             mostrarCheckBox={mostrarCheckBox}
             selectedIds={selectedIds} // PASAR AL HIJO
             onSelectionChange={onSelectionChange} // PASAR AL HIJO
+            // Nuevas props para control de filtro global
+            globalFilter={globalFilter}
+            setGlobalFilter={setGlobalFilter}
             {...tableProps}
           />
         </div>
