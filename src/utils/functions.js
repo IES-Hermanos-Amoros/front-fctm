@@ -94,7 +94,9 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
             res.message = error.message || "Error inesperado";
         }
 
-        showAlert(res.message, "error");
+        if(mostrarMensaje){
+          showAlert(res.message, "error");
+        }
 
         if (redir) {
             setTimeout(() => window.location.href = redir, 500);
@@ -348,6 +350,73 @@ export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
     const { value: formValues } = await MySwal.fire({
         title: 'Autenticación SAO',
         html: `
+            <div style="position: relative; margin-bottom: 10px;">
+                <input id="swal-username" class="swal2-input custom-input" placeholder="Usuario" style="margin: 0; width: 100%;">
+            </div>
+            
+            <div style="position: relative;">
+                <input id="swal-password" type="password" class="swal2-input custom-input" placeholder="Contraseña" style="margin: 0; width: 100%;">
+                <i id="toggle-password-icon" class="bi bi-eye-slash" 
+                   style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; z-index: 10; font-size: 1.2rem; color: #666;">
+                </i>
+            </div>
+            
+            ${
+                mostrarCheckTodasFCTs
+                    ? `
+                    <div style="margin-top: 15px; text-align: left;">
+                        <label style="display: flex; align-items: center; cursor: pointer; gap: 10px; font-size: 0.9rem; justify-content: flex-start;">
+                            <input id="swal-todasFCTs" type="checkbox" style="margin: 0; width: auto; height: auto;">
+                            <span style="color: #555;">Sincronizar Todas las FCTs (solo admin.)</span>
+                        </label>
+                    </div>
+                    `
+                    : ''
+            }
+        `,
+        focusConfirm: false,
+        showCancelButton: true,
+        confirmButtonText: 'Aceptar',
+        cancelButtonText: 'Cancelar',
+        didOpen: () => {
+            const toggleIcon = document.getElementById('toggle-password-icon');
+            const passwordInput = document.getElementById('swal-password');
+
+            if (toggleIcon && passwordInput) {
+                toggleIcon.addEventListener('click', () => {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    toggleIcon.classList.toggle('bi-eye');
+                    toggleIcon.classList.toggle('bi-eye-slash');
+                });
+            }
+        },
+        preConfirm: () => {
+            const username = document.getElementById('swal-username').value;
+            const password = document.getElementById('swal-password').value;
+            const todasFCTs = mostrarCheckTodasFCTs
+                ? document.getElementById('swal-todasFCTs').checked
+                : false;
+
+            if (!username || !password) {
+                Swal.showValidationMessage('Por favor ingresa usuario y contraseña');
+                return false;
+            }
+
+            return { username, password, todasFCTs };
+        }
+    });
+
+    if (!formValues) return null;
+    return formValues;
+};
+
+export const promptCredentials_OLD = async (mostrarCheckTodasFCTs = false) => {
+    const MySwal = withReactContent(Swal);
+
+    const { value: formValues } = await MySwal.fire({
+        title: 'Autenticación SAO',
+        html: `
             <input id="swal-username" class="swal2-input custom-input" placeholder="Usuario">
             <input id="swal-password" type="password" class="swal2-input custom-input" placeholder="Contraseña">
             
@@ -583,4 +652,43 @@ export const ensureSkills = async (skills) => {
   }
 
   return res.data; // ids
+};
+
+
+
+export const getProfilePath = (userRole, userId) => {
+    switch (userRole) {
+        case 'ADMINISTRADOR': return `/administrators/${userId}`;
+        case 'PROFESOR':      return `/teachers/${userId}`;
+        case 'ALUMNO':        return `/students/${userId}`;
+        case 'EMPRESA':       return `/companies/${userId}`;
+        default:              return '/dashboard';
+    }
+};
+
+
+/**
+ * Realiza el logout en el servidor y ejecuta las limpiezas locales.
+ * @param {Function} clearUser - La función del store (Zustand) para limpiar datos.
+ * @param {Function} navigate - La función de navegación de React Router.
+ */
+export const externLogout = async (clearUser, navigate) => {
+    // 1. Llamada al servidor (usando tu sendRequest ya existente)
+    // Pasamos mostrarMensaje=false porque solemos poner un Swal antes o no queremos ruido
+    const res = await sendRequest("POST", null, "/auth/logout", false, "", false);
+
+    if (res?.success) {
+        // 2. Limpiar el store de Zustand
+        if (typeof clearUser === 'function') {
+            clearUser();
+        }
+
+        // 3. Redirigir al login o raíz
+        if (typeof navigate === 'function') {
+            navigate('/');
+        }
+        return true;
+    }
+    
+    return false;
 };

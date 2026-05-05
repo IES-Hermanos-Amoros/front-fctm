@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 import useUserStore from "../store/userStore"
-import { sendRequest } from '../utils/functions';
+import { sendRequest, getProfilePath, externLogout } from '../utils/functions';
 
 function NavAvatar() {
 
@@ -17,9 +17,12 @@ function NavAvatar() {
 
     if (!user) return;
 
+    console.log("USER _ID: ", user.user.id)
+
+    navigate(getProfilePath(user.user.profile,user.user.id))
     // puedes cambiar la ruta según tu modelo
     //navigate(`/administrators/${user._id}`)
-    switch (user.user.profile) {
+    /*switch (user.user.profile) {
 
         case 'ADMINISTRADOR':
           navigate('/administrators/' + user.user.id)
@@ -40,7 +43,7 @@ function NavAvatar() {
         default:
           navigate('/companies')
 
-      }
+      }*/     
   }
 
   const logout = async () => {
@@ -57,12 +60,15 @@ function NavAvatar() {
 
     if (!result.isConfirmed) return;
 
-    const res = await sendRequest("POST", null, "/auth/logout");
+    /*const res = await sendRequest("POST", null, "/auth/logout");
 
     if (res?.success) {
       clearUser();
       navigate('/');
-    }
+    }*/
+    await externLogout(clearUser, navigate);
+
+
   }
 
   return (

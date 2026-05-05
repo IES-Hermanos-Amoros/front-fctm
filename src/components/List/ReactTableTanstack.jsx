@@ -5,6 +5,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   flexRender,
+  getSortedRowModel
 } from '@tanstack/react-table'
 import './ReactTableTanstack.css'
 
@@ -23,6 +24,7 @@ const ReactTableTanstack = ({
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
   //ELIMINADO --> Ahora seleccionamos los Ids del padre
   //const [selectedIds, setSelectedIds] = useState(new Set())
+  const [sorting, setSorting] = useState([]); // Estado para la ordenación
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -85,12 +87,14 @@ const ReactTableTanstack = ({
   const table = useReactTable({
     data: datos,
     columns: cols,
-    state: { globalFilter, pagination },
+    state: { globalFilter, pagination, sorting },
     onGlobalFilterChange: setGlobalFilter,
     onPaginationChange: setPagination,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel()
   })
 
   /* =======================
@@ -219,7 +223,21 @@ const ReactTableTanstack = ({
                   </th>
                 )}
                 {hg.headers.map(h => (
-                  <th key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</th>
+                  <th key={h.id}
+                      onClick={h.column.getToggleSortingHandler()}
+                      style={{ cursor: h.column.getCanSort() ? 'pointer' : 'default' }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      {flexRender(h.column.columnDef.header, h.getContext())}
+                      {/* Indicadores visuales de ordenación */}
+                      <span>
+                        {{
+                          asc: <i className="bi bi-sort-up text-primary"></i>,
+                          desc: <i className="bi bi-sort-down-alt text-primary"></i>,
+                        }[h.column.getIsSorted()] ?? <i className="bi bi-arrow-down-up"></i>}
+                      </span>
+                    </div>
+                </th>
                 ))}
               </tr>
             ))}

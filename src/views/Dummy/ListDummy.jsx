@@ -172,7 +172,7 @@ const ListDummy = () => {
   // COLUMNAS MEMORIZADAS
   // =======================
   const columnas = useMemo(() => [
-    { key: "_id", encabezado: "#" },
+    //{ key: "_id", encabezado: "#" },
     { key: "SAO_id", encabezado: "SAO ID" },
     { key: "SAO_username", encabezado: "SAO Username" },
     { key: "SAO_email", encabezado: "SAO Email" },
@@ -294,7 +294,7 @@ const ListDummy = () => {
           filtersConfig={filtersConfig}   // 👈 CLAVE
         >
           {/* ENVOLVEMOS LOS BOTONES EN UN DIV CON GAP */}
-          <div className="d-flex gap-2 mb-2"> 
+          <div className="d-flex gap-2"> 
             <button
               className="btn btn-success"
               onClick={() => navigate('/dummy/new')}

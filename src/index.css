@@ -1,0 +1,29 @@
+/* Alto Contraste: Forzamos colores ultra-legibles */
+body.high-contrast {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+body.high-contrast .card, 
+body.high-contrast .header, 
+body.high-contrast .sidebar {
+    background-color: #000 !important;
+    border: 2px solid #fff !important;
+}
+
+body.high-contrast a, 
+body.high-contrast .nav-link {
+    color: #ffff00 !important; /* Amarillo sobre negro es el estándar de accesibilidad */
+    text-decoration: underline !important;
+}
+
+body.high-contrast button {
+    background-color: #fff !important;
+    color: #000 !important;
+    border: 2px solid #ffff00 !important;
+}
+
+/* Para el zoom, como usamos rem/em en Bootstrap, esto escala todo automáticamente */
+:root {
+    transition: font-size 0.2s ease;
+}

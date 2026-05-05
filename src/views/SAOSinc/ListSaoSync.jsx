@@ -23,6 +23,11 @@ const ListSaoSync = ({
     // 🔑 Pasamos resetKey para recrear el socket al resetear
     const { progress, message: progressMessage, resetProgress } = useSocketProgress(resetKey);
 
+    // 1. Decidimos qué mensaje mostrar en el spinner
+    const loadingMessage = applyLoading ? "Aplicando cambios en la base de datos..." : progressMessage;
+        // 2. ¿Estamos en un proceso crítico de carga?
+    const isProcessing = loading || applyLoading;
+
     // --------------------------------------------------------
     // 1) CARGAR DATOS SAO
     // --------------------------------------------------------
@@ -108,13 +113,13 @@ const ListSaoSync = ({
             <section className='dashboard section'>
                 <div className="row mb-3">
                     <div className="col-12">
-                        <button className="btn btn-success" onClick={fetchData} disabled={loading}>
+                        <button className="btn btn-success" onClick={fetchData} disabled={isProcessing}>
                             {loading ? "Cargando..." : "Cargar"}
                         </button>
                         &nbsp;
                         <button
                             className="btn btn-primary"
-                            disabled={!dataToSync || loading || applyLoading}
+                            disabled={!dataToSync || isProcessing}
                             onClick={applyChanges}
                         >
                             {applyLoading ? "Aplicando..." : "Aplicar Cambios"}
@@ -122,18 +127,56 @@ const ListSaoSync = ({
                     </div>
                 </div>
 
-                {(loading) && ( 
+                {/*(loading) && ( 
                     <div style={{ marginTop: "20px", textAlign: "center" }}>
                         <CircularProgress progress={progress} />
                         <p style={{ marginTop: "10px" }}>{progressMessage}</p>
                     </div>
+                )*/}
+                {/*isProcessing && ( 
+                    <div style={{ marginTop: "40px", textAlign: "center", padding: "20px" }}>
+                        <CircularProgress progress={progress} />
+                        <h4 style={{ marginTop: "20px" }}>{loadingMessage}</h4>
+                        <p className="text-muted">Por favor, espera a que finalice el proceso.</p>
+                    </div>
+                )*/}
+                {/*isProcessing && ( 
+                    <div style={{ marginTop: "40px", textAlign: "center", padding: "20px" }}>                        
+                        <CircularProgress progress={applyLoading ? undefined : progress} />
+                        
+                        <h4 style={{ marginTop: "20px" }}>{loadingMessage}</h4>
+                        {applyLoading && <p className="text-muted">Esto puede tardar unos segundos...</p>}
+                    </div>
+                )*/}
+                {isProcessing && (
+                    <div style={{ marginTop: "40px", textAlign: "center", padding: "20px" }}>
+                        
+                        {applyLoading ? (
+                            /* --- ESTADO 1: APLICANDO CAMBIOS (Spinner Infinito) --- */
+                            <div className="spinner-container">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                        ) : (
+                            /* --- ESTADO 2: CARGANDO DATOS (Barra Progresiva) --- */
+                            <CircularProgress progress={progress} />
+                        )}
+
+                        <h4 style={{ marginTop: "20px" }}>{loadingMessage}</h4>
+                        
+                        {applyLoading && (
+                            <p className="text-muted">Esto puede tardar unos segundos...</p>
+                        )}
+                    </div>
                 )}
 
-                {items.length === 0 && !loading && (
+
+                {!isProcessing && items.length === 0 && (
                     <p>No hay datos disponibles.</p>
                 )}
 
-                {items.length > 0 && (
+                {!isProcessing && items.length > 0 && (
                     <ReactTableTanstack
                         tableTitle={title}
                         datos={itemsWithTooltip}

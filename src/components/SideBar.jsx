@@ -95,7 +95,7 @@ return (
                     <li>
                         <NavLink to="/sinc/fcts">
                             <i className="bi bi-circle"></i>
-                            <span>FCTs</span>
+                            <span>Gestión F.E.</span>
                         </NavLink>
                     </li>
                 </ul>

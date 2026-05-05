@@ -15,13 +15,13 @@ function Logo () {
                 <img src="" alt="" />
                 <span className="d-none d-lg-block">F.E. Manager {curso}</span>
             </a>*/}
-            <Link to="/" className="logo d-flex align-items-center">
+            <div className="logo d-flex align-items-center">
                 <span className="logo-text">
                     <span className="logo-accent">F.E.</span>
                     <span className="logo-accent">Manager</span>
                     <span className="logo-badge">{curso}</span>
                 </span>
-            </Link>
+            </div>
             <i
                 className="bi bi-list toggle-sidebar-btn"
                 onClick={handleToggleSideBar}

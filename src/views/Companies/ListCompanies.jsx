@@ -2,22 +2,55 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest,stringToColor,formatDateDDMMYYYY } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
+import useCategoryStore from '../../store/categoryStore';
 
 
 const ListCompanies = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [filters, setFilters] = useState({});
+
+    const categories = useCategoryStore((state) => state.categories);
+    const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
 
     const navigate = useNavigate();
+
+    const filtersConfig = useMemo(() => [
+      {
+        key: "category",
+        label: "Familias profesionales",
+        options: categories,
+        optionValue: "_id",
+        optionLabel: "FCTM_category_name"
+      }
+    ], [categories]);
+
+    const filteredData = useMemo(() => {
+      if (!filters.category) return data;
+
+      return data.filter((row) =>
+        row.FCTM_company_category?.some((cat) => (cat._id || cat) === filters.category)
+      );
+    }, [data, filters]);
 
     // Columnas para la tabla
     const columnas = useMemo(() => [
         { key: 'SAO_username', encabezado: 'CIF' },
         { key: 'SAO_name', encabezado: 'Nombre' },
         { key: 'SAO_company_FCT_Number', encabezado: 'Nº Convenio FE' },
-        { key: 'SAO_company_FCT_Date', 
+        /*{ key: 'SAO_company_FCT_Date', 
           encabezado: 'Fecha Convenio FE',
+          render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
+        },*/
+        { 
+          key: 'SAO_company_FCT_Date', 
+          encabezado: 'Fecha Convenio FE',
+          // 1. Usamos accessorFn para devolver un objeto Date o un número (timestamp)
+          // Esto es lo que TanStack usará internamente para comparar/ordenar
+          accessorFn: row => row.SAO_company_FCT_Date ? new Date(row.SAO_company_FCT_Date).getTime() : 0,
+
+          // 2. Usamos render para definir cómo lo ve el usuario final
           render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
         },
         { key: 'SAO_company_city', encabezado: 'Localidad' },
@@ -112,6 +145,7 @@ const ListCompanies = () => {
     }, []);
 
     useEffect(() => { fetchData(); }, [fetchData]);
+    useEffect(() => { cargarCategorias(); }, [cargarCategorias]);
 
     return (
         <>            
@@ -123,9 +157,12 @@ const ListCompanies = () => {
             {!loading && !error && data.length > 0 && (                
                 <ListCRUD
                   title="Listado de Empresas"
-                  datos={data}
+                  datos={filteredData}
                   columnas={columnas}
-                  tableId="empresas"                          
+                  tableId="empresas"
+                  filters={filters}
+                  onFilterChange={setFilters}
+                  filtersConfig={filtersConfig}
                 >                          
                 </ListCRUD>
             )}

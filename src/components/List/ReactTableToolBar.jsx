@@ -8,7 +8,8 @@ const ReactTableToolBar = ({
     title = "Datos Tabla",
     filters = {},
     onFilterChange,
-    filtersConfig = []
+    filtersConfig = [],
+    children
 }) => {
     // Para normalizar el nombre del archivo (quitar espacios)
     const fileNameBase = title.replace(/\s+/g, '_')
@@ -243,6 +244,10 @@ const ReactTableToolBar = ({
     }
   return (
     <div className='react-table-toolbar'>
+      {/* IZQUIERDA */}
+      <div className="toolbar-actions">
+          {children || <div></div>} {/* El div vacío ayuda a mantener el equilibrio si no hay children */}
+      </div>
       {/* Filtros dinámicos */}
       <div className="toolbar-filters">
         {filtersConfig?.map(filter => (
@@ -270,9 +275,12 @@ const ReactTableToolBar = ({
           </select>
         ))}
       </div>
-      {/* Botones de exportación */}
-      <button className='toolbar-btn excel-btn' onClick={exportExcel}>Exportar Excel</button>
-      <button className='toolbar-btn pdf-btn' onClick={exportPDF}>Exportar PDF</button>
+      {/* DERECHA */}
+      <div className="toolbar-export-buttons">
+        {/* Botones de exportación */}
+        <button className='toolbar-btn excel-btn' onClick={exportExcel}>Exportar Excel</button>
+        <button className='toolbar-btn pdf-btn' onClick={exportPDF}>Exportar PDF</button>
+      </div>
     </div>
   )
 }

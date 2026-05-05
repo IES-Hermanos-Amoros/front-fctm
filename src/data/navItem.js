@@ -1,42 +1,42 @@
 const navList = [
-    {
+    /*{
     _id: 1,
     name: 'Perfil',
     icon: 'bi bi-person',
     path: '/dashboard'
-    },
+    },*/
     {
-    _id: 2,
+    _id: 1,
     name: 'Empresas',
     icon: 'bi bi-layout-text-window-reverse',
     path: '/companies'
     },
     {
-    _id: 3,
+    _id: 2,
     name: 'Alumnos',
     icon: 'bi bi-layout-text-window-reverse',
     path: '/students'
     },
     {
-    _id: 4,
+    _id: 3,
     name: 'Ofertas de Trabajo',
     icon: 'bi bi-card-list',
     path: '/joboffers'
     },
     {
-    _id: 5,
+    _id: 4,
     name: 'Gestión Documental',
     icon: 'bi bi-envelope',
     path: '/documents'
     },
     {
-    _id: 6,
-    name: 'FCTs',
+    _id: 5,
+    name: 'Gestión F.E.',
     icon: 'bi bi-briefcase',
     path: '/fcts'
     },
     {
-    _id: 7,
+    _id: 6,
     name: 'Datos Dummy',
     icon: 'bi bi-envelope',
     path: '/dummy'
