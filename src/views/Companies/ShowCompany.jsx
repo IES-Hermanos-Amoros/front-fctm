@@ -318,6 +318,22 @@ const ShowCompany = () => {
       )
     }
   ], [handleDeleteDocument]);
+
+  const handleDeleteAction = useCallback(async (actionId) => {
+    const confirmed = await confirmation("¿Seguro que quieres eliminar esta acción y desvincularla de la empresa?");
+    if (!confirmed) return;
+
+    // Enviamos el ID de la empresa en la URL para que el backend sepa de dónde quitar el ID de la acción
+    const res = await sendRequest("DELETE", null, `/actions/${actionId}?companyId=${id}`);
+
+    if (res.success) {
+      showAlert("Acción eliminada y desvinculada de la empresa", "success");
+      await fetchCompany(); // Esto refresca la empresa y verás que el array FCTM_actions ya no tiene ese ID
+    } else {
+      showAlert(res.message || "Error al eliminar la acción", "error");
+    }
+  }, [id, fetchCompany]);
+
   const columnasAcciones = useMemo(() => [
     { key: "FCTM_action_title", encabezado: "Título" },
     { key: "FCTM_action_type", encabezado: "Tipo" },
@@ -332,18 +348,30 @@ const ShowCompany = () => {
       render: (row) => row?.FCTM_documents?.length || 0,
     },
     {
-    key: "__show",
-    encabezado: "Ver",
-    render: (row) => (
-      <button 
-        className="btn btn-sm btn-outline-primary" 
-        onClick={() => navigate(`/actions/${row._id}`)}
-      >
-        <i className="bi bi-search"></i>
-      </button>
-    )
-  }
-  ], []);
+      key: "__show",
+      encabezado: "Ver",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-primary" 
+          onClick={() => navigate(`/actions/${row._id}`)}
+        >
+          <i className="bi bi-search"></i>
+        </button>
+      )
+    },
+    {
+      key: "__delete",
+      encabezado: "Borrar",
+      render: (row) => (
+        <button 
+          className="btn btn-sm btn-outline-danger" 
+          onClick={() => handleDeleteAction(row._id)}
+        >
+          <i className="bi bi-trash"></i>
+        </button>
+      )
+    }
+  ], [navigate, handleDeleteAction]);
 
   const handleChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
   
