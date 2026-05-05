@@ -46,7 +46,7 @@ const ListCompanies = () => {
       [categories]
     );
 
-    const handleBulkUpdate = async () => {
+    const handleBulkUpdateCategories = async () => {
       if (selectedIds.length === 0) return showAlert("No hay empresas seleccionadas", "warning");
       if (selectedCategoriesBulk.length === 0) return showAlert("No hay familias seleccionadas", "warning");
 
@@ -58,7 +58,7 @@ const ListCompanies = () => {
           categoryIds: selectedCategoriesBulk.map(c => c.value)
       };
 
-      const res = await sendRequest("PATCH", payload, "/companies/bulk-update");
+      const res = await sendRequest("PATCH", payload, "/companies/bulk-update-categories");
 
       if (res.success) {
           showAlert("Empresas actualizadas correctamente", "success");
@@ -200,7 +200,7 @@ const ListCompanies = () => {
       const skillsIds = selectedSkills.map(skill => skill.value);
       const payload = { ids: selectedIds, skills: skillsIds };
 
-      const res = await sendRequest("PATCH", payload, "/companies/bulk-update");
+      const res = await sendRequest("PATCH", payload, "/companies/bulk-update-skills");
 
       if (res.success) {
         showAlert("Aptitudes actualizadas correctamente", "success");
@@ -232,7 +232,7 @@ const ListCompanies = () => {
                   onFilterChange={setFilters}
                   filtersConfig={filtersConfig}
                 >       
-                  {selectedIds.length > 0 && (
+                  {/*selectedIds.length > 0 && (
                       <div className="card p-3 mb-3 bg-light border-warning shadow-sm">
                           <h6 className="mb-3 text-warning-emphasis fw-bold">
                             <i className="bi bi-pencil-square me-2"></i>
@@ -255,7 +255,7 @@ const ListCompanies = () => {
                               <div className="col-md-4">
                                   <button 
                                       className="btn btn-warning w-100 fw-bold" 
-                                      onClick={handleBulkUpdate}
+                                      onClick={handleBulkUpdateCategories}
                                       disabled={selectedCategoriesBulk.length === 0}
                                   >
                                       Actualizar {selectedIds.length} empresas
@@ -263,8 +263,30 @@ const ListCompanies = () => {
                               </div>
                           </div>
                       </div>
-                  )}                   
-                >
+                  )*/}                   
+                  <div className="d-flex flex-wrap gap-2 mb-3 align-items-end">
+                    {selectedIds.length > 0 && (
+                      <>
+                        <div style={{ minWidth: '300px' }}>
+                          <label className="form-label fw-bold small mb-1">Familias Profesionales</label>                          
+                          <Select
+                              isMulti
+                              options={categoryOptionsSelect}
+                              value={selectedCategoriesBulk}
+                              onChange={setSelectedCategoriesBulk}
+                              placeholder="Busca y selecciona familias..."
+                              noOptionsMessage={() => "No hay más familias"}
+                              classNamePrefix="react-select"                              
+                              className="react-select-container"
+                          />
+                        </div>
+                        <button className="btn btn-warning" onClick={handleBulkUpdateCategories}>
+                          <i className="bi bi-pencil-square me-1"></i>
+                          Actualizar Familias ({selectedIds.length})
+                        </button>
+                      </>
+                    )}
+                  </div>
                   <div className="d-flex flex-wrap gap-2 mb-3 align-items-end">
                     {selectedIds.length > 0 && (
                       <>
