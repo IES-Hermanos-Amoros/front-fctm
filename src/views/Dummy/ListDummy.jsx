@@ -117,6 +117,9 @@ const ListDummy = () => {
   // NUEVO: Estado para controlar los IDs seleccionados desde el padre
   const [selectedIds, setSelectedIds] = useState([]);
 
+  // NUEVO: Filtrado de datos basadp en los filtros seleccionados
+  const [globalFilter, setGlobalFilter] = useState('');
+
   const filteredData = useMemo(() => {
     let result = data;
 
@@ -138,8 +141,18 @@ const ListDummy = () => {
       );
     }
 
+    // Filtrado por buscador
+    if (globalFilter) {
+      const target = globalFilter.toLowerCase()
+      result = result.filter(row =>
+        Object.values(row).some(val =>
+          String(val).toLowerCase().includes(target)
+        )
+      )
+    }
+
     return result;
-  }, [data, filters]);
+  }, [data, filters, globalFilter]);
 
   // NUEVO: Función para acción masiva (ejemplo: cambiar tipo a "OTRO")
   const handleBulkUpdate = async () => {
@@ -292,6 +305,9 @@ const ListDummy = () => {
           filters={filters}
           onFilterChange={setFilters}
           filtersConfig={filtersConfig}   // 👈 CLAVE
+          // Pasamos el estado del filtro a listcrud
+          globalFilter={globalFilter}
+          setGlobalFilter={setGlobalFilter}
         >
           {/* ENVOLVEMOS LOS BOTONES EN UN DIV CON GAP */}
           <div className="d-flex gap-2"> 

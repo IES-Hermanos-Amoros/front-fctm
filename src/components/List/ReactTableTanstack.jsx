@@ -8,6 +8,7 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 import './ReactTableTanstack.css'
+import { act } from 'react'
 
 const ReactTableTanstack = ({
   tableTitle = '',
@@ -17,8 +18,25 @@ const ReactTableTanstack = ({
   mostrarCheckBox = false,
   selectedIds = [], // RECIBIR DE PROPS
   onSelectionChange = null,
+  // Nuevas props para controlar la selección desde el padre
+  globalFilter: globalFilterProp,
+  setGlobalFilter: setGlobalFilterProp,
 }) => {
-  const [globalFilter, setGlobalFilter] = useState('')
+  //const [globalFilter, setGlobalFilter] = useState('')
+  const [internalFilter, setInternalFilter] = useState(''); // Estado interno para el input de búsqueda
+
+  const actualFilter = globalFilterProp !== undefined ? globalFilterProp : internalFilter;
+
+  const handleFilterChange = (value) => {
+    if (typeof setGlobalFilterProp === 'function') {
+      // Si el padre (ListDummy) controla el estado
+      setGlobalFilterProp(value);
+    } else {
+      // Si es una tabla autónoma (Alumnos, Empresas, etc.)
+      setInternalFilter(value);
+    }
+  };
+
   const [expandedRows, setExpandedRows] = useState({})
   const [isMobile, setIsMobile] = useState(false)
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
@@ -87,14 +105,15 @@ const ReactTableTanstack = ({
   const table = useReactTable({
     data: datos,
     columns: cols,
-    state: { globalFilter, pagination, sorting },
-    onGlobalFilterChange: setGlobalFilter,
+    state: { globalFilter: actualFilter, pagination, sorting }, // globalFilter - estaba antes ahí, lo moví para integrarlo con el control externo
+    onGlobalFilterChange: handleFilterChange,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel()
+    getSortedRowModel: getSortedRowModel(),
+    manualFiltering: false,
   })
 
   /* =======================
@@ -108,8 +127,8 @@ const ReactTableTanstack = ({
           <input
             className="searchInput"
             placeholder="Buscar..."
-            value={globalFilter}
-            onChange={e => setGlobalFilter(e.target.value)}
+            value={actualFilter ?? ''} // globalFilter - cambiado para usar el valor correcto según si el filtro es controlado o no
+            onChange={(e) => {handleFilterChange(e.target.value);}} //setGlobalFilter(e.target.value) -- Cambiado para usar la función correcta según si el filtro es controlado o no
           />
 
           <div className="cardsContainer">
@@ -180,8 +199,8 @@ const ReactTableTanstack = ({
         <input
           className="searchInput"
           placeholder="Buscar..."
-          value={globalFilter}
-          onChange={e => setGlobalFilter(e.target.value)}
+          value={actualFilter ?? ''} // globalFilter - cambiado para usar el valor correcto según si el filtro es controlado o no
+          onChange={(e) => {handleFilterChange(e.target.value);}} // setGlobalFilter - Cambiado para usar la función correcta según si el filtro es controlado o no
         />
 
         <table className="table">
