@@ -1,29 +1,229 @@
-/* Alto Contraste: Forzamos colores ultra-legibles */
-body.high-contrast {
-    background-color: #000 !important;
-    color: #fff !important;
+/* Zoom automático gracias a Bootstrap rem/em */
+html {
+    transition: font-size 0.2s ease;
 }
 
-body.high-contrast .card, 
-body.high-contrast .header, 
-body.high-contrast .sidebar {
-    background-color: #000 !important;
-    border: 2px solid #fff !important;
+/* Botón flotante de accesibilidad */
+.dropdown.accessibility-control {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 9998;
+    margin: 0 !important;
 }
 
-body.high-contrast a, 
-body.high-contrast .nav-link {
-    color: #ffff00 !important; /* Amarillo sobre negro es el estándar de accesibilidad */
+.dropdown.accessibility-control .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-size: 1.5rem;
+    background-color: #0d6efd;
+    border: none;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.dropdown.accessibility-control .dropdown-toggle:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    transform: scale(1.08);
+}
+
+.dropdown.accessibility-control .dropdown-toggle:focus-visible {
+    outline: 3px solid #ffbf47;
+    outline-offset: 2px;
+}
+
+.dropdown.accessibility-control .dropdown-menu {
+    position: fixed;
+    bottom: 6rem;
+    right: 2rem;
+    width: 280px;
+    max-height: 70vh;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+/* Alto Contraste: variantes para light/dark (no tocar layout) */
+body.high-contrast-dark {
+    background-color: #0b1220 !important;
+    color: #ffffff !important;
+}
+
+body.high-contrast-dark .card,
+body.high-contrast-dark .header,
+body.high-contrast-dark .sidebar,
+body.high-contrast-dark .navbar,
+body.high-contrast-dark .dropdown-menu,
+body.high-contrast-dark .modal,
+body.high-contrast-dark .modal-content,
+body.high-contrast-dark .form-control,
+body.high-contrast-dark .form-select,
+body.high-contrast-dark .table,
+body.high-contrast-dark .list-group-item {
+    background-color: #0b1220 !important;
+    color: #ffffff !important;
+    border-color: #222831 !important;
+}
+
+body.high-contrast-dark a,
+body.high-contrast-dark .nav-link,
+body.high-contrast-dark .link {
+    color: #4db3ff !important;
     text-decoration: underline !important;
 }
 
-body.high-contrast button {
-    background-color: #fff !important;
-    color: #000 !important;
-    border: 2px solid #ffff00 !important;
+body.high-contrast-dark button:not(:disabled),
+body.high-contrast-dark .btn {
+    background-color: #0066cc !important;
+    color: #ffffff !important;
+    border-color: #0052a3 !important;
 }
 
-/* Para el zoom, como usamos rem/em en Bootstrap, esto escala todo automáticamente */
-:root {
-    transition: font-size 0.2s ease;
+body.high-contrast-dark .btn-outline-primary,
+body.high-contrast-dark .btn-outline-secondary {
+    color: #4db3ff !important;
+    border-color: #4db3ff !important;
 }
+
+body.high-contrast-dark input[type="checkbox"],
+body.high-contrast-dark input[type="radio"] {
+    border: 1px solid #ffffff !important;
+    accent-color: #4db3ff !important;
+}
+
+body.high-contrast-dark input,
+body.high-contrast-dark select,
+body.high-contrast-dark textarea {
+    background-color: #0b1220 !important;
+    color: #ffffff !important;
+    border-color: #222831 !important;
+}
+
+body.high-contrast-dark :focus-visible {
+    outline: 2px solid #4db3ff !important;
+    outline-offset: 2px !important;
+}
+
+body.high-contrast-dark .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #111621 !important;
+}
+
+/* Contraste claro: pensado para sitios en modo claro */
+body.high-contrast-light {
+    background-color: #ffffff !important;
+    color: #071428 !important;
+}
+
+body.high-contrast-light .card,
+body.high-contrast-light .header,
+body.high-contrast-light .sidebar,
+body.high-contrast-light .navbar,
+body.high-contrast-light .dropdown-menu,
+body.high-contrast-light .modal,
+body.high-contrast-light .modal-content,
+body.high-contrast-light .form-control,
+body.high-contrast-light .form-select,
+body.high-contrast-light .table,
+body.high-contrast-light .list-group-item {
+    background-color: #ffffff !important;
+    color: #071428 !important;
+    border-color: #cfcfcf !important;
+}
+
+body.high-contrast-light a,
+body.high-contrast-light .nav-link,
+body.high-contrast-light .link {
+    color: #003f9c !important;
+    text-decoration: underline !important;
+}
+
+body.high-contrast-light button:not(:disabled),
+body.high-contrast-light .btn {
+    background-color: #003f9c !important;
+    color: #ffffff !important;
+    border-color: #002d66 !important;
+}
+
+body.high-contrast-light .btn-outline-primary,
+body.high-contrast-light .btn-outline-secondary {
+    color: #003f9c !important;
+    border-color: #003f9c !important;
+}
+
+body.high-contrast-light input[type="checkbox"],
+body.high-contrast-light input[type="radio"] {
+    border: 1px solid #071428 !important;
+    accent-color: #003f9c !important;
+}
+
+body.high-contrast-light input,
+body.high-contrast-light select,
+body.high-contrast-light textarea {
+    background-color: #ffffff !important;
+    color: #071428 !important;
+    border-color: #cfcfcf !important;
+}
+
+body.high-contrast-light :focus-visible {
+    outline: 2px solid #003f9c !important;
+    outline-offset: 2px !important;
+}
+
+body.high-contrast-light .table-striped > tbody > tr:nth-of-type(odd) > * {
+    background-color: #f6f8fb !important;
+}
+
+/* Modo lectura: mejor legibilidad */
+body.a11y-readable {
+    line-height: 1.8;
+    letter-spacing: 0.03em;
+    word-spacing: 0.1em;
+}
+
+body.a11y-readable p,
+body.a11y-readable li,
+body.a11y-readable label,
+body.a11y-readable span,
+body.a11y-readable div,
+body.a11y-readable a {
+    line-height: 1.8;
+    letter-spacing: 0.03em;
+}
+
+/* Reducir animaciones */
+body.a11y-reduced-motion * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* Daltonismo: overlay con backdrop-filter (no altera layout) */
+body.a11y-protanopia::before,
+body.a11y-deuteranopia::before,
+body.a11y-tritanopia::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9997;
+}
+
+body.a11y-protanopia::before {
+    backdrop-filter: hue-rotate(-25deg) saturate(0.9) contrast(1);
+}
+
+body.a11y-deuteranopia::before {
+    backdrop-filter: hue-rotate(15deg) saturate(0.9) contrast(1);
+}
+
+body.a11y-tritanopia::before {
+    backdrop-filter: hue-rotate(40deg) saturate(0.9) contrast(1);
+}
+
