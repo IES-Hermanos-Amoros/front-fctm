@@ -260,19 +260,14 @@ const ShowJobOffer = () => {
       showAlert(res.message, 'error')
     }
   }
-  
-//CAMBIO PARA LA PRECARGA DE LAS FECHAS
- const handleSave = async () => {
+//CAMBIOS PARA LA PRECARGA DE FECHAS
+const handleSave = async () => {
     try {
-      // 1. PROCESAMIENTO DE SKILLS
-      // Se asegura de que cualquier aptitud nueva creada manualmente en el select-multi 
-      // se guarde en la base de datos y nos devuelva solo los IDs finales.
+      // 1. Procesamos las skills para obtener los IDs
       const skillIds = await ensureSkills(data.FCTM_skills);
 
-      // 2. CONSTRUCCIÓN MANUAL DEL PAYLOAD (CAMBIO CLAVE PARA EL ERROR 500)
-      // Se ha dejado de usar 'normalizeToApi(data)' porque enviaba campos de 'empresa' 
-      // (empresa_nombre, empresa_ciudad) que no pertenecen al modelo de JobOffer, 
-      // lo que provocaba errores de validación en el backend.
+      // 2. Construimos el payload manualmente (evita enviar empresa_nombre y empresa_ciudad)
+      // Esto soluciona el Error 500 y asegura el formato de las fechas
       const finalPayload = {
         FCTM_job_title: data.FCTM_job_title,
         FCTM_job_description: data.FCTM_job_description,
@@ -281,26 +276,15 @@ const ShowJobOffer = () => {
         FCTM_job_status: data.FCTM_job_status,
         FCTM_job_observations: data.FCTM_job_observations || "",
         FCTM_skills: skillIds,
-        
-        // 3. ARREGLO DE FECHAS
-        // Forzamos la captura directa del valor del estado. Al ser inputs de tipo 'date',
-        // el valor ya viene en formato DD-MM-YYYY, que es lo que el backend espera.
-        // Esto soluciona el fallo de que las fechas no se actualizaban correctamente.
         FCTM_job_start_date: data.FCTM_job_start_date, 
         FCTM_job_end_date: data.FCTM_job_end_date || null
       };
 
-      // Log para verificar en consola que el objeto es "limpio" y solo contiene campos FCTM
-      console.log("PAYLOAD REAL QUE SALE:", finalPayload);
-
       const res = await sendRequest("PATCH", finalPayload, `/joboffers/${id}`);
 
       if (res.success) {
-        // 4. SINCRONIZACIÓN Y REFRESCO DE INTERFAZ
-        // Tras el éxito, usamos un pequeño retraso para asegurar que la DB ha asentado los cambios.
-        // Inmediatamente llamamos a fetchJobOffer() para volver a pedir los datos al servidor.
-        // Esto garantiza que la "Fecha de Inicio" y "Cierre" se vean correctamente precargadas 
-        // nada más terminar la edición
+        // 3. Refrescamos datos y cerramos edición
+        // Usamos un pequeño delay y fetchJobOffer para que la precarga de fechas sea perfecta
         setTimeout(() => {
           fetchJobOffer();
           setIsEditing(false);
@@ -336,6 +320,81 @@ const ShowJobOffer = () => {
     }
 
     setFiles(selectedFiles)
+  }
+
+  const handleUploadDocs__OLD = async () => {
+    if (files.length === 0) {
+      showAlert('Debes seleccionar al menos un archivo', 'error')
+      return
+    }
+
+    if (files.length > 10) {
+      showAlert('No puedes subir más de 10 archivos a la vez', 'error')
+      return
+    }
+
+    let allNewIds = []
+    if (files.length === 1) {
+      const formData = new FormData()
+      const file = files[0]
+      formData.append('documents', file)
+      formData.append('FCTM_document_name', file.name)
+      formData.append('FCTM_document_type', 'OTRO')
+      formData.append('FCTM_document_url', file.name)
+      formData.append('FCTM_document_created_by', '000000000000000000000000')
+      formData.append('jobOfferId', id)
+
+      const res = await sendRequest('POST', formData, '/documents')
+      if (res.success) {
+        allNewIds = Array.isArray(res.data)
+          ? res.data.map(doc => doc._id)
+          : [res.data._id]
+      } else {
+        showAlert(res.message, 'error')
+        return
+      }
+    } else {
+      for (const file of files) {
+        const formData = new FormData()
+
+        formData.append('documents', file)
+        formData.append('FCTM_document_type', 'OTRO')
+        formData.append('FCTM_document_name', file.name)
+        formData.append('FCTM_document_url', file.name)
+        formData.append('FCTM_document_created_by', '000000000000000000000000')
+        formData.append('userId', '000000000000000000000000')
+        formData.append('jobOfferId', id)
+
+        const res = await sendRequest('POST', formData, '/documents')
+
+        if (res.success) {
+          const idCreated = Array.isArray(res.data)
+            ? res.data[0]._id
+            : res.data._id
+          allNewIds.push(idCreated)
+        }
+      }
+    }
+
+    if (allNewIds.length > 0) {
+      const updatedDocuments = [...(data.FCTM_documents || []), ...allNewIds]
+
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
+
+      if (patchRes.success) {
+        showAlert('Documentos subidos correctamente', 'success')
+        setData(prev => ({
+          ...prev,
+          FCTM_documents: updatedDocuments,
+        }))
+        setFiles([])
+      }
+      fetchJobOffer()
+    }
   }
 
   const handleUploadDocs = async () => {
