@@ -5,7 +5,8 @@ import {
   showAlert,
   normalizeFromApi,
   normalizeToApi,
-  getBackendHost
+  getBackendHost,
+  formatDateDDMMYYYYHHmm
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -57,6 +58,11 @@ const ShowAction = () => {
             <i className="bi bi-download"></i>
           </a>
         ) : "No disponible"
+    },
+    {
+      key: "FCTM_inserted_date",
+      encabezado: "Fecha",
+      render: row => formatDateDDMMYYYYHHmm(row.FCTM_inserted_date)
     },
   ];
 
