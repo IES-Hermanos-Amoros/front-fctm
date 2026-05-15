@@ -540,6 +540,11 @@ export const normalizeToApi = (data, configs = []) => {
       return;
     }
 
+    if (type === "date") {
+      // date input gives "YYYY-MM-DD" string — send as-is, Mongoose parses it
+      return;
+    }
+
     if (type === "multi") {
       normalized[field] = normalized[field].map(item => item.value);
     } else {
