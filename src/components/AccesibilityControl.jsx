@@ -8,11 +8,11 @@ const AccessibilityControl = () => {
       return 100;
     }
   });
-  const [contrastMode, setContrastMode] = useState(() => {
+  const [highContrast, setHighContrast] = useState(() => {
     try {
-      return localStorage.getItem('a11y_contrast_mode') || 'off';
+      return localStorage.getItem('a11y_contrast') === 'true';
     } catch {
-      return 'off';
+      return false;
     }
   });
 
@@ -31,15 +31,6 @@ const AccessibilityControl = () => {
       return false;
     }
   });
-  const [reducedMotion, setReducedMotion] = useState(() => {
-    try {
-      return localStorage.getItem('a11y_motion') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-
   useEffect(() => {
     try {
       localStorage.setItem('a11y_zoom', String(zoom));
@@ -49,12 +40,10 @@ const AccessibilityControl = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('a11y_contrast_mode', contrastMode);
+      localStorage.setItem('a11y_contrast', String(highContrast));
     } catch {}
-    document.body.classList.remove('high-contrast-light', 'high-contrast-dark');
-    if (contrastMode === 'light') document.body.classList.add('high-contrast-light');
-    else if (contrastMode === 'dark') document.body.classList.add('high-contrast-dark');
-  }, [contrastMode]);
+    document.body.classList.toggle('a11y-high-contrast', highContrast);
+  }, [highContrast]);
 
   useEffect(() => {
     try {
@@ -73,13 +62,6 @@ const AccessibilityControl = () => {
     document.body.classList.toggle('a11y-readable', readableMode);
   }, [readableMode]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem('a11y_motion', String(reducedMotion));
-    } catch {}
-    document.body.classList.toggle('a11y-reduced-motion', reducedMotion);
-  }, [reducedMotion]);
-
 
 
   const changeZoom = (amount) => {
@@ -89,14 +71,12 @@ const AccessibilityControl = () => {
 
   const resetAccessibility = () => {
     setZoom(100);
-    setContrastMode('off');
+    setHighContrast(false);
     setReadableMode(false);
-    setReducedMotion(false);
     try {
       localStorage.removeItem('a11y_zoom');
-      localStorage.removeItem('a11y_contrast_mode');
+      localStorage.removeItem('a11y_contrast');
       localStorage.removeItem('a11y_readable');
-      localStorage.removeItem('a11y_motion');
     } catch {}
   };
 
@@ -116,23 +96,15 @@ const AccessibilityControl = () => {
         </li>
         <li><hr className="dropdown-divider" /></li>
         <li>
-          <label className="form-label small">Alto contraste</label>
-          <select className="form-select form-select-sm" value={contrastMode} onChange={(e) => setContrastMode(e.target.value)}>
-            <option value="off">Apagado</option>
-            <option value="light">Contraste claro</option>
-            <option value="dark">Contraste oscuro</option>
-          </select>
+          <div className="form-check form-switch">
+            <input className="form-check-input" type="checkbox" id="contrast-toggle" onChange={() => setHighContrast(!highContrast)} checked={highContrast} />
+            <label className="form-check-label" htmlFor="contrast-toggle">Alto contraste</label>
+          </div>
         </li>
         <li>
           <div className="form-check form-switch">
             <input className="form-check-input" type="checkbox" id="readable-toggle" onChange={() => setReadableMode(!readableMode)} checked={readableMode} />
             <label className="form-check-label" htmlFor="readable-toggle">Modo lectura</label>
-          </div>
-        </li>
-        <li>
-          <div className="form-check form-switch">
-            <input className="form-check-input" type="checkbox" id="motion-toggle" onChange={() => setReducedMotion(!reducedMotion)} checked={reducedMotion} />
-            <label className="form-check-label" htmlFor="motion-toggle">Reducir animaciones</label>
           </div>
         </li>
         <li>
