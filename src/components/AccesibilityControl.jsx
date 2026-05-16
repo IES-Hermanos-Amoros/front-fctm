@@ -1,16 +1,38 @@
 import React, { useState, useEffect } from 'react';
+import useUserStore from "../store/userStore"
 
 const AccessibilityControl = () => {
+  const user = useUserStore(state => state.user)
+
+  const getUserId = () => {
+    return (
+      user?.user?.id || user?.user?._id || user?.id || user?._id || 'global'
+    )
+  }
+
+  const readPref = (base, fallback) => {
+    try {
+      const uid = getUserId()
+      const perKey = `a11y_${uid}_${base}`
+      const per = localStorage.getItem(perKey)
+      if (per !== null && per !== undefined) return per
+      const g = localStorage.getItem(`a11y_${base}`)
+      if (g !== null && g !== undefined) return g
+    } catch {}
+    return fallback
+  }
+
   const [zoom, setZoom] = useState(() => {
     try {
-      return parseInt(localStorage.getItem('a11y_zoom') || '100', 10);
+      return parseInt(readPref('zoom', '100'), 10);
     } catch {
       return 100;
     }
   });
+
   const [highContrast, setHighContrast] = useState(() => {
     try {
-      return localStorage.getItem('a11y_contrast') === 'true';
+      return readPref('contrast', 'false') === 'true';
     } catch {
       return false;
     }
@@ -18,7 +40,7 @@ const AccessibilityControl = () => {
 
   const [colorblindMode, setColorblindMode] = useState(() => {
     try {
-      return localStorage.getItem('a11y_colorblind') || 'none';
+      return readPref('colorblind', 'none') || 'none';
     } catch {
       return 'none';
     }
@@ -26,41 +48,63 @@ const AccessibilityControl = () => {
 
   const [readableMode, setReadableMode] = useState(() => {
     try {
-      return localStorage.getItem('a11y_readable') === 'true';
+      return readPref('readable', 'false') === 'true';
     } catch {
       return false;
     }
   });
   useEffect(() => {
     try {
-      localStorage.setItem('a11y_zoom', String(zoom));
+      const key = `a11y_${getUserId()}_zoom`
+      if (localStorage.getItem(key) !== String(zoom)) localStorage.setItem(key, String(zoom));
     } catch {}
     document.documentElement.style.fontSize = `${zoom}%`;
   }, [zoom]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('a11y_contrast', String(highContrast));
+      const key = `a11y_${getUserId()}_contrast`
+      if (localStorage.getItem(key) !== String(highContrast)) localStorage.setItem(key, String(highContrast));
     } catch {}
     document.body.classList.toggle('a11y-high-contrast', highContrast);
   }, [highContrast]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('a11y_colorblind', colorblindMode);
+      const key = `a11y_${getUserId()}_colorblind`
+      if (localStorage.getItem(key) !== colorblindMode) localStorage.setItem(key, colorblindMode);
     } catch {}
     document.body.classList.remove('a11y-protanopia', 'a11y-deuteranopia', 'a11y-tritanopia');
     if (colorblindMode && colorblindMode !== 'none') {
       document.body.classList.add(`a11y-${colorblindMode}`);
     }
+    return () => {
+      document.body.classList.remove('a11y-protanopia', 'a11y-deuteranopia', 'a11y-tritanopia');
+    };
   }, [colorblindMode]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('a11y_readable', String(readableMode));
+      const key = `a11y_${getUserId()}_readable`
+      if (localStorage.getItem(key) !== String(readableMode)) localStorage.setItem(key, String(readableMode));
     } catch {}
     document.body.classList.toggle('a11y-readable', readableMode);
   }, [readableMode]);
+
+  useEffect(() => {
+    try {
+      const uid = getUserId()
+      const prefix = `a11y_${uid}_`
+      const z = localStorage.getItem(prefix + 'zoom')
+      setZoom(z !== null ? parseInt(z, 10) : parseInt(readPref('zoom', '100'), 10))
+      const hc = localStorage.getItem(prefix + 'contrast')
+      setHighContrast(hc !== null ? hc === 'true' : readPref('contrast', 'false') === 'true')
+      const cb = localStorage.getItem(prefix + 'colorblind')
+      setColorblindMode(cb !== null ? cb : readPref('colorblind', 'none'))
+      const rd = localStorage.getItem(prefix + 'readable')
+      setReadableMode(rd !== null ? rd === 'true' : readPref('readable', 'false') === 'true')
+    } catch {}
+  }, [user?.user?.id])
 
 
 
@@ -69,14 +113,32 @@ const AccessibilityControl = () => {
     setZoom(newZoom);
   };
 
+  const clearAccessibilityClasses = () => {
+    document.body.classList.remove(
+      'a11y-high-contrast',
+      'a11y-readable',
+      'a11y-protanopia',
+      'a11y-deuteranopia',
+      'a11y-tritanopia'
+    )
+  }
+
   const resetAccessibility = () => {
     setZoom(100);
     setHighContrast(false);
     setReadableMode(false);
+    setColorblindMode('none');
+    clearAccessibilityClasses();
     try {
-      localStorage.removeItem('a11y_zoom');
-      localStorage.removeItem('a11y_contrast');
-      localStorage.removeItem('a11y_readable');
+      const prefix = `a11y_${getUserId()}_`
+      localStorage.removeItem(prefix + 'zoom')
+      localStorage.removeItem(prefix + 'contrast')
+      localStorage.removeItem(prefix + 'readable')
+      localStorage.removeItem(prefix + 'colorblind')
+      localStorage.removeItem('a11y_zoom')
+      localStorage.removeItem('a11y_contrast')
+      localStorage.removeItem('a11y_readable')
+      localStorage.removeItem('a11y_colorblind')
     } catch {}
   };
 
