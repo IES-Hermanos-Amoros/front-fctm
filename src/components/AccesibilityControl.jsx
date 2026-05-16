@@ -85,7 +85,7 @@ const AccessibilityControl = () => {
       <button className="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-label="Abrir opciones de accesibilidad">
         <i className="bi bi-universal-access"></i>
       </button>
-      <ul className="dropdown-menu p-3" style={{ width: '240px' }}>
+      <ul className="dropdown-menu p-3" style={{ width: '240px' }} onClick={(event) => event.stopPropagation()} onMouseDown={(event) => event.stopPropagation()}>
         <li>
           <label className="form-label small">Tamaño de letra</label>
           <div className="d-flex justify-content-between align-items-center">
