@@ -8,6 +8,9 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
     newPassword: '',
     repeatPassword: ''
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
   useEffect(() => {
     if (!isEditing) {
@@ -51,37 +54,85 @@ const SectionChangePassword = ({ isEditing, onChange }) => {
         <div className="row g-3">
           <div className="col-md-4">
             <label className="form-label">Contraseña Actual</label>
-            <input
-              type="password"
-              name="password"
-              className="form-control"
-              // Si no modificamos, mostramos asteriscos. Si sí, el valor real.
-              value={isModifying ? pwdData.password : '********'}
-              onChange={handleInputChange}
-              disabled={!isModifying}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className="form-control"
+                // Si no modificamos, mostramos asteriscos. Si sí, el valor real.
+                value={isModifying ? pwdData.password : '********'}
+                onChange={handleInputChange}
+                disabled={!isModifying}
+              />
+              {isModifying && (
+                <i 
+                  className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'}`} 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{ 
+                    cursor: 'pointer', 
+                    position: 'absolute', 
+                    right: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    zIndex: 10
+                  }}
+                />
+              )}
+            </div>
           </div>
           <div className="col-md-4">
             <label className="form-label">Nueva Contraseña</label>
-            <input
-              type="password"
-              name="newPassword"
-              className="form-control"
-              value={pwdData.newPassword}
-              onChange={handleInputChange}
-              disabled={!isModifying}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showNewPassword ? "text" : "password"}
+                name="newPassword"
+                className="form-control"
+                value={pwdData.newPassword}
+                onChange={handleInputChange}
+                disabled={!isModifying}
+              />
+              {isModifying && (
+                <i 
+                  className={`bi ${showNewPassword ? 'bi-eye' : 'bi-eye-slash'}`} 
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  style={{ 
+                    cursor: 'pointer', 
+                    position: 'absolute', 
+                    right: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    zIndex: 10
+                  }}
+                />
+              )}
+            </div>
           </div>
           <div className="col-md-4">
             <label className="form-label">Repetir Contraseña</label>
-            <input
-              type="password"
-              name="repeatPassword"
-              className="form-control"
-              value={pwdData.repeatPassword}
-              onChange={handleInputChange}
-              disabled={!isModifying}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showRepeatPassword ? "text" : "password"}
+                name="repeatPassword"
+                className="form-control"
+                value={pwdData.repeatPassword}
+                onChange={handleInputChange}
+                disabled={!isModifying}
+              />
+              {isModifying && (
+                <i 
+                  className={`bi ${showRepeatPassword ? 'bi-eye' : 'bi-eye-slash'}`} 
+                  onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+                  style={{ 
+                    cursor: 'pointer', 
+                    position: 'absolute', 
+                    right: '12px', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    zIndex: 10
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
 
