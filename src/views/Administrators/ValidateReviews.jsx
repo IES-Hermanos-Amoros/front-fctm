@@ -54,6 +54,30 @@ const ValidateReviews = () => {
         }
     };
 
+    const handleAllDelete = async () => {
+        if (selectIds.length === 0) 
+            return showAlert('No hay reseñas seleccionadas', 'warning');
+
+        const confirmado = await confirmation(
+            `¿Desea eliminar ${selectIds.length} reseñas? Esta acción no se puede deshacer.`
+        );
+        if (!confirmado) return;
+
+        const res = await sendRequest(
+            'DELETE',
+            { ids: selectIds },
+            `/reviews/all-delete`
+        );
+
+        if (res.success || res.status === 200) {
+            showAlert('Reseñas eliminadas correctamente', 'success');
+            setSelectIds([]);
+            fetchData();
+        } else {
+            showAlert(res.message, 'error');
+        }
+    };
+
     const columnas = useMemo(() => [
         { key: 'FCTM_review_title', encabezado: 'Título' },
         {
@@ -93,12 +117,20 @@ const ValidateReviews = () => {
                 >
                     <div className="mb-3">
                         <button
-                            className="btn btn-primary"
+                            className="btn btn-primary me-2"
                             onClick={handleBulkVerify}
                             disabled={selectIds.length === 0}
                         >
                             <i className="bi bi-check-circle me-2"></i>
                             Validar seleccionadas ({selectIds.length})
+                        </button>
+                        <button
+                            className="btn btn-danger"
+                            onClick={handleAllDelete}
+                            disabled={selectIds.length === 0}
+                        >
+                            <i className="bi bi-trash me-2"></i>
+                            Eliminar seleccionadas ({selectIds.length})
                         </button>
                     </div>
                 </ListCRUD>
