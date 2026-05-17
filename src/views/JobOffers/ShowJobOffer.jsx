@@ -260,54 +260,44 @@ const ShowJobOffer = () => {
       showAlert(res.message, 'error')
     }
   }
+//CAMBIOS PARA LA PRECARGA DE FECHAS
+const handleSave = async () => {
+    try {
+      // 1. Procesamos las skills para obtener los IDs
+      const skillIds = await ensureSkills(data.FCTM_skills);
 
-  // Guardar cambios FCTM_
-  const handleSave = async () => {
+      // 2. Construimos el payload manualmente (evita enviar empresa_nombre y empresa_ciudad)
+      // Esto soluciona el Error 500 y asegura el formato de las fechas
+      const finalPayload = {
+        FCTM_job_title: data.FCTM_job_title,
+        FCTM_job_description: data.FCTM_job_description,
+        FCTM_job_requirements: data.FCTM_job_requirements || "",
+        FCTM_job_salary: data.FCTM_job_salary || "",
+        FCTM_job_status: data.FCTM_job_status,
+        FCTM_job_observations: data.FCTM_job_observations || "",
+        FCTM_skills: skillIds,
+        FCTM_job_start_date: data.FCTM_job_start_date, 
+        FCTM_job_end_date: data.FCTM_job_end_date || null
+      };
 
-      try {
+      const res = await sendRequest("PATCH", finalPayload, `/joboffers/${id}`);
 
-        const skillIds = await ensureSkills(
-          data.FCTM_skills
-        );
-
-        const payload = normalizeToApi(
-          data,
-          normalizationConfig
-        );
-
-        const finalPayload = {
-          ...payload,
-          FCTM_skills: skillIds
-        };
-
-        const res = await sendRequest(
-          "PATCH",
-          finalPayload,
-          `/joboffers/${id}`
-        );
-
-        if (!res.success) {
-          showAlert(res.message, "error");
-          return;
-        }
-
-        let normalizedData = normalizeFromApi(
-          res.data,
-          normalizationConfig
-        );
-
-        setData(normalizedData);
-        setOriginalData(normalizedData);
-        setIsEditing(false);
-
-      } catch (err) {
-
-        console.error(err);
-        showAlert("Error guardando", "error");
-
+      if (res.success) {
+        // 3. Refrescamos datos y cerramos edición
+        // Usamos un pequeño delay y fetchJobOffer para que la precarga de fechas sea perfecta
+        setTimeout(() => {
+          fetchJobOffer();
+          setIsEditing(false);
+          showAlert("Cambios guardados con éxito", "success");
+        }, 500);
+      } else {
+        showAlert(res.message, "error");
       }
-
-    };
+    } catch (err) {
+      console.error(err);
+      showAlert("Error guardando", "error");
+    }
+  };
 
   const handleChange = (field, value) => {
     setData(prev => ({
