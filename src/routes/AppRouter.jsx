@@ -26,6 +26,7 @@ import ListFcts from '../views/Fcts/ListFcts'
 import ShowAdmin from '../views/Administrators/ShowAdmin'
 import ShowTeacher from '../views/Teachers/ShowTeacher'
 import ShowFct from '../views/Fcts/ShowFcts'
+import ListReviews from '../views/Reviews/ListReview'
 import NewReview from '../views/Reviews/NewReview'
 import NewAction from '../views/Actions/NewAction'
 import ShowAction from '../views/Actions/ShowAction'
@@ -110,6 +111,16 @@ export default function AppRouter() {
       <Route path="/students/:id" element={<ShowStudent />} />
       <Route path="/fcts" element={<ListFcts />} />
       <Route path="/fcts/:id" element={<ShowFct />} />
+
+      <Route
+        path="/reviews"
+        element={
+          <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR']}>
+            <ListReviews />
+          </ProtectedRoutes>
+        }
+      />
+
       <Route path="/reviews/new" element={<NewReview />} />
       <Route path="/reviews/:id" element={<ShowReview />} />
 
