@@ -79,8 +79,8 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
     label: "Disponible",
     type: "select",
     options: [
-      { _id: "true", nombre: "Sí" },
-      { _id: "false", nombre: "No" }
+      { _id: true, nombre: "Sí" },
+      { _id: false, nombre: "No" }
     ],
     optionValue: "_id",
     optionLabel: "nombre"
@@ -215,8 +215,7 @@ const ShowStudent = () => {
 
     if (res.success) {
       const baseData = {
-        ...res.data,
-        FCTM_student_openToWork: String(res.data.FCTM_student_openToWork)
+        ...res.data
       };
 
       const responseConfig = [
@@ -298,8 +297,7 @@ const ShowStudent = () => {
 
       const finalPayload = {
         ...payloadNormalizado,
-        FCTM_skills: skillIds,
-        FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
+        FCTM_skills: skillIds
       };
 
       const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);

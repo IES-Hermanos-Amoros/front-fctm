@@ -82,7 +82,7 @@ const ShowEditableForm = ({
                         value={
                           typeof data[key] === "object" && data[key] !== null
                             ? data[key][optionValue]
-                            : data[key] || ""
+                            : data[key] ?? ""
                         }
                         onChange={e => onChange(key, e.target.value)}
                         disabled={!isEditing}
@@ -109,7 +109,7 @@ const ShowEditableForm = ({
                         value={
                           typeof data[key] === "object" && data[key] !== null
                             ? data[key][optionLabel] || ""
-                            : data[key] || ""
+                            : data[key] ?? ""
                         }
                         onChange={e => onChange(key, e.target.value)}
                         required={required}
@@ -122,7 +122,7 @@ const ShowEditableForm = ({
                   if (type === "star") {
                     const [hover, setHover] = useState(0)
                     
-                    const currentValue = data[key] || 0
+                    const currentValue = data[key] ?? 0
                     
                     return (
                       <div className="star-rating">
@@ -249,7 +249,7 @@ const ShowEditableForm = ({
                       value={
                         typeof data[key] === "object" && data[key] !== null
                           ? data[key][optionLabel] || ""
-                          : data[key] || ""
+                          : data[key] ?? ""
                       }
                       onChange={e => onChange(key, e.target.value)}
                       required={required}
