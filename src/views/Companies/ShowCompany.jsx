@@ -51,8 +51,8 @@ const mergeCategoryOptions = (storeCategories = [], entityCategories = []) => {
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
-  { key: "SAO_registryDate", label: "Fecha de Registro" },
-  { key: "SAO_accessDate", label: "Último Acceso" },
+  { key: "SAO_registryDate", label: "Fecha de Registro", type: "date" },
+  { key: "SAO_accessDate", label: "Último Acceso", type: "date" },
   { key: "SAO_name", label: "Nombre / Razón Social" },
   { key: "SAO_organization", label: "Organización / Centro" },
   { key: "SAO_group", label: "Grupo / Curso" },
