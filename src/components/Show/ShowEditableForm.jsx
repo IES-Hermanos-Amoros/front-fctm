@@ -1,6 +1,19 @@
-import React, { useState } from "react";
-import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
+import React, { useState } from "react"
+import Select from "react-select"
+import CreatableSelect from "react-select/creatable"
+import { formatDateDDMMYYYY } from "../../utils/functions"
+
+const getPrimitiveFieldValue = (data, key, optionLabel) => {
+  if (typeof data[key] === "object" && data[key] !== null) {
+    return data[key][optionLabel] || ""
+  }
+  return data[key] ?? ""
+}
+
+const formatInputDateValue = value => {
+  if (!value || typeof value !== "string") return ""
+  return value.includes("T") ? value.split("T")[0] : value
+}
 
 const ShowEditableForm = ({
   formTitle,
@@ -241,16 +254,38 @@ const ShowEditableForm = ({
                     );
                   }
 
+                  if (type === "date") {
+                    const rawValue = getPrimitiveFieldValue(data, key, optionLabel)
+
+                    if (!isEditing) {
+                      return (
+                        <input
+                          className="form-control"
+                          type="text"
+                          value={formatDateDDMMYYYY(rawValue)}
+                          readOnly
+                        />
+                      )
+                    }
+
+                    return (
+                      <input
+                        className="form-control"
+                        type="date"
+                        value={formatInputDateValue(rawValue)}
+                        onChange={e => onChange(key, e.target.value)}
+                        required={required}
+                        readOnly={!isEditing}
+                      />
+                    )
+                  }
+
                   // Por defecto: input normal
                   return (
                     <input
                       className="form-control"
                       type={type}
-                      value={
-                        typeof data[key] === "object" && data[key] !== null
-                          ? data[key][optionLabel] || ""
-                          : data[key] ?? ""
-                      }
+                      value={getPrimitiveFieldValue(data, key, optionLabel)}
                       onChange={e => onChange(key, e.target.value)}
                       required={required}
                       readOnly={!isEditing}
