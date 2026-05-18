@@ -97,6 +97,8 @@ const ShowReview = () => {
     const res = await sendRequest("PATCH", payload, `/reviews/${id}`);
 
     if (res.success) {
+      showAlert("Modificacion de la reseña pendiente de validación", "success");
+
       const updatedReview = res.data?.review || res.data;
       setData(updatedReview);
       setOriginalData(updatedReview);
@@ -142,6 +144,15 @@ const ShowReview = () => {
         title={`Ficha de reseña: ${data?.FCTM_review_title || "Detalle"}`}
         onBack={handleBack}
       />
+
+      {data?.FCTM_review_verified === false && (
+        <div className="alert alert-warning my-3 d-flex align-items-center mx-1" role="alert">
+          <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+          <div>
+            <strong>Atención:</strong> Modificación de reseña pendiente de validación por un administrador.
+          </div>
+        </div>
+      )}
 
       <ShowEditableForm
         formTitle="Información de la Reseña"
