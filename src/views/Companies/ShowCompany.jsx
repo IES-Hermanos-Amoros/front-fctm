@@ -9,7 +9,8 @@ import {
   pickFCTMFields,
   formatDateDDMMYYYY,
   ensureSkills,
-  validateStrongPassword // IMPORTANTE: Añadida validación
+  validateStrongPassword, // IMPORTANTE: Añadida validación
+  externLogout
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -117,6 +118,7 @@ const ShowCompany = () => {
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
   const user = useUserStore(state => state.user);
+  const clearUser = useUserStore(state => state.clearUser);
 
   const userRole = user?.user?.profile || user?.profile;
   const canCreateActions = ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
@@ -224,6 +226,11 @@ const ShowCompany = () => {
       const res = await sendRequest("PATCH", finalPayload, `/companies/${id}`);
 
       if (res.success) {
+        if (isChangingPassword) {
+          await externLogout(clearUser, navigate);
+          return;
+        }
+
         const config = buildNormalizationConfig(
           mergeSkillOptions(skillOptionsStore, res.data.FCTM_skills || []),
           mergeCategoryOptions(categoriesStore, res.data.FCTM_company_category || [])

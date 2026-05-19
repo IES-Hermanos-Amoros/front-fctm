@@ -9,7 +9,8 @@ import {
   normalizeToApi,
   ensureSkills,
   validateStrongPassword, // IMPORTANTE: Importar validación
-  confirmation
+  confirmation,
+  externLogout
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -20,6 +21,7 @@ import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 /* =========================
    MERGE HELPERS
@@ -111,6 +113,7 @@ const ShowStudent = () => {
   const cargarSkills = useSkillStore(state => state.cargarSkills);
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
+  const clearUser = useUserStore(state => state.clearUser);
 
   const [data, setData] = useState(null);
   const [file, setFile] = useState(null); // Para un único archivo
@@ -305,6 +308,11 @@ const ShowStudent = () => {
       const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
 
       if (res.success) {
+        if (isChangingPassword) {
+          await externLogout(clearUser, navigate);
+          return;
+        }
+
         cargarSkills();
         await fetchStudent();
         setPasswordData(null); // Reset password data
