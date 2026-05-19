@@ -6,7 +6,8 @@ import {
   normalizeFromApi, 
   normalizeToApi, 
   pickFCTMFields, 
-  validateStrongPassword // ✅ Importado
+  validateStrongPassword, // ✅ Importado
+  externLogout
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -15,6 +16,7 @@ import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 import SectionChangePassword from "../../components/User/SectionChangePassword"; // ✅ Importado
 
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -33,6 +35,7 @@ const ShowTeacher = () => {
 
   const categories = useCategoryStore((state) => state.categories);
   const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +133,11 @@ const ShowTeacher = () => {
     const res = await sendRequest("PATCH", payload, `/teachers/${id}`);
 
     if (res.success) {
+      if (isChangingPassword) {
+        await externLogout(clearUser, navigate);
+        return;
+      }
+
       const dataFinal = normalizeFromApi(res.data, normalizationConfig);
       setData(dataFinal);
       setOriginalData(dataFinal);
