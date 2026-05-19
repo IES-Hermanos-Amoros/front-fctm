@@ -1,3 +1,4 @@
+import { color } from "echarts";
 import React, { useState } from "react"
 import Select from "react-select"
 import CreatableSelect from "react-select/creatable"
@@ -30,6 +31,43 @@ const ShowEditableForm = ({
   const handleSubmit = (e) => {
     e.preventDefault(); // evitamos recarga
     if (onSave) onSave();
+  };
+
+  const selectorDark = {
+    menuPortal: base => ({ ...base, zIndex: 9999 }),
+    control: (base) => ({
+      ...base,
+      backgroundColor: "var(--bs-body-bg)",
+      color: "var(--bs-body-color)",
+      borderColor: "var(--bs-border-color)"
+    }),
+    menu: (base) => ({
+      ...base,
+      backgroundColor: "var(--bs-body-bg)",
+      border: "1px solid var(--bs-border-color)"
+    }),
+    option: (base, { isFocused, isSelected }) => ({
+      ...base,
+      backgroundColor: isSelected ? "#0d6efd" : isFocused ? "var(--bs-tertiary-bg)" : "transparent",
+      color: isSelected || isFocused ? "white" : "var(--bs-body-color)",
+      cursor: "pointer",
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: "var(--bs-tertiary-bg)",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "var(--bs-body-color)",
+    }),
+    input: (base) => ({
+      ...base,
+      color: "var(--bs-body-color)",
+    }),
+    singleValue: (base) => ({
+      ...base,
+      color: "var(--bs-body-color)",
+    })
   };
 
   return (
@@ -171,9 +209,7 @@ const ShowEditableForm = ({
                         isDisabled={!isEditing}
                         menuPortalTarget={document.body}
                         menuPosition="fixed"
-                        styles={{
-                          menuPortal: base => ({ ...base, zIndex: 9999 })
-                        }}
+                        styles={selectorDark}
                       />
                     );
                   }
@@ -247,9 +283,7 @@ const ShowEditableForm = ({
                         formatCreateLabel={(input) => `Añadir "${input}"`}
                         menuPortalTarget={document.body}
                         menuPosition="fixed"
-                        styles={{
-                          menuPortal: base => ({ ...base, zIndex: 9999 })
-                        }}
+                        styles={selectorDark}
                       />
                     );
                   }
