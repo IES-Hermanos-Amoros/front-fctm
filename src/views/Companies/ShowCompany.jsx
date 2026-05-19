@@ -449,7 +449,7 @@ const ShowCompany = () => {
   if (!data) return <p>Empresa no encontrada.</p>;
 
   return (
-    <section>
+    <section className="dashboard section">
       <ShowHeader title={`Ficha de ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
       
       <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} />
@@ -492,29 +492,29 @@ const ShowCompany = () => {
 
       <hr />
 
+    {isEditing ? (
+              <div className="card p-3 mt-3">
+                <h5>Adjuntar Documentos</h5>
+                <input
+                  type="file"
+                  multiple
+                  className="form-control"
+                  onChange={handleFileChange}
+                />
+                <button className="btn btn-primary mt-2" onClick={handleUploadDocs}>
+                  <i className="bi bi-file-earmark-plus me-2"></i>
+                  Adjuntar Documentos
+                </button>
+                <small className="text-muted d-block mt-2">Puedes subir varios archivos relacionados con la empresa.</small>
+              </div>
+            ) : (
+              <small className="text-muted">Edita la empresa para adjuntar documentos directamente aquí.</small>
+            )}
       <ListCRUD 
         title="Documentación de Empresa (Convenios, etc.)" 
         datos={documentData} 
         columnas={columnasDocumentos}
       >
-        {isEditing ? (
-          <div className="card p-3">
-            <h5>Adjuntar Documentos</h5>
-            <input
-              type="file"
-              multiple
-              className="form-control"
-              onChange={handleFileChange}
-            />
-            <button className="btn btn-success mt-2" onClick={handleUploadDocs}>
-              <i className="bi bi-file-earmark-plus me-2"></i>
-              Adjuntar Documentos
-            </button>
-            <small className="text-muted d-block mt-2">Puedes subir varios archivos relacionados con la empresa.</small>
-          </div>
-        ) : (
-          <small className="text-muted">Edita la empresa para adjuntar documentos directamente aquí.</small>
-        )}
       </ListCRUD>
       <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
         {canCreateActions && (

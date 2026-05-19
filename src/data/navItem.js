@@ -37,6 +37,12 @@ const navList = [
     },
     {
     _id: 6,
+    name: 'Reseñas',
+    icon: 'bi bi-card-list',
+    path: '/reviews'
+    },
+    {
+    _id: 7,
     name: 'Datos Dummy',
     icon: 'bi bi-envelope',
     path: '/dummy'

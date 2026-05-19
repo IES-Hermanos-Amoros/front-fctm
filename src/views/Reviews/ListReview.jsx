@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { sendRequest, formatDateDDMMYYYY } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom';
 import ListCRUD from "../../components/List/ListCRUD";
+import RatingStars from "../../components/RatingStars";
+
 
 const ListReviews = () => {
     const [data, setData] = useState([]);
@@ -15,11 +17,18 @@ const ListReviews = () => {
         { 
             key: 'empresa_nombre', 
             encabezado: 'Empresa' ,
+            // Esto le da al buscador el string exacto por el cual filtrar en minúsculas/mayúsculas
+            accessorFn: row => row.empresa_nombre || '',
             render: row => row.empresa_nombre || '-'
         },
         { 
             key: 'FCTM_review_title', 
             encabezado: 'Título' 
+        },
+        {
+            key: "FCTM_review_rating",
+            encabezado: "Calificación",
+            render: (row) => <RatingStars rating={row.FCTM_review_rating} />,
         },
         { 
             key: 'alumno_nombre', 
