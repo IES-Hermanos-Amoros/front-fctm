@@ -6,10 +6,12 @@ import {
   normalizeFromApi,
   normalizeToApi,
   pickFCTMFields,
-  validateStrongPassword // ✅ Importamos validación
+  validateStrongPassword, // ✅ Importamos validación
+  externLogout
 } from "../../utils/functions";
 
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
@@ -33,6 +35,7 @@ const ShowAdmin = () => {
 
   const categories = useCategoryStore((state) => state.categories);
   const cargarCategorias = useCategoryStore((state) => state.cargarCategorias);
+  const clearUser = useUserStore((state) => state.clearUser);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -142,6 +145,11 @@ const ShowAdmin = () => {
     const res = await sendRequest("PATCH", payload, `/administrators/${id}`);
 
     if (res.success) {
+      if (isChangingPassword) {
+        await externLogout(clearUser, navigate);
+        return;
+      }
+
       const normalized = normalizeFromApi(res.data, normalizationConfig);
       setData(normalized);
       setOriginalData(normalized);

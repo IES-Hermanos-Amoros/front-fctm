@@ -19,6 +19,8 @@ const PasswordSetup = () => {
   const [newPassword, setNewPassword] = useState('')
   const [newPasswordRep, setNewPasswordRep] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordRep, setShowPasswordRep] = useState(false)
 
   const handleSubmit = async e => {
     e.preventDefault()
@@ -90,11 +92,23 @@ const PasswordSetup = () => {
               <i className="bi bi-lock auth-input-icon"></i>
 
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 className="auth-input"
                 value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
                 required
+              />
+              <i 
+                className={`bi ${showPassword ? 'bi-eye' : 'bi-eye-slash'} auth-input-icon-right`} 
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ 
+                  cursor: 'pointer', 
+                  position: 'absolute', 
+                  right: '15px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
               />
             </div>
           </div>
@@ -105,11 +119,23 @@ const PasswordSetup = () => {
             <div className="auth-input-group">
               <i className="bi bi-shield-lock auth-input-icon"></i>
               <input
-                type="password"
+                type={showPasswordRep ? "text" : "password"}
                 className="auth-input"
                 value={newPasswordRep}
                 onChange={e => setNewPasswordRep(e.target.value)}
                 required
+              />
+              <i 
+                className={`bi ${showPasswordRep ? 'bi-eye' : 'bi-eye-slash'} auth-input-icon-right`} 
+                onClick={() => setShowPasswordRep(!showPasswordRep)}
+                style={{ 
+                  cursor: 'pointer', 
+                  position: 'absolute', 
+                  right: '15px', 
+                  top: '50%', 
+                  transform: 'translateY(-50%)',
+                  zIndex: 10
+                }}
               />
             </div>
           </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getBackendHost, sendRequest, showAlert } from '../../utils/functions'
+import { getBackendHost, sendRequest, showAlert, formatDateDDMMYYYY } from '../../utils/functions'
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
@@ -259,7 +259,7 @@ const ShowDocument = () => {
                 className="form-control"
                 value={
                   documento.FCTM_inserted_date
-                    ? new Date(documento.FCTM_inserted_date).toLocaleString()
+                    ? formatDateDDMMYYYY(documento.FCTM_inserted_date)
                     : ''
                 }
                 disabled

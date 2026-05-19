@@ -9,7 +9,8 @@ import {
   pickFCTMFields,
   formatDateDDMMYYYY,
   ensureSkills,
-  validateStrongPassword // IMPORTANTE: Añadida validación
+  validateStrongPassword, // IMPORTANTE: Añadida validación
+  externLogout
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -51,8 +52,8 @@ const mergeCategoryOptions = (storeCategories = [], entityCategories = []) => {
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
-  { key: "SAO_registryDate", label: "Fecha de Registro" },
-  { key: "SAO_accessDate", label: "Último Acceso" },
+  { key: "SAO_registryDate", label: "Fecha de Registro", type: "date" },
+  { key: "SAO_accessDate", label: "Último Acceso", type: "date" },
   { key: "SAO_name", label: "Nombre / Razón Social" },
   { key: "SAO_organization", label: "Organización / Centro" },
   { key: "SAO_group", label: "Grupo / Curso" },
@@ -117,6 +118,7 @@ const ShowCompany = () => {
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
   const user = useUserStore(state => state.user);
+  const clearUser = useUserStore(state => state.clearUser);
 
   const userRole = user?.user?.profile || user?.profile;
   const canCreateActions = ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
@@ -126,6 +128,8 @@ const ShowCompany = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [documentData, setDocumentData] = useState([]);
+  const [files, setFiles] = useState([]);
   
   // NUEVO: Estado para password
   const [passwordData, setPasswordData] = useState(null);
@@ -168,7 +172,24 @@ const ShowCompany = () => {
       const normalized = normalizeFromApi(res.data, config);
       setData(normalized);
       setOriginalData(normalized);
-      setAvatarUrl(res.data?.FCTM_documents?.[0]?.FCTM_document_url || "");
+
+      const companyDocuments = res.data?.FCTM_documents || [];
+      let loadedDocuments = [];
+
+      if (companyDocuments.length > 0) {
+        const firstItem = companyDocuments[0];
+        if (firstItem && typeof firstItem === 'object' && firstItem._id) {
+          loadedDocuments = companyDocuments;
+        } else {
+          const promises = companyDocuments.map(id => sendRequest('GET', null, `/documents/${id}`));
+          const responses = await Promise.all(promises);
+          loadedDocuments = responses.filter(r => r.success).map(r => r.data);
+        }
+      }
+
+      setDocumentData(loadedDocuments);
+      const avatarDoc = loadedDocuments.find(doc => doc?.FCTM_document_type === 'AVATAR');
+      setAvatarUrl(avatarDoc?.FCTM_document_url || loadedDocuments?.[0]?.FCTM_document_url || "");
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -224,6 +245,11 @@ const ShowCompany = () => {
       const res = await sendRequest("PATCH", finalPayload, `/companies/${id}`);
 
       if (res.success) {
+        if (isChangingPassword) {
+          await externLogout(clearUser, navigate);
+          return;
+        }
+
         const config = buildNormalizationConfig(
           mergeSkillOptions(skillOptionsStore, res.data.FCTM_skills || []),
           mergeCategoryOptions(categoriesStore, res.data.FCTM_company_category || [])
@@ -288,6 +314,44 @@ const ShowCompany = () => {
       showAlert(res.message || "Error al eliminar", "error");
     }
   }, [id, fetchCompany]);
+
+  const handleFileChange = useCallback((event) => {
+    const selectedFiles = Array.from(event.target.files || []);
+
+    if (selectedFiles.length > 10) {
+      showAlert('Solo puedes subir un máximo de 10 documentos', 'error');
+      return;
+    }
+
+    setFiles(selectedFiles);
+  }, []);
+
+  const handleUploadDocs = useCallback(async () => {
+    if (files.length === 0) {
+      showAlert('Debes seleccionar al menos un archivo', 'error');
+      return;
+    }
+
+    if (files.length > 10) {
+      showAlert('No puedes subir más de 10 archivos a la vez', 'error');
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    formData.append('companyId', id);
+    formData.append('FCTM_document_type', 'CONVENIO');
+
+    const res = await sendRequest('POST', formData, '/documents/upload');
+
+    if (res.success) {
+      showAlert('Documentos subidos correctamente', 'success');
+      setFiles([]);
+      await fetchCompany();
+    } else {
+      showAlert(res.message || 'Error al subir documentos', 'error');
+    }
+  }, [files, fetchCompany, id]);
 
   const columnasDocumentos = useMemo(() => [
     { 
@@ -430,19 +494,27 @@ const ShowCompany = () => {
 
       <ListCRUD 
         title="Documentación de Empresa (Convenios, etc.)" 
-        datos={data.FCTM_documents || []} 
+        datos={documentData} 
         columnas={columnasDocumentos}
       >
-        <div className="d-flex align-items-center gap-2">
-          <button 
-            className="btn btn-success" 
-            onClick={() => navigate("/documents/new", { state: { companyId: id, type: "CONVENIO" } })}
-          >
-            <i className="bi bi-file-earmark-plus me-2"></i>
-            Adjuntar Documento
-          </button>
-          <small className="text-muted">Ej: Convenio A1 de SAO</small>
-        </div>
+        {isEditing ? (
+          <div className="card p-3">
+            <h5>Adjuntar Documentos</h5>
+            <input
+              type="file"
+              multiple
+              className="form-control"
+              onChange={handleFileChange}
+            />
+            <button className="btn btn-success mt-2" onClick={handleUploadDocs}>
+              <i className="bi bi-file-earmark-plus me-2"></i>
+              Adjuntar Documentos
+            </button>
+            <small className="text-muted d-block mt-2">Puedes subir varios archivos relacionados con la empresa.</small>
+          </div>
+        ) : (
+          <small className="text-muted">Edita la empresa para adjuntar documentos directamente aquí.</small>
+        )}
       </ListCRUD>
       <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
         {canCreateActions && (

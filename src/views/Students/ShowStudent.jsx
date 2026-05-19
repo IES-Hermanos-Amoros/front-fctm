@@ -9,7 +9,8 @@ import {
   normalizeToApi,
   ensureSkills,
   validateStrongPassword, // IMPORTANTE: Importar validación
-  confirmation
+  confirmation,
+  externLogout
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -20,6 +21,7 @@ import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
+import useUserStore from "../../store/userStore";
 
 /* =========================
    MERGE HELPERS
@@ -79,8 +81,8 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
     label: "Disponible",
     type: "select",
     options: [
-      { _id: "true", nombre: "Sí" },
-      { _id: "false", nombre: "No" }
+      { _id: true, nombre: "Sí" },
+      { _id: false, nombre: "No" }
     ],
     optionValue: "_id",
     optionLabel: "nombre"
@@ -111,6 +113,7 @@ const ShowStudent = () => {
   const cargarSkills = useSkillStore(state => state.cargarSkills);
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
+  const clearUser = useUserStore(state => state.clearUser);
 
   const [data, setData] = useState(null);
   const [file, setFile] = useState(null); // Para un único archivo
@@ -215,8 +218,7 @@ const ShowStudent = () => {
 
     if (res.success) {
       const baseData = {
-        ...res.data,
-        FCTM_student_openToWork: String(res.data.FCTM_student_openToWork)
+        ...res.data
       };
 
       const responseConfig = [
@@ -298,13 +300,17 @@ const ShowStudent = () => {
 
       const finalPayload = {
         ...payloadNormalizado,
-        FCTM_skills: skillIds,
-        FCTM_student_openToWork: data.FCTM_student_openToWork === "true"
+        FCTM_skills: skillIds
       };
 
       const res = await sendRequest("PATCH", finalPayload, `/students/${id}`);
 
       if (res.success) {
+        if (isChangingPassword) {
+          await externLogout(clearUser, navigate);
+          return;
+        }
+
         cargarSkills();
         await fetchStudent();
         setPasswordData(null); // Reset password data
