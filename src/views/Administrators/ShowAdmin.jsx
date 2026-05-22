@@ -18,6 +18,14 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 import SectionChangePassword from "../../components/User/SectionChangePassword"; // ✅ Importamos sección
 
+import { useStatsStore } from "../../store/useStatsStore";
+import BarChart from "../../components/Charts/BarChart";
+import PieChart from "../../components/Charts/PieChart";
+import RadarChart from "../../components/Charts/RadarChart";
+import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
+
+import StatsLayout from "../../components/Charts/StatsLayout";
+
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
   { key: "SAO_registryDate", label: "Fecha de Registro", type: "date" },
@@ -43,6 +51,7 @@ const ShowAdmin = () => {
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [passwordData, setPasswordData] = useState(null); // ✅ Nuevo estado para password
+  const { stats, isLoadingStats } = useStatsStore(); //Estadísticas
 
   // ✅ 1. Asegurar options siempre válidas
   const safeCategories = useMemo(() => categories || [], [categories]);
@@ -189,6 +198,49 @@ const ShowAdmin = () => {
         avatarUrl={avatarUrl}
         onUploadSuccess={fetchAdmin}
       />
+
+      <StatsLayout>
+        <BarChart 
+          title="Convenios por Curso" 
+          labels={stats.conveniosPorCurso.labels} 
+          values={stats.conveniosPorCurso.data} 
+        />
+
+        <BarChart 
+          title="F.E. por Curso" 
+          labels={stats.fctPorCurso.labels} 
+          values={stats.fctPorCurso.data} 
+          color="#3498db" 
+        />
+      </StatsLayout>
+
+      <StatsLayout>
+        <PieChart 
+          title="Tecnologías más demandadas" 
+          data={stats.tecnologiasDemandadas} 
+        />
+
+        <PieChart 
+          title="Habilidades Alumnos" 
+          data={stats.habilidadesAlumnos} 
+        />
+
+        <RadarChart 
+            title="Perfil de Habilidades" 
+            data={stats.habilidadesAlumnos} 
+          />
+
+        <HorizontalBarChart 
+          title="Demanda de Tecnologías" 
+          data={stats.tecnologiasDemandadas} 
+        />
+
+        <HorizontalBarChart 
+          title="Alumnado por Localidad" 
+          data={stats.alumnadoPorLocalidad} 
+          color="#74b9ff" // Un azul suave para diferenciar de tecnologías
+        />
+      </StatsLayout>
 
       <ShowEditableForm
         formTitle="Información de SAO"
