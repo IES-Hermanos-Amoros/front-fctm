@@ -30,7 +30,7 @@ function MainDashboard() {
       '/administrators/validate/reviews':'Validar Reseñas',
       '/administrators/validate/skills':'Validar Aptitudes'
     }
-    return routes[pathname] || 'Panel'
+    return routes[pathname] || 'Info'
   }
 
   return (

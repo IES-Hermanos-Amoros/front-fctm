@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { sendRequest, showAlert, getBackendHost } from '../../utils/functions'
 import defaultAvatar from "../../assets/avatar.png"
+// 1. Importamos el Store de Zustand
+import useUserStore from "../../store/userStore"
 
 const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-
+  
   // Limpiar estados cuando cambia el avatar real desde el backend
   useEffect(() => {
     setSelectedFile(null);
@@ -50,6 +52,19 @@ const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
 
     if (res.success) {
       showAlert("Avatar actualizado con éxito", "success");
+      
+      console.log("DATOS AVATAR ACTUALIZADO:", res)
+
+      // Actualizamos Zustand localmente al instante
+      // 🔍 NAVEGACIÓN EXACTA EN TU JSON RES:
+      // res.data es un Array, accedemos a la posición [0] y extraemos "FCTM_document_url"
+      if (res.data && res.data.length > 0) {
+        const nuevaRutaAvatar = res.data[0].FCTM_document_url;
+        
+        // 🟢 Forzamos la actualización inmediata del estado en memoria
+        useUserStore.getState().updateLocalAvatar(nuevaRutaAvatar);
+      }
+      
       if (onUploadSuccess) onUploadSuccess(); // Esto dispara el fetchStudent() en el Show
     } else {
       showAlert(res.message || "Error al subir el avatar", "error");

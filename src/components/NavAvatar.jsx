@@ -1,49 +1,32 @@
-import React from 'react';
-import profileImg from '../images/user.jpg'
+import React, {useState} from 'react';
+//import profileImg from '../images/user.jpg'
+//import profileImg from '../avatar.png'
+import profileImg from "../assets/avatar.png"
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 import useUserStore from "../store/userStore"
-import { sendRequest, getProfilePath, externLogout } from '../utils/functions';
+import { sendRequest, getProfilePath, externLogout, getBackendHost } from '../utils/functions';
 
 function NavAvatar() {
+
+  const host = getBackendHost();
 
   const navigate = useNavigate();
 
   const user = useUserStore(state => state.user);
   const clearUser = useUserStore(state => state.clearUser);
+  const finalAvatarSrc = user?.user?.avatar 
+    ? `${host}${user.user.avatar}` 
+    : profileImg;
+ 
 
   const goProfile = () => {
 
-    if (!user) return;
-
-    console.log("USER _ID: ", user.user.id)
+    if (!user) return;   
 
     navigate(getProfilePath(user.user.profile,user.user.id))
-    // puedes cambiar la ruta según tu modelo
-    //navigate(`/administrators/${user._id}`)
-    /*switch (user.user.profile) {
-
-        case 'ADMINISTRADOR':
-          navigate('/administrators/' + user.user.id)
-          break
-
-        case 'PROFESOR':
-          navigate('/teachers/' + user.user.id)
-          break
-
-        case 'ALUMNO':
-          navigate('/students/' + user.user.id)
-          break
-
-        case 'EMPRESA':
-          navigate('/companies/' + user.user.id)
-          break
-
-        default:
-          navigate('/companies')
-
-      }*/     
+    
   }
 
   const logout = async () => {
@@ -79,7 +62,7 @@ function NavAvatar() {
         href="#"
         data-bs-toggle="dropdown"
       >
-        <img src={profileImg} alt="Profile" className="rounded-circle" />
+        <img src={finalAvatarSrc} alt="Profile" className="rounded-circle" />
 
         <span className="d-none d-lg-block dropdown-toggle ps-2">
           {user?.user?.username || "Usuario"}
