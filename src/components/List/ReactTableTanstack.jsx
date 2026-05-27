@@ -125,7 +125,7 @@ const ReactTableTanstack = ({
         <div className="rt-card-body">
           <h1>{tableTitle}</h1>
           <input
-            className="searchInput"
+            className="searchInput mb-3"
             placeholder="Buscar..."
             value={actualFilter ?? ''} // globalFilter - cambiado para usar el valor correcto según si el filtro es controlado o no
             onChange={(e) => {handleFilterChange(e.target.value);}} //setGlobalFilter(e.target.value) -- Cambiado para usar la función correcta según si el filtro es controlado o no
@@ -154,12 +154,22 @@ const ReactTableTanstack = ({
                   onTouchStart={mostrarCheckBox ? handleMouseDown : undefined}
                   onTouchEnd={mostrarCheckBox ? handleMouseUp : undefined}
                 >
-                  {row.getVisibleCells().map(cell => (
+                  {/*row.getVisibleCells().map(cell => (
                     <div key={cell.id} style={{ opacity: expanded ? 1 : 1 }}>
                       <strong>{flexRender(cell.column.columnDef.header, cell.getContext())}:</strong>{' '}
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>
-                  ))}
+                  ))*/}
+                  {row.getVisibleCells()
+                    // FILTRADO: Nos saltamos la celda técnica del checkbox para que no ensucie el diseño
+                    .filter(cell => cell.column.id !== '_checkbox')
+                    .map(cell => (
+                      <div key={cell.id}>
+                        <strong>{flexRender(cell.column.columnDef.header, cell.getContext())}:</strong>{' '}
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </div>
+                    ))
+                  }
                 </div>
               )
             })}

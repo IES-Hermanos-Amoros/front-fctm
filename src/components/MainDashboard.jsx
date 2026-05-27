@@ -14,6 +14,7 @@ function MainDashboard() {
   function getPageTitle(pathname) {
     const routes = {
       '/': 'Inicio',
+      '/companies':'Empresas',
       '/users': 'Usuarios',
       '/students': 'Alumnos',
       '/joboffers': 'Ofertas de Trabajo',
@@ -25,7 +26,9 @@ function MainDashboard() {
       '/sinc/empresas': 'Sincronizar Empresas con SAO',
       '/sinc/alumnos': 'Sincronizar Alumnos con SAO',
       '/sinc/profesores': "Sincronizar Profesores - Administradores con SAO",
-      '/sinc/fcts':'Sincronizar F.E.'
+      '/sinc/fcts':'Sincronizar F.E.',
+      '/administrators/validate/reviews':'Validar Reseñas',
+      '/administrators/validate/skills':'Validar Aptitudes'
     }
     return routes[pathname] || 'Panel'
   }

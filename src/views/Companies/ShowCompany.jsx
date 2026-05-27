@@ -461,8 +461,7 @@ const ShowCompany = () => {
         fields={camposSAO}
         hideEditButton
       />
-
-      <hr />
+      
 
       <ShowEditableForm
         formTitle="Gestión de Datos FCTM"
@@ -482,7 +481,6 @@ const ShowCompany = () => {
         onChange={setPasswordData}
       />
 
-      <hr />
 
       <ListCRUD title="Ofertas Relacionadas" datos={data.FCTM_job_offers || []} columnas={columnasOfertas}>
         <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
@@ -490,9 +488,8 @@ const ShowCompany = () => {
         </button>
       </ListCRUD>
 
-      <hr />
 
-    {isEditing ? (
+    {/*isEditing ? (
               <div className="card p-3 mt-3">
                 <h5>Adjuntar Documentos</h5>
                 <input
@@ -509,12 +506,21 @@ const ShowCompany = () => {
               </div>
             ) : (
               <small className="text-muted">Edita la empresa para adjuntar documentos directamente aquí.</small>
-            )}
+            )*/}
       <ListCRUD 
         title="Documentación de Empresa (Convenios, etc.)" 
         datos={documentData} 
         columnas={columnasDocumentos}
       >
+        <button className="btn btn-primary" onClick={handleUploadDocs}>                  
+                  Adjuntar Varios Docs
+                </button>
+                <input
+                  type="file"
+                  multiple
+                  className="form-control"
+                  onChange={handleFileChange}
+                />
       </ListCRUD>
       <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
         {canCreateActions && (

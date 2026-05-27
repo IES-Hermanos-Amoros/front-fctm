@@ -6,28 +6,24 @@ const ListCRUD = ({
   title = "",
   datos = [],
   columnas = [],
-  tableProps = {}, // por si luego quieres pasar algo extra
+  tableProps = {},
   mobileMode = "card",
   mostrarCheckBox = false,
-  selectedIds = [], // NUEVA PROP
-  onSelectionChange, // NUEVA PROP
+  selectedIds = [],
+  onSelectionChange,
   filters = {},
   onFilterChange,
   filtersConfig = [],
-  children, // para botones externos si quieres
-  // Nuevas props extraídas de ReactTableTanstack
+  children,
   globalFilter,
   setGlobalFilter,
 }) => {
 
-  // Lógica de filtrado para exportación
   const datosFiltrados = useMemo(() => {
-    // Si globalFilter es undefined o vacío, devolvemos todos los datos
     if (!globalFilter) return datos;
 
     const target = globalFilter.toLowerCase();
     return datos.filter(fila => {
-      // Usar Object.values es más seguro que JSON.stringify para evitar IDs ocultos
       return Object.values(fila).some(val => 
         String(val).toLowerCase().includes(target)
       );
@@ -35,44 +31,35 @@ const ListCRUD = ({
   }, [datos, globalFilter]);
   
   return (
-    <section className="dashboard section">
+    // 1. Contenedor plano sin rejillas intermedias de Bootstrap para clonar el ancho exacto de ShowEditableForm
+    <div className="w-100 mb-4" style={{ display: 'block' }}>
+      
+      {/* 2. El Toolbar actúa como la cabeza del bloque */}
+      <ReactTableToolBar 
+        data={datosFiltrados} 
+        columns={columnas}
+        title={title} 
+        filters={filters}
+        onFilterChange={onFilterChange}
+        filtersConfig={filtersConfig}
+      >
+        {children}
+      </ReactTableToolBar>
 
-      {/* TOOLBAR DE EXPORTACIÓN */}
-      <div className="row g-0">
-        <div className="col-12">
-          <ReactTableToolBar 
-            data={datosFiltrados} // PASAR LOS DATOS FILTRADOS
-            columns={columnas}
-            title={title} // PASAR EL TÍTULO PARA EXPORTACIÓN DINÁMICA
-            filters={filters}
-            onFilterChange={onFilterChange}
-            filtersConfig={filtersConfig}
-          >
-          {/* Pasamos los hijos aquí */}
-          {children}
-          </ReactTableToolBar>
-        </div>
-      </div>
-
-
-      <div className="row g-0">
-        <div className="col-12">
-          <ReactTableTanstack
-            tableTitle={title}
-            datos={datos}
-            columnas={columnas}
-            mobileMode={mobileMode}
-            mostrarCheckBox={mostrarCheckBox}
-            selectedIds={selectedIds} // PASAR AL HIJO
-            onSelectionChange={onSelectionChange} // PASAR AL HIJO
-            // Nuevas props para control de filtro global
-            globalFilter={globalFilter}
-            setGlobalFilter={setGlobalFilter}
-            {...tableProps}
-          />
-        </div>
-      </div>
-    </section>
+      {/* 3. La tabla Tanstack se acopla inmediatamente debajo */}
+      <ReactTableTanstack
+        tableTitle={title}
+        datos={datos}
+        columnas={columnas}
+        mobileMode={mobileMode}
+        mostrarCheckBox={mostrarCheckBox}
+        selectedIds={selectedIds} 
+        onSelectionChange={onSelectionChange} 
+        globalFilter={globalFilter}
+        setGlobalFilter={setGlobalFilter}
+        {...tableProps}
+      />
+    </div>
   );
 };
 

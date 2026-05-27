@@ -1,22 +1,6 @@
 /* ======================================================
-   REACT TABLE TOOLBAR - ALINEACIÓN A LA DERECHA
+   REACT TABLE TOOLBAR - FUSIÓN SIN COSTURAS
    ====================================================== */
-
-   /*
-.react-table-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;  
-  justify-content: flex-start; 
-  gap: 15px;
-  margin-bottom: 0px;
-  
-  background-color: var(--card-bg, #fff) !important; 
-  padding: 16px 24px;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(1, 41, 112, 0.12) !important;
-  border: 1px solid var(--bs-border-color);
-}*/
 
 .react-table-toolbar {
   display: flex;
@@ -25,8 +9,8 @@
   justify-content: flex-start; 
   gap: 15px;
   
-  /* Reducimos el margen al mínimo para que se toquen */
-  margin-bottom: -1px; 
+  /* Quitamos márgenes negativos raros que causan sub-píxeles de separación */
+  margin-bottom: 0 !important; 
   
   background-color: var(--card-bg) !important; 
   padding: 16px 24px;
@@ -34,25 +18,24 @@
   /* Solo redondeamos la parte de arriba */
   border-radius: 12px 12px 0 0; 
   
-  /* Quitamos el borde físico de abajo */
-  border: 1px solid var(--bs-border-color);
-  border-bottom: none;
+  /* Borde completo excepto el de abajo */
+  border: 1px solid var(--bs-border-color) !important;
+  border-bottom: none !important;
 
-  /* EFECTO DEGRADADO DESAPARECIENDO (Abajo) */
-  -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+  /* Eliminamos máscaras */
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
   
-  /* Ajustamos la sombra para que no se corte feo */
-  box-shadow: 0 4px 20px rgba(1, 41, 112, 0.08) !important;
+  /* Sombra sutil perimetral */
+  box-shadow: 0 4px 20px rgba(1, 41, 112, 0.05) !important;
 }
-
 
 /* 1. ACCIONES (IZQUIERDA) */
 .toolbar-actions {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex: none; /* No crece */
+  flex: none;
 }
 
 /* 2. FILTROS (PEGADOS A LA DERECHA) */
@@ -60,11 +43,10 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  /* ESTA ES LA CLAVE: Empuja los filtros y todo lo que sigue a la derecha */
   margin-left: auto; 
 }
 
-/* 3. EXPORTACIÓN (PEGADOS A LOS FILTROS) */
+/* 3. EXPORTACIÓN */
 .toolbar-export-buttons {
   display: flex;
   gap: 12px;
@@ -72,7 +54,7 @@
   flex: none;
 }
 
-/* Estilos de inputs y botones (Mantener igual) */
+/* Estilos de inputs y botones */
 .toolbar-filters .form-select {
   width: auto;
   min-width: 180px;
@@ -100,12 +82,10 @@
 .excel-btn { background-color: #28a745; color: #fff; }
 .pdf-btn { background-color: #f44336; color: #fff; }
 
-/* Limpieza de márgenes */
 .toolbar-actions > *, .toolbar-filters > *, .toolbar-export-buttons > * {
   margin: 0 !important;
 }
 
-/* Responsive: en pantallas pequeñas todo al centro */
 @media (max-width: 992px) {
   .toolbar-filters {
     margin-left: 0;
