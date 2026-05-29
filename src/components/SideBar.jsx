@@ -15,7 +15,7 @@ function SideBar() {
         
         // Si el rol es EMPRESA, definimos qué rutas NO puede ver
         if (userRole === 'EMPRESA') {
-            const forbiddenPaths = ['/companies','/joboffers']; 
+            const forbiddenPaths = ['/companies','/joboffers','/reviews']; 
             return !forbiddenPaths.includes(nav.path);
         }
 

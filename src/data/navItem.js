@@ -41,12 +41,12 @@ const navList = [
     icon: 'bi bi-card-list',
     path: '/reviews'
     },
-    {
+    /*{
     _id: 7,
     name: 'Datos Dummy',
     icon: 'bi bi-envelope',
     path: '/dummy'
-    },
+    },*/
     /*{
     _id: 6,
     name: 'Login',

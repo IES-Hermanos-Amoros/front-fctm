@@ -9,7 +9,7 @@ import {
   pickFCTMFields,
   formatDateDDMMYYYY,
   ensureSkills,
-  validateStrongPassword, // IMPORTANTE: Añadida validación
+  validateStrongPassword,
   externLogout
 } from "../../utils/functions";
 
@@ -17,13 +17,13 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
-import SectionChangePassword from "../../components/User/SectionChangePassword"; // IMPORTANTE: Añadida sección
+import SectionChangePassword from "../../components/User/SectionChangePassword";
 
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
 import useUserStore from "../../store/userStore";
 
-// --- HELPERS DE MERGE (Sin cambios) ---
+// --- HELPERS DE MERGE ---
 const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
   const merged = [...storeSkills];
   const seen = new Set(storeSkills.map(s => s._id));
@@ -48,7 +48,7 @@ const mergeCategoryOptions = (storeCategories = [], entityCategories = []) => {
   return merged;
 };
 
-// --- CAMPOS (Sin cambios) ---
+// --- CAMPOS ---
 const camposSAO = [
   { key: "SAO_id", label: "ID Interno SAO" },
   { key: "SAO_username", label: "CIF" },
@@ -120,8 +120,24 @@ const ShowCompany = () => {
   const user = useUserStore(state => state.user);
   const clearUser = useUserStore(state => state.clearUser);
 
+  // --- GESTIÓN DE PERMISOS ---
   const userRole = user?.user?.profile || user?.profile;
-  const canCreateActions = ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
+  const userId = user?.user?.id || user?.id;
+
+  console.log("USUARIO LOGUEADO VIENDO FICHA: ", user.user)
+
+  // Comprobamos si el usuario logueado es la propia empresa que se está visualizando
+  const isOwnCompany = userId === id;
+
+  // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwnCompany;
+  }, [userRole, isOwnCompany]);
+
+  // Únicamente ADMINISTRADOR o PROFESOR
+  const canCreateActions = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
+  }, [userRole]);
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -131,7 +147,6 @@ const ShowCompany = () => {
   const [documentData, setDocumentData] = useState([]);
   const [files, setFiles] = useState([]);
   
-  // NUEVO: Estado para password
   const [passwordData, setPasswordData] = useState(null);
 
   useEffect(() => {
@@ -198,15 +213,12 @@ const ShowCompany = () => {
 
   useEffect(() => { fetchCompany(); }, [fetchCompany]);
 
-  // --- SAVE ACTUALIZADO CON LÓGICA DE PASSWORD ---
   const handleSave = async () => {
     try {
-      // 1. Lógica de Skills (Tu lógica actual intacta)
       const skillIds = await ensureSkills(data.FCTM_skills);
       const fctmOnly = pickFCTMFields(data);
       const payload = normalizeToApi(fctmOnly, normalizationConfig);
 
-      // 2. Lógica de Password (Integrada)
       const isChangingPassword = !!passwordData;
 
       if (isChangingPassword) {
@@ -236,7 +248,6 @@ const ShowCompany = () => {
         payload.newPassword = newPassword;
       }
 
-      // 3. Payload final con Skill IDs
       const finalPayload = {
         ...payload,
         FCTM_skills: skillIds
@@ -258,7 +269,7 @@ const ShowCompany = () => {
         
         setData(normalized);
         setOriginalData(normalized);
-        setPasswordData(null); // Limpiar password tras éxito
+        setPasswordData(null);
         setIsEditing(false);
         cargarSkills(); 
       } else {
@@ -354,10 +365,7 @@ const ShowCompany = () => {
   }, [files, fetchCompany, id]);
 
   const columnasDocumentos = useMemo(() => [
-    { 
-      key: "FCTM_document_name", 
-      encabezado: "Nombre del Documento" 
-    },
+    { key: "FCTM_document_name", encabezado: "Nombre del Documento" },
     { 
       key: "FCTM_inserted_date", 
       encabezado: "Fecha",
@@ -387,12 +395,11 @@ const ShowCompany = () => {
     const confirmed = await confirmation("¿Seguro que quieres eliminar esta acción y desvincularla de la empresa?");
     if (!confirmed) return;
 
-    // Enviamos el ID de la empresa en la URL para que el backend sepa de dónde quitar el ID de la acción
     const res = await sendRequest("DELETE", null, `/actions/${actionId}?companyId=${id}`);
 
     if (res.success) {
       showAlert("Acción eliminada y desvinculada de la empresa", "success");
-      await fetchCompany(); // Esto refresca la empresa y verás que el array FCTM_actions ya no tiene ese ID
+      await fetchCompany(); 
     } else {
       showAlert(res.message || "Error al eliminar la acción", "error");
     }
@@ -415,10 +422,7 @@ const ShowCompany = () => {
       key: "__show",
       encabezado: "Ver",
       render: (row) => (
-        <button 
-          className="btn btn-sm btn-outline-primary" 
-          onClick={() => navigate(`/actions/${row._id}`)}
-        >
+        <button className="btn btn-sm btn-outline-primary" onClick={() => navigate(`/actions/${row._id}`)}>
           <i className="bi bi-search"></i>
         </button>
       )
@@ -427,10 +431,7 @@ const ShowCompany = () => {
       key: "__delete",
       encabezado: "Borrar",
       render: (row) => (
-        <button 
-          className="btn btn-sm btn-outline-danger" 
-          onClick={() => handleDeleteAction(row._id)}
-        >
+        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDeleteAction(row._id)}>
           <i className="bi bi-trash"></i>
         </button>
       )
@@ -441,7 +442,7 @@ const ShowCompany = () => {
   
   const handleCancel = () => { 
     setData(originalData); 
-    setPasswordData(null); // Limpiar password al cancelar
+    setPasswordData(null); 
     setIsEditing(false); 
   };
 
@@ -462,7 +463,6 @@ const ShowCompany = () => {
         hideEditButton
       />
       
-
       <ShowEditableForm
         formTitle="Gestión de Datos FCTM"
         formId="fctmForm"
@@ -473,62 +473,55 @@ const ShowCompany = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={!canEditAndManage} 
       />
 
-      {/* NUEVO: Sección de cambio de contraseña */}
-      <SectionChangePassword
-        isEditing={isEditing}
-        onChange={setPasswordData}
-      />
+      {canEditAndManage && (
+        <SectionChangePassword
+          isEditing={isEditing}
+          onChange={setPasswordData}
+        />
+      )}
 
-
-      <ListCRUD title="Ofertas Relacionadas" datos={data.FCTM_job_offers || []} columnas={columnasOfertas}>
-        <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
-          Nueva Oferta
-        </button>
-      </ListCRUD>
-
-
-    {/*isEditing ? (
-              <div className="card p-3 mt-3">
-                <h5>Adjuntar Documentos</h5>
-                <input
-                  type="file"
-                  multiple
-                  className="form-control"
-                  onChange={handleFileChange}
-                />
-                <button className="btn btn-primary mt-2" onClick={handleUploadDocs}>
-                  <i className="bi bi-file-earmark-plus me-2"></i>
-                  Adjuntar Documentos
-                </button>
-                <small className="text-muted d-block mt-2">Puedes subir varios archivos relacionados con la empresa.</small>
-              </div>
-            ) : (
-              <small className="text-muted">Edita la empresa para adjuntar documentos directamente aquí.</small>
-            )*/}
       <ListCRUD 
-        title="Documentación de Empresa (Convenios, etc.)" 
-        datos={documentData} 
-        columnas={columnasDocumentos}
+        title="Ofertas Relacionadas" 
+        datos={data.FCTM_job_offers || []} 
+        columnas={columnasOfertas}
       >
-        <button className="btn btn-primary" onClick={handleUploadDocs}>                  
-                  Adjuntar Varios Docs
-                </button>
-                <input
-                  type="file"
-                  multiple
-                  className="form-control"
-                  onChange={handleFileChange}
-                />
-      </ListCRUD>
-      <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>
-        {canCreateActions && (
-          <button className="btn btn-primary" onClick={() => navigate("/actions/new", { state: { companyId: id } })}>
-            Nueva Acción
+        {canEditAndManage && (
+          <button className="btn btn-primary" onClick={() => navigate("/joboffers/new", { state: { companyId: id } })}>
+            Nueva Oferta
           </button>
         )}
       </ListCRUD>
+
+      {/* --- CAMBIO: Tabla de Documentación oculta si no es Admin, Profesor o su propia Empresa --- */}
+      {canEditAndManage && (
+        <ListCRUD 
+          title="Documentación de Empresa (Convenios, etc.)" 
+          datos={documentData} 
+          columnas={columnasDocumentos}
+        >
+          <button className="btn btn-primary text-nowrap" onClick={handleUploadDocs}>                  
+            Adjuntar Docs.
+          </button>
+          <input
+            type="file"
+            multiple
+            className="form-control form-control-sm"
+            onChange={handleFileChange}
+          />
+        </ListCRUD>
+      )}
+
+      {/* --- CAMBIO: Tabla de Acciones Relacionadas oculta si no es Admin, Profesor o su propia Empresa --- */}
+      {canCreateActions && (
+        <ListCRUD title="Acciones Relacionadas" datos={data.FCTM_actions || []} columnas={columnasAcciones}>          
+            <button className="btn btn-primary" onClick={() => navigate("/actions/new", { state: { companyId: id } })}>
+              Nueva Acción
+            </button>          
+        </ListCRUD>
+      )}
     </section>
   );
 };

@@ -1,358 +1,272 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getBackendHost, sendRequest, showAlert, formatDateDDMMYYYY } from '../../utils/functions'
+import { 
+  getBackendHost, 
+  sendRequest, 
+  showAlert, 
+  normalizeFromApi, 
+  normalizeToApi 
+} from '../../utils/functions'
+
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
+import useEnumStore from '../../store/enumStore'
+
+const excludedDocumentTypes = [];
+const excludedProfiles = ['ADMINISTRADOR', 'PROFESOR'];
+
+const formatDateDDMMYYYYHHmm = (value) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (isNaN(date.getTime())) return ''
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
 
 const ShowDocument = () => {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [documento, setDocumento] = useState(null)
+  // =========================
+  // ENUMS (ZUSTAND)
+  // =========================
+  const enums = useEnumStore((state) => state.enums)
+  const getEnumArray = useEnumStore((state) => state.getEnumArray)
+  const cargarEnums = useEnumStore((state) => state.cargarEnums)
+
+  const documentTypes = useMemo(() => {
+    const statusArray = getEnumArray("DOCUMENT_TYPE") || []
+    return statusArray
+      .filter(item => !excludedDocumentTypes.includes(item))
+      .map(item => ({ _id: item, nombre: item }))
+  }, [enums, getEnumArray])
+  
+  const userProfiles = useMemo(() => {
+    const statusArray = getEnumArray("USER_PROFILES") || []
+    return statusArray
+      .filter(item => !excludedProfiles.includes(item))
+      .map(item => ({ value: item, label: item }))
+  }, [enums, getEnumArray])
+
+  // =========================
+  // CONFIGURACIÓN DE NORMALIZACIÓN
+  // Sacamos FCTM_document_type de aquí para evitar que destructure el string original en un objeto
+  // =========================
+  const normalizationConfig = useMemo(() => [
+    {
+      field: 'FCTM_visible_to_profiles',
+      options: userProfiles,
+      optionValue: 'value',
+      optionLabel: 'label',
+      type: 'multi',
+    }
+  ], [userProfiles])
+
+  // =========================
+  // DEFINICIÓN DE CAMPOS
+  // =========================
+  const camposLecturaFijos = [
+    { key: 'computed_url', label: 'URL del documento (Enlace)', type: 'text' },
+    { key: 'computed_created_by', label: 'Quién creó el documento', type: 'text' },
+    { key: 'computed_created_at', label: 'Fecha de creación', type: 'text' },
+    { key: 'computed_updated_at', label: 'Fecha de actualización', type: 'text' },
+    { key: 'computed_relations', label: 'Relacionado con', type: 'text' }
+  ]
+
+  const camposEditablesFCTM = [
+    { key: 'FCTM_document_name', label: 'Nombre', type: 'text', required: true },
+    { key: 'FCTM_document_description', label: 'Descripción', type: 'textarea' },
+    {
+      key: 'FCTM_document_type',
+      label: 'Tipo',
+      type: 'select',
+      options: documentTypes,
+      optionValue: '_id', // Coincide con el String puro de la base de datos
+      optionLabel: 'nombre',
+      required: true,
+    },
+    {
+      key: 'FCTM_visible_to_profiles',
+      label: 'Perfiles que pueden ver (Además de ADMINISTRADOR y PROFESOR)',
+      type: 'select-multi',
+      options: userProfiles,
+      optionValue: 'value',
+      optionLabel: 'label',
+      required: false,
+    },
+  ]
+
+  // =========================
+  // ESTADOS
+  // =========================
+  const [documentoRaw, setDocumentoRaw] = useState(null)
+  const [data, setData] = useState(null)
+  const [originalData, setOriginalData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
   const [isEditing, setIsEditing] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [formData, setFormData] = useState({
-    FCTM_document_name: '',
-    FCTM_document_description: '',
-  })
-  const [originalFormData, setOriginalFormData] = useState({
-    FCTM_document_name: '',
-    FCTM_document_description: '',
-  })
 
-  const editableFields = useMemo(
-    () => [
-      {
-        key: 'FCTM_document_name',
-        label: 'Nombre',
-        type: 'text',
-        required: true,
-      },
-      {
-        key: 'FCTM_document_description',
-        label: 'Descripcion',
-        type: 'textarea',
-      },
-    ],
-    []
-  )
-
-  useEffect(() => {
-    const fetchDoc = async () => {
-      setLoading(true)
-      setError(null)
-
-      const res = await sendRequest('GET', null, `/documents/${id}`)
-
-      if (res.success && res.data) {
-        const doc = res.data
-        const nextFormData = {
-          FCTM_document_name: doc.FCTM_document_name || '',
-          FCTM_document_description: doc.FCTM_document_description || '',
-        }
-
-        setDocumento(doc)
-        setFormData(nextFormData)
-        setOriginalFormData(nextFormData)
-      } else {
-        setError(res.message || 'No se pudo cargar el documento')
-      }
-
-      setLoading(false)
-    }
-
-    fetchDoc()
-  }, [id])
-
-  const handleEdit = () => {
-    const nextFormData = {
-      FCTM_document_name: documento?.FCTM_document_name || '',
-      FCTM_document_description: documento?.FCTM_document_description || '',
-    }
-
-    setFormData(nextFormData)
-    setOriginalFormData(nextFormData)
-    setIsEditing(true)
-  }
-
-  const handleChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const getRelationText = doc => {
-    if (!doc) return 'Sin relacion'
-
+  // =========================
+  // LÓGICA DE RELACIONES
+  // =========================
+  const getRelationText = useCallback((doc) => {
+    if (!doc) return 'Sin relación'
     if (doc.FCTM_relacion_id) {
       if (typeof doc.FCTM_relacion_id === 'string') return doc.FCTM_relacion_id
-      return (
-        doc.FCTM_relacion_id.SAO_name ||
-        doc.FCTM_relacion_id.FCTM_job_title ||
-        doc.FCTM_relacion_id._id ||
-        'Sin relacion'
-      )
+      return doc.FCTM_relacion_id.SAO_name || doc.FCTM_relacion_id.FCTM_job_title || doc.FCTM_relacion_id._id || 'Sin relación'
     }
 
     const related = []
+    if (doc.oferta_relacionada?.length) doc.oferta_relacionada.forEach(i => related.push(i?.FCTM_job_title || 'Oferta'))
+    if (doc.usuarios_relacionados?.length) doc.usuarios_relacionados.forEach(i => related.push(i?.SAO_name || 'Usuario'))
+    if (doc.acciones_relacionadas?.length) doc.acciones_relacionadas.forEach(i => related.push(i?.FCTM_action_title || i?.FCTM_action_type || 'Acción'))
+    if (doc.fct_relacionada?.length) doc.fct_relacionada.forEach(() => related.push('FCT'))
 
-    if (Array.isArray(doc.oferta_relacionada) && doc.oferta_relacionada.length) {
-      doc.oferta_relacionada.forEach(item => {
-        related.push(item?.FCTM_job_title || item?._id || 'Oferta')
-      })
+    return related.length ? related.join(' | ') : 'Sin relación'
+  }, [])
+
+  // =========================
+  // CARGA DE DATOS
+  // =========================
+  const fetchDoc = useCallback(async () => {
+    setLoading(true)
+    
+    // Forzamos carga síncrona de los enumerados globales
+    await cargarEnums()
+
+    const res = await sendRequest('GET', null, `/documents/${id}`)
+
+    if (res.success && res.data) {
+      const doc = res.data
+      setDocumentoRaw(doc)
+
+      // Ejecutamos normalización controlada (solo procesará el array de perfiles)
+      const normalized = normalizeFromApi(doc, normalizationConfig)
+
+      // ASIGNACIÓN MANUAL FORZADA: Garantizamos que sea el string puro lo que se guarde en el estado
+      normalized.FCTM_document_type = doc.FCTM_document_type || '';
+
+      const hostFileUrl = doc.FCTM_document_url ? getBackendHost() + doc.FCTM_document_url : ''
+      
+      normalized.computed_url = hostFileUrl
+      normalized.computed_created_by = doc.FCTM_document_created_by?.SAO_name || '-'
+      normalized.computed_created_at = formatDateDDMMYYYYHHmm(doc.FCTM_inserted_date)
+      normalized.computed_updated_at = formatDateDDMMYYYYHHmm(doc.FCTM_updated_date || doc.FCTM_inserted_date)
+      normalized.computed_relations = getRelationText(doc)
+
+      if (Array.isArray(normalized.FCTM_visible_to_profiles)) {
+        normalized.FCTM_visible_to_profiles = normalized.FCTM_visible_to_profiles.filter(
+          p => !excludedProfiles.includes(p)
+        )
+      }
+
+      setData(normalized)
+      setOriginalData(normalized)
+    } else {
+      showAlert(res.message || 'No se pudo cargar el documento', 'error')
     }
+    setLoading(false)
+  }, [id, normalizationConfig, getRelationText, cargarEnums])
 
-    if (
-      Array.isArray(doc.usuarios_relacionados) &&
-      doc.usuarios_relacionados.length
-    ) {
-      doc.usuarios_relacionados.forEach(item => {
-        related.push(item?.SAO_name || item?._id || 'Usuario')
-      })
-    }
+  useEffect(() => {
+    fetchDoc()
+  }, [fetchDoc])
 
-    if (
-      Array.isArray(doc.acciones_relacionadas) &&
-      doc.acciones_relacionadas.length
-    ) {
-      doc.acciones_relacionadas.forEach(item => {
-        related.push(item?.FCTM_action_title || item?.FCTM_action_type || item?._id || 'Accion')
-      })
-    }
-
-    if (Array.isArray(doc.fct_relacionada) && doc.fct_relacionada.length) {
-      doc.fct_relacionada.forEach(item => {
-        related.push(item?._id || 'FCT')
-      })
-    }
-
-    return related.length ? related.join(' | ') : 'Sin relacion'
+  // =========================
+  // EVENTOS
+  // =========================
+  const handleChange = (field, value) => {
+    setData(prev => ({ ...prev, [field]: value }))
   }
 
   const handleCancel = () => {
-    setFormData(originalFormData)
+    setData(originalData)
     setIsEditing(false)
   }
 
   const handleSave = async () => {
-    const name = formData.FCTM_document_name?.trim()
-
-    if (!name) {
-      showAlert('El nombre del documento es obligatorio', 'error')
+    if (!data.FCTM_document_name?.trim()) {
+      showAlert('El nombre del documento es obligatorio.', 'error')
       return
     }
 
-    const payload = {
-      FCTM_document_name: name,
-      FCTM_document_description: formData.FCTM_document_description?.trim() || '',
+    try {
+      const normalizedPayload = normalizeToApi(data, normalizationConfig)
+
+      const seleccionados = normalizedPayload.FCTM_visible_to_profiles || []
+      const perfilesFinales = [...new Set(['ADMINISTRADOR', 'PROFESOR', ...seleccionados])]
+
+      const payload = {
+        FCTM_document_name: data.FCTM_document_name.trim(),
+        FCTM_document_description: data.FCTM_document_description?.trim() || '',
+        FCTM_document_type: data.FCTM_document_type, // Enviamos el String puro directamente al backend
+        FCTM_visible_to_profiles: perfilesFinales
+      }
+
+      const res = await sendRequest('PATCH', payload, `/documents/${id}`)
+
+      if (res.success) {
+        showAlert('Documento actualizado correctamente', 'success')
+        setIsEditing(false)
+        await fetchDoc() 
+      } else {
+        showAlert(res.message || 'Error al guardar los cambios', 'error')
+      }
+    } catch (err) {
+      console.error(err)
+      showAlert('Error crítico al procesar la actualización', 'error')
     }
-
-    setSaving(true)
-    const res = await sendRequest('PATCH', payload, `/documents/${id}`)
-    setSaving(false)
-
-    if (!res.success) return
-
-    const updatedDocument = {
-      ...documento,
-      ...(res.data || {}),
-      FCTM_document_name: payload.FCTM_document_name,
-      FCTM_document_description: payload.FCTM_document_description,
-    }
-
-    setDocumento(updatedDocument)
-
-    const nextFormData = {
-      FCTM_document_name: updatedDocument.FCTM_document_name || '',
-      FCTM_document_description: updatedDocument.FCTM_document_description || '',
-    }
-
-    setFormData(nextFormData)
-    setOriginalFormData(nextFormData)
-    setIsEditing(false)
   }
 
-  if (loading) {
-    return <div className="text-center my-5">Cargando...</div>
-  }
-
-  if (error || !documento) {
-    return (
-      <section className="dashboard section">
-        <div className="alert alert-danger">
-          {error || 'Documento no encontrado'}
-        </div>
-        <button className="btn btn-secondary" onClick={() => navigate(-1)}>
-          Volver
-        </button>
-      </section>
-    )
-  }
-
-  const hostFileUrl = documento.FCTM_document_url
-    ? getBackendHost() + documento.FCTM_document_url
-    : ''
+  if (loading) return <div className="text-center my-5">Cargando...</div>
+  if (!data) return <div className="alert alert-danger m-4">Documento no encontrado</div>
 
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Ficha del documento: ${documento.FCTM_document_name || ''}`}
+        title={`Ficha del documento: ${originalData?.FCTM_document_name || ''}`}
         onBack={() => navigate('/documents')}
       />
 
-      <div className="row">
-        <div className="col-lg-12">
-          <div className="card p-4 shadow-sm rounded-3">
-            <div className="mb-3">
-              <label className="form-label fw-bold">ID</label>
-              <input
-                type="text"
-                className="form-control"
-                value={documento._id}
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-bold">Nombre</label>
-              <input
-                type="text"
-                className="form-control"
-                value={documento.FCTM_document_name || ''}
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-bold">Descripcion</label>
-              <input
-                type="text"
-                className="form-control"
-                value={documento.FCTM_document_description || ''}
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-bold">Tipo</label>
-              <input
-                type="text"
-                className="form-control"
-                value={documento.FCTM_document_type || ''}
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-bold">Subido por</label>
-              <input
-                type="text"
-                className="form-control"
-                value={documento.FCTM_document_created_by?.SAO_name || ''}
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label fw-bold">Fecha subida</label>
-              <input
-                type="text"
-                className="form-control"
-                value={
-                  documento.FCTM_inserted_date
-                    ? formatDateDDMMYYYY(documento.FCTM_inserted_date)
-                    : ''
-                }
-                disabled
-              />
-            </div>
-            <div className="mb-3">
-              <a
-                href={hostFileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-outline-primary"
-              >
-                Ver/Descargar
-              </a>
-            </div>
+      <ShowEditableForm
+        formTitle="Metadatos y Ubicación del Archivo"
+        formId="documentFixedForm"
+        data={data}
+        fields={camposLecturaFijos}
+        hideEditButton={true}
+      />
+
+      <div className="card mt-3 mb-4 shadow-sm">
+        <div className="card-body d-flex align-items-center justify-content-between">
+          <div>
+            <strong>Acceso directo al archivo adjunto:</strong>
+            <span className="text-muted small ms-2">Los archivos físicos son inmutables y no pueden sobrescribirse desde aquí.</span>
           </div>
+          <a
+            href={data?.computed_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-sm btn-outline-primary"
+          >
+            <i className="bi bi-box-arrow-up-right me-1"></i> Abrir Documento en pestaña nueva
+          </a>
         </div>
       </div>
 
-      <div className="mt-4">
-        <ShowEditableForm
-          formTitle="Datos del Documento"
-          formId="documentForm"
-          data={formData}
-          fields={editableFields}
-          isEditing={isEditing}
-          onEdit={handleEdit}
-          onSave={handleSave}
-          onCancel={handleCancel}
-          onChange={handleChange}
-        />
-      </div>
-
-      <div className="row">
-        <div className="col-lg-12">
-          <div className="card mt-4 shadow-sm rounded-3">
-            <div className="card-header">
-              <strong>Campos Protegidos</strong>
-            </div>
-            <div className="card-body">
-              <div className="form-group mb-3">
-                <label className="form-label fw-bold">FCTM_document_type</label>
-                <input
-                  type="text"
-                  className="form-control bg-light"
-                  value={documento.FCTM_document_type || ''}
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group mb-3">
-                <label className="form-label fw-bold">FCTM_relacion_id</label>
-                <input
-                  type="text"
-                  className="form-control bg-light"
-                  value={getRelationText(documento)}
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group mb-3">
-                <label className="form-label fw-bold">Nombre del archivo</label>
-                <input
-                  type="text"
-                  className="form-control bg-light"
-                  value={documento.FCTM_document_name || ''}
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group mb-3">
-                <label className="form-label fw-bold">Ruta del archivo</label>
-                <input
-                  type="text"
-                  className="form-control bg-light"
-                  value={documento.FCTM_document_url || ''}
-                  readOnly
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label fw-bold">Acceso al archivo</label>
-                <input
-                  type="text"
-                  className="form-control bg-light"
-                  value={hostFileUrl}
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ShowEditableForm
+        formTitle="Gestión de Datos FCTM del Documento"
+        formId="documentEditableForm"
+        data={data}
+        fields={camposEditablesFCTM}
+        isEditing={isEditing}
+        onEdit={() => setIsEditing(true)}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        onChange={handleChange}
+      />
     </section>
   )
 }

@@ -4,17 +4,14 @@ import "./ReactTableToolBar.css"
 const ReactTableToolBar = ({
     data = [],
     columns = [],
-    // Para que el título del PDF y excel sea dinámico
     title = "Datos Tabla",
     filters = {},
     onFilterChange,
     filtersConfig = [],
     children
 }) => {
-    // Para normalizar el nombre del archivo (quitar espacios)
     const fileNameBase = title.replace(/\s+/g, '_')
 
-    // Columnas válidas comunes para ambos
     const getValidColumns = (excluded) => columns.filter(col =>
         col.key &&
         !excluded.includes(col.key.toLowerCase()) &&
@@ -37,20 +34,16 @@ const ReactTableToolBar = ({
     const getCellValue = (row, col) => {
       let value = row[col.key]
 
-      // Caso espcecial: related_to (Ofertas, usuarios y acciones)
       if (col.key === 'related_to') {
         const textRelations = []
-
         if (row.oferta_relacionada?.length > 0) {
           row.oferta_relacionada.forEach(o =>
             textRelations.push(`${o.FCTM_job_title}${o.empresa ? ` (${o.empresa.SAO_name})` : ''}`)
           )
         }
-
         if (row.usuarios_relacionados?.length > 0) {
           row.usuarios_relacionados.forEach(u => textRelations.push(u.SAO_name))
         }
-
         if (row.acciones_relacionadas?.length > 0) {
           row.acciones_relacionadas.forEach(a =>
             textRelations.push(`${a.FCTM_action_title || a.FCTM_action_type}`)
@@ -59,18 +52,15 @@ const ReactTableToolBar = ({
         return textRelations.length > 0 ? textRelations.join(' | ') : "-";
       }
 
-      // Caso especial: Creado por / Subido por
       if (col.key === "FCTM_document_created_by" || col.encabezado.toLowerCase().includes("subido")) {
         return row.FCTM_document_created_by?.SAO_name || "-"
       }
 
-      // Fallback para empresas y localidades si el valor directo falla
       if (!value && row.empresa) {
         if (col.key.toLowerCase().includes("localidad")) return row.empresa.SAO_company_city || "-"
         if (col.key.toLowerCase().includes("empresa")) return row.empresa.SAO_name || "-"
       }
 
-      // Manejo de Arrays (Categorías, aptitudes, etc.)
       if (Array.isArray(value)) {
         return value.map(v => {
           if (typeof v === 'object' && v !== null) {
@@ -80,14 +70,12 @@ const ReactTableToolBar = ({
         }).join(", ")
       }
 
-      // Manejo de objetos (Empresas, usuarios, etc.)
       if (typeof value === "object" && value !== null) {
         if (col.key.toLowerCase().includes("empresa")) return value.SAO_name || "-"
         if (col.key.toLowerCase().includes("localidad")) return value.SAO_company_city || "-"
         return value.FCTM_category_name || value.FCTM_skill_name || value.FCTM_user_name || JSON.stringify(value) || "-"
       }
 
-      // Formateo de fechas
       const formattedValue = formatDate(value)
       if (typeof formattedValue === 'string' && formattedValue.startsWith('{')) return "Ver detalle"
 
@@ -103,22 +91,17 @@ const ReactTableToolBar = ({
     }
 
     const exportExcel = async () => {
-        //TO DO: Implementar exportación a Excel usando XLSX o similar
-        // Hemos usado las librerías exceljs y file-saver para exportar a Excel. Asegúrate de instalarlas en tu proyecto:
-        // INSTALACIÓN: npm i exceljs
-
         const ExcelJS = await import('exceljs')
         const workbook = new ExcelJS.Workbook()
-        const worksheet = workbook.addWorksheet(title) // Nombre de la pestaña dinámico
-        // Para excluir los botones y acciones que no queremos exportar
+        const worksheet = workbook.addWorksheet(title) 
         const validColumns = getValidColumns(['acciones', 'ver', 'eliminar'])
-        // Mapeamos los encabezados y definimos un ancho base
+        
         worksheet.columns = validColumns.map(col => ({
           header: col.encabezado || col.key || "Sin nombre",
           key: col.key,
           width: 30
         }))
-        // Formateamos los datos para que se vean bien en Excel
+        
         data.forEach(row => {
           const formattedRow = {}
           validColumns.forEach(col => {
@@ -126,7 +109,7 @@ const ReactTableToolBar = ({
           })
           worksheet.addRow(formattedRow)
         })
-        // Estilos de encabezado
+        
         const headerRow = worksheet.getRow(1);
         headerRow.height = 25
 
@@ -135,7 +118,7 @@ const ReactTableToolBar = ({
           cell.fill = {
             type: 'pattern',
             pattern: 'solid',
-            fgColor: { argb: 'FF1F4E78'} // Azul oscuro
+            fgColor: { argb: 'FF1F4E78'} 
           }
           cell.alignment = { horizontal: 'center', vertical: 'middle' }
           cell.border = {
@@ -145,57 +128,47 @@ const ReactTableToolBar = ({
             right: { style: 'thin', color: { argb: 'FF000000' } }
           }
         })
-        // Aplicación de estilos a las filas de datos
+        
         worksheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
-        if (rowNumber > 1) { 
-            row.alignment = { wrapText: true, vertical: 'middle' }
-            row.height = 20 
-            // Efecto cebra para las filas pares
-            if (rowNumber % 2 === 0) {
+            if (rowNumber > 1) { 
+                row.alignment = { wrapText: true, vertical: 'middle' }
+                row.height = 20 
+                if (rowNumber % 2 === 0) {
+                    row.eachCell(cell => {
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: 'FFF2F2F2' } 
+                        }
+                    })
+                }
                 row.eachCell(cell => {
-                    cell.fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: 'FFF2F2F2' } // Gris muy clarito
+                    cell.border = {
+                        top: { style: 'hair' },
+                        left: { style: 'hair' },
+                        bottom: { style: 'hair' },
+                        right: { style: 'hair' }
                     }
                 })
             }
-            // Añadir bordes finos a todas las celdas de datos
-            row.eachCell(cell => {
-                cell.border = {
-                    top: { style: 'hair' },
-                    left: { style: 'hair' },
-                    bottom: { style: 'hair' },
-                    right: { style: 'hair' }
-                }
-            })
-        }
-    })
-        // Descargar el archivo - Creamos el buffer y disparamos la descarga en el navegador
+        })
         const buffer = await workbook.xlsx.writeBuffer()
         const blob = new Blob([buffer], {
           type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
         descargarArchivo(blob, `${fileNameBase}_${new Date().getTime()}.xlsx`)
-      }
+    }
     
     const exportPDF = async () => {
-        //TO DO: Implementar exportación a PDF usando jspdf y jspdf-autotable o similar
-        // INSTALACIÓN: npm i pdfmake
         const pdfMake = (await import('pdfmake/build/pdfmake')).default
         const pdfFonts = await import('pdfmake/build/vfs_fonts')
         pdfMake.vfs = pdfFonts.vfs
 
-        // Definir columnas que no queremos poner en el PDF
         const validColumns = getValidColumns(['acciones', 'ver', 'eliminar', '_checkbox'])
-
-        // Encabezados
         const headers = validColumns.map(col => col.encabezado || col.key || "Sin nombre")
-        // Filas
         const rows = data.map(row =>
           validColumns.map(col => getCellValue(row, col).toString())
         )
-        // Definición del documento
         const docDefinition = {
           pageOrientation: "landscape",
           pageSize: "A4",
@@ -214,11 +187,10 @@ const ReactTableToolBar = ({
                 widths: headers.map(() => 'auto'),
                 body: [headers.map(h => ({ text: h, style: 'tableHeader' })), ...rows]
               },
-              // Líneas de la tabla
               layout: {
                 fillColor: (rowIndex) => {
-                  if (rowIndex === 0) return '#1F4E78'; // Azul Marino para el cabezal
-                  return (rowIndex % 2 === 0) ? '#F8F9FA' : null; // Cebra: gris muy clarito en filas pares
+                  if (rowIndex === 0) return '#1F4E78'; 
+                  return (rowIndex % 2 === 0) ? '#F8F9FA' : null; 
                 },
                 hLineWidth: (i, node) => (i === 0 || i === 1 || i === node.table.body.length) ? 1 : 0.5, 
                 vLineWidth: () => 0.5,
@@ -228,38 +200,31 @@ const ReactTableToolBar = ({
             }
           ],
           styles: {
-            header: {
-              fontSize: 16,
-              bold: true,
-              color: '#1F4E78'
-            },
-            subheader: {
-              fontSize: 10,
-              bold: true,
-              color: '#666666'
-            },
-            tableHeader: {
-              bold: true,
-              fontSize: 8,
-              color: 'white',
-              margin: [0, 5, 0, 5]
-            }
+            header: { fontSize: 16, bold: true, color: '#1F4E78' },
+            subheader: { fontSize: 10, bold: true, color: '#666666' },
+            tableHeader: { bold: true, fontSize: 8, color: 'white', margin: [0, 5, 0, 5] }
           },
-          defaultStyle: {
-            fontSize: 7,
-            color: '#333333'
-          }
+          defaultStyle: { fontSize: 7, color: '#333333' }
         }
-        // Descargar el PDF
         pdfMake.createPdf(docDefinition).download(`${fileNameBase}_${new Date().getTime()}.pdf`)
     }
+
   return (
     <div className='react-table-toolbar'>
+      {/* FILA SUPERIOR - TÍTULO
+        Al meterle flexBasis: "100%", forzamos a que ocupe todo el ancho del flex-container 
+        y mande de manera natural las acciones, filtros y exportaciones abajo.
+      */}
+      <div style={{ flexBasis: "100%", marginBottom: "5px" }}>
+        <h5 style={{ margin: 0, fontWeight: 600, color: "var(--text-color, #333)" }}>{title}</h5>
+      </div>
+
       {/* IZQUIERDA */}
       <div className="toolbar-actions">
-          {children || <div></div>} {/* El div vacío ayuda a mantener el equilibrio si no hay children */}
+          {children || <div></div>}
       </div>
-      {/* Filtros dinámicos */}
+
+      {/* Filtros dinámicos (CENTRO / PEGADOS A LA DERECHA) */}
       <div className="toolbar-filters">
         {filtersConfig?.map(filter => (
           <select
@@ -274,7 +239,6 @@ const ReactTableToolBar = ({
             }
           >
             <option value="">Todos - {filter.label}</option>
-
             {filter.options?.map(opt => (
               <option
                 key={opt[filter.optionValue]}
@@ -286,9 +250,9 @@ const ReactTableToolBar = ({
           </select>
         ))}
       </div>
+
       {/* DERECHA */}
       <div className="toolbar-export-buttons">
-        {/* Botones de exportación */}
         <button className='toolbar-btn excel-btn' onClick={exportExcel}>Exportar Excel</button>
         <button className='toolbar-btn pdf-btn' onClick={exportPDF}>Exportar PDF</button>
       </div>

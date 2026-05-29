@@ -198,7 +198,14 @@ const ShowStudent = () => {
     const formData = new FormData();    
     formData.append("files", file); 
     formData.append("type", "CURRÍCULUM VITAE"); // Identificador para el CV
+    formData.append("name", "Currículum de " + data?.SAO_name);    
     formData.append("userId", id);
+
+    // En lugar de meter el array entero, inyéctalos uno a uno:
+    const perfiles = ['ADMINISTRADOR', 'PROFESOR', 'EMPRESA'];
+    perfiles.forEach(perfil => {
+      formData.append("visible_to_profiles", perfil); 
+    });
 
     // 3. ¡IMPORTANTE! Llama a la ruta /documents/upload
     const res = await sendRequest('POST', formData, '/documents/upload')

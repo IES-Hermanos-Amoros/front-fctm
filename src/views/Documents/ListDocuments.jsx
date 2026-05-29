@@ -18,8 +18,15 @@ const ListDocuments = () => {
   const [error, setError] = useState(null)
   const user = useUserStore(state => state.user)
   const navigate = useNavigate();
-  const userId =
-    user?._id || user?.id || user?.user?._id || user?.user?.id || null
+
+  // Identificadores del usuario actual
+  const userId = user?._id || user?.id || user?.user?._id || user?.user?.id || null
+  
+  //console.log("USER EN LISTDOC", user.user)
+
+  // Extraemos el perfil para validar permisos especiales de borrado
+  const userProfile = user?.user?.profile || null
+
   const handleDelete = async row => {
     const confirm = await Swal.fire({
       title: '¿Eliminar documento?',
@@ -90,10 +97,6 @@ const ListDocuments = () => {
 
   useEffect(() => {
     fetchData()
-    //EVITAMOS RENDERIZADOS INNECESARIOS
-    /*const onFocus = () => fetchData()
-    window.addEventListener('focus', onFocus)
-    return () => window.removeEventListener('focus', onFocus)*/
   }, [fetchData])
 
   const colDocumentos = useMemo(() => [
@@ -106,7 +109,6 @@ const ListDocuments = () => {
       render: row => {
         const relations = []
 
-        // Oferta de trabajo
         if (row.oferta_relacionada && row.oferta_relacionada.length > 0) {
           row.oferta_relacionada.forEach(oferta => {
             relations.push(
@@ -123,7 +125,6 @@ const ListDocuments = () => {
           })
         }
 
-        // Usuarios (Alumnos/Profesores/Empresas)
         if (row.usuarios_relacionados && row.usuarios_relacionados.length > 0) {
           row.usuarios_relacionados.forEach(user => {
             let badgeClass = 'bg-secondary'
@@ -150,7 +151,6 @@ const ListDocuments = () => {
           })
         }
 
-        // Acciones
         if (row.acciones_relacionadas && row.acciones_relacionadas.length > 0) {
           row.acciones_relacionadas.forEach(accion => {
             relations.push(
@@ -188,7 +188,7 @@ const ListDocuments = () => {
       render: row =>
         row.FCTM_document_created_by ? (
           row.FCTM_document_created_by.SAO_name
-        ) : (
+         ) : (
           <span className="text-muted">-</span>
         ),
     },
@@ -199,30 +199,27 @@ const ListDocuments = () => {
         if (!row || !row.FCTM_document_url)
           return <span className="text-muted">-</span>
 
+        // LÓGICA DE PERMISOS DE BORRADO:
+        // Caso A: El usuario es el creador del documento.
+        const esCreador = row.FCTM_document_created_by && 
+          (row.FCTM_document_created_by._id === userId || row.FCTM_document_created_by === userId);
+        
+        // Caso B: El usuario ostenta un rol privilegiado de gestión.
+        const esRolGestion = userProfile === 'ADMINISTRADOR' || userProfile === 'PROFESOR';
+
+        // Puede eliminar si cumple cualquiera de las dos condiciones
+        const puedeEliminar = esCreador || esRolGestion;
+
         return (
           <div className="d-flex gap-2">
-            {/*<button
-              onClick={() => handleDownload(row)}
-              className="btn btn-sm btn-outline-primary"
-              title="Descargar archivo"
-            >
-              <i className="bi bi-download"></i>
-            </button>*/}            
             <a href={hostAPI + row.FCTM_document_url} 
                 title="Descargar documento"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="btn btn-sm btn-outline-success"
             >
-              <i className="bi bi-download"></i> {/* Icono de descarga */}
+              <i className="bi bi-download"></i>
             </a>            
-            {/*<a
-              href={`/documents/${row._id}`}
-              className="btn btn-sm btn-outline-info"
-              title="Ver detalles"
-            >
-              <i className="bi bi-search"></i>
-            </a>*/}
             <button
               className="btn btn-sm btn-outline-primary"
               onClick={() => navigate(`/documents/${row._id}`)}
@@ -230,23 +227,21 @@ const ListDocuments = () => {
             >
               <i className="bi bi-search"></i>
             </button>
-            {userId &&
-              row.FCTM_document_created_by &&
-              (row.FCTM_document_created_by._id === userId ||
-                row.FCTM_document_created_by === userId) && (
-                <button
-                  onClick={() => handleDelete(row)}
-                  className="btn btn-sm btn-outline-danger"
-                  title="Eliminar documento"
-                >
-                  <i className="bi bi-trash"></i>
-                </button>
-              )}
+            
+            {puedeEliminar && (
+              <button
+                onClick={() => handleDelete(row)}
+                className="btn btn-sm btn-outline-danger"
+                title="Eliminar documento"
+              >
+                <i className="bi bi-trash"></i>
+              </button>
+            )}
           </div>
         )
       },
     },
-  ], [userId, hostAPI]);
+  ], [userId, userProfile, hostAPI, navigate]); // Añadidos "userProfile" y "navigate" a las dependencias del useMemo
 
   return (
     <div className="container-fluid py-4">
@@ -273,16 +268,6 @@ const ListDocuments = () => {
               columnas={colDocumentos}
               tableId="documentos"
             >
-              {/*<div className="d-flex justify-content-end mb-2">
-                <a
-                  href="/documents/new"
-                  className="btn btn-success"
-                  style={{ minWidth: 180 }}
-                >
-                  <i className="bi bi-plus-circle me-2"></i>
-                  Nuevo Documento
-                </a>
-              </div>*/}
               <button className="btn btn-primary" onClick={() => navigate("/documents/new")}>
                 Nuevo Documento
               </button>
