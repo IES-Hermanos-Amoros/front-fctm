@@ -91,13 +91,13 @@ const ListCompanies = () => {
           // 1. Usamos accessorFn para devolver un objeto Date o un número (timestamp)
           // Esto es lo que TanStack usará internamente para comparar/ordenar
           accessorFn: row => row.SAO_company_FCT_Date ? new Date(row.SAO_company_FCT_Date).getTime() : 0,
-
           // 2. Usamos render para definir cómo lo ve el usuario final
           render: row => row.SAO_company_FCT_Date ? formatDateDDMMYYYY(row.SAO_company_FCT_Date) : '-'
         },
         { key: 'SAO_company_city', encabezado: 'Localidad' },
         { key: "FCTM_company_category",
               encabezado: "Familias Profesionales",
+              enableSorting: false, // ❌ DESACTIVAR ORDENACIÓN AQUÍ
               // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
               accessorFn: (row) => 
                 row.FCTM_company_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
@@ -133,6 +133,7 @@ const ListCompanies = () => {
                 {
                   key: "FCTM_skills",
                   encabezado: "¿Con qué trabajan?",
+                  enableSorting: false,
                   accessorFn: row => row.FCTM_skills?.map(skill => skill.FCTM_skill_name).join(" ") || "",
                   render: row => (
                     <div className="d-flex flex-wrap gap-1">

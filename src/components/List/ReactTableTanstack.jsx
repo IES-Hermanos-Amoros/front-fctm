@@ -81,24 +81,21 @@ const ReactTableTanstack = ({
     onSelectionChange(newSelection);
   };
 
-  
+
   const cols = [
     ...(mostrarCheckBox
-      ? [{ id: '_checkbox', header: '', cell: ({ row }) => null }]
+      ? [{ id: '_checkbox', header: '', cell: ({ row }) => null, enableSorting: false }]
       : []),
     ...columnas.map(col => ({
-      // PRIORIDAD: 
-      // 1. Si existe accessorFn, lo usamos (para filtros complejos como el de buscar por categorías (array))
-      // 2. Si hay render pero no accessorFn, dejamos undefined (columnas de botones)
-      // 3. Si no hay nada de lo anterior, usamos la key
+      ...col, // 👈 ¡ESTO FALTA! Pasa limpiamente enableSorting, sortingFn, etc.
       accessorFn: col.accessorFn ? col.accessorFn : undefined,
       accessorKey: (!col.accessorFn && !col.render) ? col.key : undefined,
-      id: col.id || col.key, // TanStack necesita un ID único
+      id: col.id || col.key, 
       header: col.encabezado,
       cell: info =>
         col.render
-          ? col.render(info.row.original) // columnas con render (acciones)
-          : info.getValue(),             // columnas normales
+          ? col.render(info.row.original) 
+          : info.getValue(),             
     })),
   ]
 
@@ -259,12 +256,14 @@ const ReactTableTanstack = ({
                     <div className="d-flex align-items-center justify-content-between">
                       {flexRender(h.column.columnDef.header, h.getContext())}
                       {/* Indicadores visuales de ordenación */}
+                      {h.column.getCanSort() && (
                       <span>
                         {{
                           asc: <i className="bi bi-sort-up text-primary"></i>,
                           desc: <i className="bi bi-sort-down-alt text-primary"></i>,
                         }[h.column.getIsSorted()] ?? <i className="bi bi-arrow-down-up"></i>}
                       </span>
+                      )}
                     </div>
                 </th>
                 ))}
