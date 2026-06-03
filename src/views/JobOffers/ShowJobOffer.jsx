@@ -143,88 +143,40 @@ const ShowJobOffer = () => {
   ]
 
   const fetchJobOffer = useCallback(async () => {
-      setLoading(true)
+    setLoading(true);
 
-      const res = await sendRequest("GET", null, `/joboffers/${id}`)
+    const res = await sendRequest("GET", null, `/joboffers/${id}`);
 
-      if (res.success) {
+    if (res.success) {
+      let normalizedData = normalizeFromApi(res.data, normalizationConfig);
 
-        let normalizedData = normalizeFromApi(
-          res.data,
-          normalizationConfig
-        )
-
-        // ✅ Aplanar empresa
-        if (res.data.empresa) {
-          normalizedData = {
-            ...normalizedData,
-            empresa_nombre: res.data.empresa.SAO_name,
-            empresa_ciudad: res.data.empresa.SAO_company_city,
-          }
-        }
-
-        // ✅ NO normalizamos skills aquí (las maneja ensureSkills)
-        setData(normalizedData)
-        setOriginalData(normalizedData)
-
-    //Obtener documentos asociados
-    if (res.data.FCTM_documents.length > 0) {
-      const promises = res.data.FCTM_documents.map(
-        async id => await sendRequest('GET', null, `/documents/${id}`)
-      )
-      const responses = await Promise.all(promises)
-      const documents = responses
-        .filter(res => res.success)
-        .map(res => res.data)
-      // Ordenar por fecha
-      const sortedDocuments = [...documents].sort(
-        (a, b) =>
-          new Date(b.FCTM_inserted_date) - new Date(a.FCTM_inserted_date)
-      )
-      setDocumentData(sortedDocuments)
-    }
-        // ============================
-        // ✅ CARGAR DOCUMENTS (NO BORRAR)
-        // ============================
-
-        if (res.data.FCTM_documents?.length > 0) {
-
-          const promises = res.data.FCTM_documents.map(id =>
-            sendRequest("GET", null, `/documents/${id}`)
-          )
-
-          const responses = await Promise.all(promises)
-
-          const documents = responses
-            .filter(r => r.success)
-            .map(r => r.data)
-
-          const sortedDocuments = [...documents].sort(
-            (a, b) =>
-              new Date(b.FCTM_inserted_date) -
-              new Date(a.FCTM_inserted_date)
-          )
-
-          setDocumentData(sortedDocuments)
-
-        } else {
-
-          setDocumentData([])
-
-        }
-
-      } else {
-
-        console.error(
-          "Error al cargar joboffer:",
-          res.message
-        )
-
+      // ✅ Aplanar empresa si existe
+      if (res.data.empresa) {
+        normalizedData = {
+          ...normalizedData,
+          empresa_nombre: res.data.empresa.SAO_name,
+          empresa_ciudad: res.data.empresa.SAO_company_city,
+        };
       }
 
-      setLoading(false)
+      // ✅ Guardar en los estados locales de la oferta
+      setData(normalizedData);
+      setOriginalData(normalizedData);
 
-    }, [id])
+      // ✅ Asignar directamente los documentos (el backend ya los devuelve poblados y ordenados)
+      if (res.data.FCTM_documents && res.data.FCTM_documents.length > 0) {
+        setDocumentData(res.data.FCTM_documents);
+      } else {
+        setDocumentData([]);
+      }
+
+    } else {
+      console.error("Error al cargar joboffer:", res.message);
+      showAlert(res.message || "Error al cargar la oferta", "error");
+    }
+
+    setLoading(false);
+  }, [id]);
 
   const handleDelete = async docId => {
     const confirmado = await confirmation(
@@ -245,14 +197,14 @@ const ShowJobOffer = () => {
       )
 
       if (patchRes.success) {
-        showAlert('Documento eliminado y oferta actualizada', 'success')
+        //showAlert('Documento eliminado y oferta actualizada', 'success')
 
         setData(prev => ({
           ...prev,
           FCTM_documents: updatedDocuments,
         }))
 
-        fetchJobOffer()
+        //fetchJobOffer()
       } else {
         showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
       }
@@ -288,7 +240,7 @@ const handleSave = async () => {
         setTimeout(() => {
           fetchJobOffer();
           setIsEditing(false);
-          showAlert("Cambios guardados con éxito", "success");
+          //showAlert("Cambios guardados con éxito", "success");
         }, 500);
       } else {
         showAlert(res.message, "error");
@@ -412,6 +364,7 @@ const handleSave = async () => {
 
     // 2. Agrega los datos adicionales al formData (Multer los recibirá en req.body)
     formData.append('FCTM_document_type', 'GENERAL')
+    formData.append('visible_to_profiles', 'ADMINISTRADOR, PROFESOR, ALUMNO')
     formData.append('jobOfferId', id)
     // Nota: No envíes createdBy aquí si lo asignas en el backend desde req.user.id
 

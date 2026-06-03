@@ -10,7 +10,8 @@ import {
   formatDateDDMMYYYY,
   ensureSkills,
   validateStrongPassword,
-  externLogout
+  externLogout,
+  getBackendHost
 } from "../../utils/functions";
 
 import ShowHeader from "../../components/Show/ShowHeader";
@@ -111,6 +112,7 @@ const buildNormalizationConfig = (skillOptions, categoryOptions) => [
 const ShowCompany = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const hostAPI = getBackendHost()
 
   // STORES
   const skillOptionsStore = useSkillStore(state => state.skills);
@@ -189,7 +191,7 @@ const ShowCompany = () => {
       setOriginalData(normalized);
 
       const companyDocuments = res.data?.FCTM_documents || [];
-      let loadedDocuments = [];
+      /*let loadedDocuments = [];
 
       if (companyDocuments.length > 0) {
         const firstItem = companyDocuments[0];
@@ -200,11 +202,11 @@ const ShowCompany = () => {
           const responses = await Promise.all(promises);
           loadedDocuments = responses.filter(r => r.success).map(r => r.data);
         }
-      }
+      }*/
 
-      setDocumentData(loadedDocuments);
-      const avatarDoc = loadedDocuments.find(doc => doc?.FCTM_document_type === 'AVATAR');
-      setAvatarUrl(avatarDoc?.FCTM_document_url || loadedDocuments?.[0]?.FCTM_document_url || "");
+      setDocumentData(companyDocuments);
+      const avatarDoc = companyDocuments.find(doc => doc?.FCTM_document_type === 'AVATAR');
+      setAvatarUrl(avatarDoc?.FCTM_document_url || companyDocuments?.[0]?.FCTM_document_url || "");
     } else {
       showAlert("Error al cargar la empresa", "error");
     }
@@ -372,13 +374,17 @@ const ShowCompany = () => {
       render: (row) => formatDateDDMMYYYY(row.FCTM_inserted_date) 
     },
     {
-      key: "__download",
-      encabezado: "Ver",
-      render: (row) => (
-        <a href={row.FCTM_document_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-outline-info">
-          <i className="bi bi-download"></i>
-        </a>
-      )
+      key: 'FCTM_document_url',
+      encabezado: 'Descarga',
+      render: row => {
+        if (!row || !row.FCTM_document_url) return 'No disponible'
+        const url = row.FCTM_document_url
+        return (
+          <a href={hostAPI + url} target="_blank" rel="noopener noreferrer">
+            <i className="bi bi-download"></i> {/* Icono de descarga */}
+          </a>
+        )
+      },
     },
     {
       key: "__delete",

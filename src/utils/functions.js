@@ -33,9 +33,9 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
         res.data = response.data.data ?? response.data;
         res.message = response.data.msg ?? response.data.message ?? "Operación exitosa";
 
-        if (method !== "GET" && res.message && mostrarMensaje) {
+        /*if (method !== "GET" && res.message && mostrarMensaje) {
             await showAlert(res.message, "success");
-        }
+        }*/
 
         if (redir) {
             setTimeout(() => window.location.href = redir, 500);
