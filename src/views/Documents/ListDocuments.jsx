@@ -244,22 +244,15 @@ const ListDocuments = () => {
   ], [userId, userProfile, hostAPI, navigate]); // Añadidos "userProfile" y "navigate" a las dependencias del useMemo
 
   return (
-    <div className="container-fluid py-4">
-      <div className="row">
-        <div className="col-12">
-          {loading && (
-            <div className="text-center my-5">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Cargando...</span>
-              </div>
-              <p className="mt-2">Cargando documentos...</p>
-            </div>
-          )}
-          {!loading && error && (
-            <div className="alert alert-danger" role="alert">
-              <i className="bi bi-exclamation-triangle me-2"></i>
-              {error}
-            </div>
+    <>
+          {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              }
+          {!loading && error && <p className="text-danger">{error}</p>}
+          {!loading && !error && documentos.length === 0 && (
+              <p className="text-muted">No hay documetos disponibles</p>
           )}
           {!loading && !error && (
             <ListCRUD
@@ -273,9 +266,7 @@ const ListDocuments = () => {
               </button>
             </ListCRUD>
           )}
-        </div>
-      </div>
-    </div>
+    </>
   )
 }
 

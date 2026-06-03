@@ -107,7 +107,11 @@ const ListFcts = () => {
 
   return (
     <>            
-            {loading && <p>Cargando F.E....</p>}
+            {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              }
             {!loading && error && <p className="text-danger">{error}</p>}
             {!loading && !error && fcts.length === 0 && (
                 <p className="text-muted">No hay F.E. disponibles</p>

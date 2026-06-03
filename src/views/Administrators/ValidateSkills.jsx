@@ -101,10 +101,13 @@ const ValidateSkills = () => {
   );
 
   return (
-    <div className="container-fluid p-4">
-      {loading && <p>Cargando aptitudes pendientes...</p>}
+    <>
+      {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              }
       {!loading && error && <p className="text-danger">{error}</p>}
-
       {!loading && !error && (
         <ListCRUD
           title="Validar Aptitudes"
@@ -142,7 +145,7 @@ const ValidateSkills = () => {
           No hay aptitudes pendientes de validación.
         </div>
       )}
-    </div>
+    </>
   );
 };
 

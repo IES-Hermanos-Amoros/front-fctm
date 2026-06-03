@@ -145,7 +145,11 @@ const ListStudents = () => {
 
   return (
     <>            
-            {loading && <p>Cargando alumnos...</p>}
+            {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              }
             {!loading && error && <p className="text-danger">{error}</p>}
             {!loading && !error && students.length === 0 && (
                 <p className="text-muted">No hay alumno disponibles</p>

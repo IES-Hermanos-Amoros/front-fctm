@@ -114,6 +114,7 @@ const ShowStudent = () => {
   const categoriesStore = useCategoryStore(state => state.categories);
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
   const clearUser = useUserStore(state => state.clearUser);
+  const user = useUserStore(state => state.user);
 
   const [data, setData] = useState(null);
   const [file, setFile] = useState(null); // Para un único archivo
@@ -124,6 +125,18 @@ const ShowStudent = () => {
   const [passwordData, setPasswordData] = useState(null); // NUEVO
   const hostAPI = getBackendHost();
 
+   // --- GESTIÓN DE PERMISOS ---
+  const userRole = user?.user?.profile || user?.profile;
+  const userId = user?.user?.id || user?.id;
+
+  // Comprobamos si el usuario logueado es el propio alumno que se está visualizando
+  const isOwnStudent = userId === id;
+
+  // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwnStudent;
+  }, [userRole, isOwnStudent]);
+  
   useEffect(() => {
     cargarSkills();
     cargarCategorias();
@@ -378,7 +391,7 @@ const ShowStudent = () => {
     <section className="dashboard section">
       <ShowHeader title={`Ficha de ${data?.SAO_username || "Student"}`} onBack={() => navigate("/students")} />
       
-      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchStudent} />
+      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchStudent} showUploadAction={canEditAndManage} />
 
       <ShowEditableForm
         formTitle="Información SAO"
@@ -398,6 +411,7 @@ const ShowStudent = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={!canEditAndManage}
       />
 
       <SectionChangePassword

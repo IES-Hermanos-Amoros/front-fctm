@@ -85,26 +85,17 @@ const ListReviews = () => {
     }, [fetchData]);
 
     return (
-        <div className="container-fluid pt-3">
-            {/* Si en empresas usáis un título con botón de añadir, estructuralo igual */}
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2 className="h4 mb-0">Listado de Reseñas</h2>
-                {/* Descomenta esto si los profes también pueden crear reseñas desde aquí
-                <button className="btn btn-primary" onClick={() => navigate('/reviews/create')}>
-                    <i className="bi bi-plus-lg me-1"></i> Añadir Reseña
-                </button> 
-                */}
-            </div>
-
-            {error && <div className="alert alert-danger">{error}</div>}
-            
-            {loading ? (
-                <div className="text-center my-4">
-                    <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Cargando...</span>
-                    </div>
+        <>
+            {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
                 </div>
-            ) : (
+              }
+            {!loading && error && <p className="text-danger">{error}</p>}
+            {!loading && !error && data.length === 0 && (
+                <p className="text-muted">No hay reseñas disponibles</p>
+            )}
+            {!loading && !error && data.length > 0 && (
                 <ListCRUD
                     title="Reseñas del Sistema"
                     datos={data}
@@ -113,7 +104,7 @@ const ListReviews = () => {
                     mostrarCheckBox={false} // Cambia a true si empresas lleva selección masiva
                 />
             )}
-        </div>
+        </>
     );
 };
 

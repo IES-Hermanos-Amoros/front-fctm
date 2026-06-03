@@ -102,7 +102,11 @@ const ValidateReviews = () => {
 
     return (
         <>
-            {loading && <p>Cargando reseñas...</p>}
+            {loading && 
+                 <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+                </div>
+              }
             {!loading && error && <p className='text-danger'>{error}</p>}
 
             {!loading && (

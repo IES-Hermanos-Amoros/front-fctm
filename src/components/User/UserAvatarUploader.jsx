@@ -4,7 +4,7 @@ import defaultAvatar from "../../assets/avatar.png"
 // 1. Importamos el Store de Zustand
 import useUserStore from "../../store/userStore"
 
-const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
+const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess, showUploadAction = true }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -84,13 +84,15 @@ const UserAvatarUploader = ({ userId, avatarUrl, onUploadSuccess }) => {
       
       <form onSubmit={handleSubmit} className="mt-3">
         <div className="d-flex flex-column align-items-center gap-2">
-          <input 
-            type="file" 
-            onChange={handleFileChange} 
-            accept="image/*"
-            className="form-control form-control-sm"
-            style={{ maxWidth: '250px' }}
-          />
+          {showUploadAction && (
+            <input 
+              type="file" 
+              onChange={handleFileChange} 
+              accept="image/*"
+              className="form-control form-control-sm"
+              style={{ maxWidth: '250px' }}
+            />
+          )}
           
           {selectedFile && (
             <div className="d-flex gap-2">
