@@ -11,6 +11,7 @@ import {
 import ShowHeader from '../../components/Show/ShowHeader'
 import ShowEditableForm from '../../components/Show/ShowEditableForm'
 import useEnumStore from '../../store/enumStore'
+import useUserStore from "../../store/userStore";
 
 const excludedDocumentTypes = [];
 const excludedProfiles = ['ADMINISTRADOR', 'PROFESOR'];
@@ -30,7 +31,7 @@ const formatDateDDMMYYYYHHmm = (value) => {
 const ShowDocument = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-
+  const user = useUserStore(state => state.user);
   // =========================
   // ENUMS (ZUSTAND)
   // =========================
@@ -70,11 +71,11 @@ const ShowDocument = () => {
   // DEFINICIÓN DE CAMPOS
   // =========================
   const camposLecturaFijos = [
-    { key: 'computed_url', label: 'URL del documento (Enlace)', type: 'text' },
+    /*{ key: 'computed_url', label: 'URL del documento (Enlace)', type: 'text' },*/
     { key: 'computed_created_by', label: 'Quién creó el documento', type: 'text' },
     { key: 'computed_created_at', label: 'Fecha de creación', type: 'text' },
     { key: 'computed_updated_at', label: 'Fecha de actualización', type: 'text' },
-    { key: 'computed_relations', label: 'Relacionado con', type: 'text' }
+    /*{ key: 'computed_relations', label: 'Relacionado con', type: 'text' }*/
   ]
 
   const camposEditablesFCTM = [
@@ -108,6 +109,13 @@ const ShowDocument = () => {
   const [originalData, setOriginalData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
+
+   // --- GESTIÓN DE PERMISOS ---
+  const userRole = user?.user?.profile || user?.profile;    
+  // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole);
+  }, [userRole]);
 
   // =========================
   // LÓGICA DE RELACIONES
@@ -257,7 +265,7 @@ const ShowDocument = () => {
       </div>
 
       <ShowEditableForm
-        formTitle="Gestión de Datos FCTM del Documento"
+        formTitle="Gestión de Datos del Documento"
         formId="documentEditableForm"
         data={data}
         fields={camposEditablesFCTM}
@@ -266,6 +274,7 @@ const ShowDocument = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={!canEditAndManage}
       />
     </section>
   )

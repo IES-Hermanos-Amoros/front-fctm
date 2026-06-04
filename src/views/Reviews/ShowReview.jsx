@@ -43,6 +43,17 @@ const ShowReview = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [originalData, setOriginalData] = useState(null);
 
+  const userRole = user?.user?.profile || user?.profile;
+  const isOwner = useMemo(() => {
+    if (!data || !loggedUserId) return false;    
+    return data.FCTM_user_id._id === loggedUserId; 
+  }, [data, loggedUserId]);
+
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwner;
+  }, [userRole, isOwner]);
+
+
   // Carga inicial de la reseña por ID para modo Show/Edit.
   const fetchReview = useCallback(async () => {
     if (!id) {
@@ -53,7 +64,7 @@ const ShowReview = () => {
     setLoading(true);
     const res = await sendRequest("GET", null, `/reviews/${id}`);
 
-    if (res.success) {
+    if (res.success) {      
       setData(res.data);
       setOriginalData(res.data);
     } else {
@@ -141,7 +152,7 @@ const ShowReview = () => {
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Ficha de reseña: ${data?.FCTM_review_title || "Detalle"}`}
+        title={`Opinión de '${data?.FCTM_user_id?.SAO_name}'`}
         onBack={handleBack}
       />
 
@@ -164,6 +175,7 @@ const ShowReview = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={!canEditAndManage}
       />
     </section>
   );

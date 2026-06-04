@@ -27,6 +27,10 @@ const ListDocuments = () => {
   // Extraemos el perfil para validar permisos especiales de borrado
   const userProfile = user?.user?.profile || null
 
+  const canCreateDocuments = useMemo(() => {
+      return ["ADMINISTRADOR", "PROFESOR"].includes(userProfile);
+    }, [userProfile]);
+
   const handleDelete = async row => {
     const confirm = await Swal.fire({
       title: '¿Eliminar documento?',
@@ -101,7 +105,12 @@ const ListDocuments = () => {
 
   const colDocumentos = useMemo(() => [
     { key: 'FCTM_document_name', encabezado: 'Nombre' },
-    { key: 'FCTM_document_description', encabezado: 'Descripción' },
+    { key: 'FCTM_document_description', 
+      encabezado: 'Descripción',
+      render: row => row.FCTM_document_description && row.FCTM_document_description.length > 60 
+                ? `${row.FCTM_document_description.substring(0, 60)}...` 
+                : row.FCTM_document_description || '-' 
+    },
     { key: 'FCTM_document_type', encabezado: 'Tipo' },
     {
       key: 'related_to',
@@ -261,9 +270,11 @@ const ListDocuments = () => {
               columnas={colDocumentos}
               tableId="documentos"
             >
-              <button className="btn btn-primary" onClick={() => navigate("/documents/new")}>
-                Nuevo Documento
-              </button>
+              {canCreateDocuments && 
+                <button className="btn btn-primary" onClick={() => navigate("/documents/new")}>
+                  Nuevo Documento
+                </button>
+              }
             </ListCRUD>
           )}
     </>

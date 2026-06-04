@@ -7,6 +7,8 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import RatingStars from "../../components/RatingStars";
 
+import useUserStore from "../../store/userStore";
+
 // --- CONFIGURACIÓN DE CAMPOS ---
 
 // Campos SAO (Solo lectura)
@@ -67,8 +69,19 @@ const ShowFcts = () => {
   const [originalData, setOriginalData] = useState(null);
   const [documentData, setDocumentData] = useState([]);
   const [files, setFiles] = useState([]);
-
+  const user = useUserStore(state => state.user); 
   const hostAPI = getBackendHost();
+
+  // --- GESTIÓN DE PERMISOS ---
+  const userRole = user?.user?.profile || user?.profile;
+  const userId = user?.user?.id || user?.id;
+  // Comprobamos si el usuario logueado es la propia empresa que se está visualizando
+  //const isOwner = userId === id;
+  // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole)// || isOwner;
+  }, [userRole]);
+  //}, [userRole, isOwner]);
 
   // --- CARGA DE DATOS ---
   const fetchFct = useCallback(async () => {
@@ -363,10 +376,11 @@ const ShowFcts = () => {
         onSave={handleSave}
         onCancel={handleCancel}
         onChange={handleChange}
+        hideEditButton={!canEditAndManage}
       />
 
       {/* SECCIÓN DOCUMENTOS - Solo visible al editar (igual que JobOffer) */}
-      {isEditing && (
+      {/*isEditing && (
         <div className="card p-3 mt-3">
           <h5>Adjuntar Documentos</h5>
           <input
@@ -379,18 +393,27 @@ const ShowFcts = () => {
             Adjuntar Docs.
           </button>
         </div>
-      )}
+      )*/}
 
-      {/* Tabla de Documentos Relacionados - Justo después de Adjuntar */}
-      {documentData.length === 0 ? (
-        <h4>FCT sin documentos</h4>
-      ) : (
-        <ListCRUD
-          title="Documentos Relacionados"
-          datos={documentData}
-          columnas={columnasDocuments}
-        />
-      )}
+      {/* Tabla de Documentos Relacionados - Justo después de Adjuntar */}      
+      <ListCRUD
+        title="Documentos Relacionados"
+        datos={documentData}
+        columnas={columnasDocuments}
+      >
+        {canEditAndManage && (<>
+        <button className="btn btn-primary text-nowrap" onClick={handleUploadDocs}>                  
+            Adjuntar Docs.
+          </button>
+          <input
+            type="file"
+            multiple
+            className="form-control form-control-sm"
+            onChange={handleFileChange}
+          />
+          </>)}
+      </ListCRUD>
+      
 
       {/* SECCIÓN RESEÑAS */}
       <ListCRUD

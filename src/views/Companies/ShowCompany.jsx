@@ -125,12 +125,8 @@ const ShowCompany = () => {
   // --- GESTIÓN DE PERMISOS ---
   const userRole = user?.user?.profile || user?.profile;
   const userId = user?.user?.id || user?.id;
-
-  console.log("USUARIO LOGUEADO VIENDO FICHA: ", user.user)
-
   // Comprobamos si el usuario logueado es la propia empresa que se está visualizando
   const isOwnCompany = userId === id;
-
   // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
   const canEditAndManage = useMemo(() => {
     return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwnCompany;
@@ -459,7 +455,7 @@ const ShowCompany = () => {
     <section className="dashboard section">
       <ShowHeader title={`Ficha de ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
       
-      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} />
+      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} showUploadAction={canEditAndManage} />
 
       <ShowEditableForm
         formTitle="Datos de SAO"
