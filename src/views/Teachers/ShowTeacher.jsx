@@ -181,7 +181,7 @@ const ShowTeacher = () => {
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Perfil de ${data?.SAO_name || "Profesor"}`}
+        title={`PROFESOR: ${data?.SAO_name || "Profesor"}`}
         onBack={() => navigate(-1)}
       />
 

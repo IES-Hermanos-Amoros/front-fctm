@@ -189,7 +189,7 @@ const ShowAdmin = () => {
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Perfil de ${data?.SAO_name || "Administrador"}`}
+        title={`ADMINISTRADOR: ${data?.SAO_name || "Administrador"}`}
         onBack={() => navigate(-1)}
       />
 

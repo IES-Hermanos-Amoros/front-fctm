@@ -78,7 +78,7 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
   { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text" },
   {
     key: "FCTM_student_openToWork",
-    label: "Disponible",
+    label: "¿Buscando Empleo?",
     type: "select",
     options: [
       { _id: true, nombre: "Sí" },
@@ -389,7 +389,7 @@ const ShowStudent = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader title={`Ficha de ${data?.SAO_username || "Student"}`} onBack={() => navigate("/students")} />
+      <ShowHeader title={`ALUMNO: ${data?.SAO_username || "Alumno"}`} onBack={() => navigate("/students")} />
       
       <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchStudent} showUploadAction={canEditAndManage} />
 

@@ -453,7 +453,7 @@ const ShowCompany = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader title={`Ficha de ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
+      <ShowHeader title={`EMPRESA: ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
       
       <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} showUploadAction={canEditAndManage} />
 

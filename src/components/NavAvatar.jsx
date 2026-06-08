@@ -65,7 +65,7 @@ function NavAvatar() {
         <img src={finalAvatarSrc} alt="Profile" className="rounded-circle" />
 
         <span className="d-none d-lg-block dropdown-toggle ps-2">
-          {user?.user?.username || "Usuario"}
+          {user?.user?.name || "Usuario"}
         </span>
 
       </a>
