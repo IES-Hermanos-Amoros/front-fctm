@@ -1,17 +1,26 @@
 import BaseChart from './BaseChart';
 
 const RadarChart = ({ title, data }) => {
-  // 1. Preparamos los indicadores (las puntas del radar)
-  // Buscamos el valor máximo para que la escala sea proporcional
-  const maxValue = Math.max(...data.map(item => item.value), 100);
+  // 1. Buscamos el valor más alto real en tus datos (ej: si el top tiene 25 alumnos, el max será 25)
+  const maxRealValue = data.length > 0 ? Math.max(...data.map(item => item.value)) : 10;
+  
+  // 2. Redondeamos hacia arriba para tener un número bonito en el extremo exterior (ej: si es 25, lo llevamos a 30)
+  const ejeMaximo = Math.ceil(maxRealValue / 10) * 10;
 
   const option = {
     title: { text: title, left: 'center', textStyle: { fontSize: 16 } },
-    tooltip: { trigger: 'item' },
+    // 🚀 SOLUCIÓN AL CORTE DEL TOOLTIP
+    tooltip: { 
+      trigger: 'item',
+      confine: true // Mantiene el globo del tooltip SIEMPRE dentro de los límites del gráfico
+    },
     radar: {
+      // 🚀 SOLUCIÓN: Forzamos a que cada indicador empiece obligatoriamente en 0 
+      // y termine en nuestro máximo redondeado. Así los valores grandes SIEMPRE van hacia fuera.
       indicator: data.map(item => ({
         name: item.name,
-        max: maxValue + 10 // Damos un poco de margen visual
+        min: 0,
+        max: ejeMaximo
       })),
       shape: 'circle',
       splitNumber: 5,
@@ -25,7 +34,7 @@ const RadarChart = ({ title, data }) => {
         data: [
           {
             value: data.map(item => item.value),
-            name: 'Nivel Adquirido',
+            name: 'Total de alumnos por habilidad',
             areaStyle: { opacity: 0.3, color: '#3498db' },
             lineStyle: { width: 2, color: '#3498db' },
             itemStyle: { color: '#3498db' }

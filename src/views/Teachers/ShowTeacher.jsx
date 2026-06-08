@@ -14,9 +14,14 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 import SectionChangePassword from "../../components/User/SectionChangePassword"; // ✅ Importado
-
 import useCategoryStore from "../../store/categoryStore";
 import useUserStore from "../../store/userStore";
+import { useStatsStore } from "../../store/useStatsStore";
+import BarChart from "../../components/Charts/BarChart";
+import PieChart from "../../components/Charts/PieChart";
+import RadarChart from "../../components/Charts/RadarChart";
+import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
+import StatsLayout from "../../components/Charts/StatsLayout";
 
 const SAO_FIELDS = [
   { key: "SAO_username", label: "NIF", type: "text" },
@@ -43,6 +48,7 @@ const ShowTeacher = () => {
   const [originalData, setOriginalData] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
   const [passwordData, setPasswordData] = useState(null); // ✅ Nuevo estado para password
+  const { stats, isLoadingStats } = useStatsStore(); //Estadísticas
 
   // ✅ 1. Asegurar options siempre válidas
   const safeCategories = useMemo(() => categories || [], [categories]);
@@ -190,6 +196,38 @@ const ShowTeacher = () => {
         avatarUrl={avatarUrl}
         onUploadSuccess={fetchTeacher}
       />
+
+      <StatsLayout>
+        <BarChart 
+          title="Convenios por Curso" 
+          labels={stats.conveniosPorCurso.labels} 
+          values={stats.conveniosPorCurso.data} 
+        />
+
+        <BarChart 
+          title="F.E. por Curso" 
+          labels={stats.fctPorCurso.labels} 
+          values={stats.fctPorCurso.data} 
+          color="#3498db" 
+        />
+      </StatsLayout>
+
+      <StatsLayout>
+        <PieChart 
+          title="Top 10 Tecnologías más Demandadas" 
+          data={stats.tecnologiasDemandadas} 
+        />
+
+        <RadarChart 
+            title="Top 10 Habilidades Alumnos" 
+            data={stats.habilidadesAlumnos} 
+          />
+
+        <HorizontalBarChart 
+          title="Alumnado por Localidad" 
+          data={stats.alumnadoPorLocalidad}           
+        />
+      </StatsLayout>
 
       <ShowEditableForm
         formTitle="Información de SAO"

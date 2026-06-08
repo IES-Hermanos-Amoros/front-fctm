@@ -14,6 +14,11 @@ import ShowHeader from "../../components/Show/ShowHeader";
 import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 
+const camposNoEditables = [
+  { key: "creadoPor", label: "Usuario" },  
+  { key: "creadoPorPerfil", label: "Perfil" }
+];
+
 const ACTION_FIELDS = [
   { key: "FCTM_action_title", label: "Título de la Acción", type: "text" },
   { key: "FCTM_action_datetime", label: "Fecha y Hora", type: "date" },
@@ -56,6 +61,8 @@ const ShowAction = () => {
 
     if (res.success) {
       const normalized = normalizeFromApi(res.data, normalizationConfig);
+      normalized.creadoPor = res.data.FCTM_created_by?.SAO_name
+      normalized.creadoPorPerfil = res.data.FCTM_created_by?.SAO_profile
       setData(normalized);
       setOriginalData(normalized);
     } else {
@@ -195,6 +202,14 @@ const ShowAction = () => {
       <ShowHeader
         title={`Detalle de Acción: ${data.FCTM_action_title || ""}`}
         onBack={() => navigate(-1)}
+      />
+
+      <ShowEditableForm
+        formTitle="Acción Creada por"
+        formId="saoForm"
+        data={data}
+        fields={camposNoEditables}
+        hideEditButton={true}
       />
 
       <ShowEditableForm
