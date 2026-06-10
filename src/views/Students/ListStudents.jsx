@@ -97,8 +97,10 @@ const ListStudents = () => {
   const colStudents = [
     { key: "SAO_username", encabezado: "NIA" },
     { key: "SAO_name", encabezado: "Nombre" },
-    { key: "SAO_student_city", encabezado: "Localidad" }
-    ,
+    { key: "SAO_student_city", encabezado: "Localidad" },
+    { key: "SAO_email", encabezado: "E-mail" },
+    { key: "SAO_phone", encabezado: "Teléfono" },
+    { key: "SAO_student_socialNumber", encabezado: "NUSS" },
         {
           key: "FCTM_skills",
           encabezado: "Aptitudes",

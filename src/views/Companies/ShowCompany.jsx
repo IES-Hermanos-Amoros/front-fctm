@@ -316,10 +316,10 @@ const ShowCompany = () => {
     }
   ], [navigate, id, handleDeleteJobOffer]);
 
-  const handleDeleteDocument = useCallback(async (docId) => {
-    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");
+  const handleDeleteDocument = useCallback(async (docId) => {    
+    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");    
     if (!confirmado) return;
-
+    
     const res = await sendRequest("DELETE", undefined, `/documents/${docId}?companyId=${id}`);
 
     if (res.success) {

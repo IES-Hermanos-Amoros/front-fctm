@@ -206,7 +206,7 @@ const ShowJobOffer = () => {
     setLoading(false);
   }, [id]);
 
-  const handleDelete = async docId => {
+  const handleDelete_OLD = async docId => {
     const confirmado = await confirmation(
       '¿Seguro que quieres eliminar este documento?'
     )
@@ -240,6 +240,52 @@ const ShowJobOffer = () => {
       showAlert(res.message, 'error')
     }
   }
+
+  const handleDelete = async docId => {
+    const confirmado = await confirmation(
+      '¿Seguro que quieres eliminar este documento?'
+    )
+    if (!confirmado) return
+
+    // 1. Borramos el documento del servidor
+    const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
+
+    if (res.success) {
+      // 2. Filtramos la lista de IDs originales que tiene la oferta de trabajo
+      // Nos aseguramos de comparar strings usando ._id o el propio item si viniera plano
+      const originalDocs = data.FCTM_documents || [];
+      const updatedDocuments = originalDocs.filter(item => {
+        const idString = typeof item === 'object' ? item._id : item;
+        return idString !== docId;
+      });
+
+      // 3. Desvinculamos el documento de la oferta mediante un PATCH
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
+
+      if (patchRes.success) {
+        // 4. Actualizamos de golpe AMBOS estados locales para sincronizar la UI
+        setData(prev => ({
+          ...prev,
+          FCTM_documents: updatedDocuments,
+        }))
+
+        // Filtramos también el estado visual de la tabla (objetos completos)
+        setDocumentData(prevDocs => prevDocs.filter(doc => doc._id !== docId));
+        
+        // OPCIONAL: Si quieres re-confirmar con el backend que todo está sincronizado
+        // fetchJobOffer() 
+      } else {
+        showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
+      }
+    } else {
+      showAlert(res.message, 'error')
+    }
+  }
+
 //CAMBIOS PARA LA PRECARGA DE FECHAS
 const handleSave = async () => {
     try {
