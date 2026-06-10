@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest,stringToColor,formatDateDDMMYYYY, confirmation, showAlert } from '../../utils/functions';
+import { sendRequest,stringToColor,formatDateDDMMYYYY, confirmation, showAlert, selectorDark } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
 import useCategoryStore from '../../store/categoryStore';
@@ -256,6 +256,7 @@ const ListCompanies = () => {
                               noOptionsMessage={() => "No hay más familias"}
                               classNamePrefix="react-select"                              
                               className="react-select-container"
+                              styles={selectorDark}
                           />
                         </div>
                         <button className="btn btn-warning" onClick={handleBulkUpdateCategories}>
@@ -279,6 +280,7 @@ const ListCompanies = () => {
                             noOptionsMessage={() => "No hay más aptitudes"}
                             className="react-select-container"
                             classNamePrefix="react-select"
+                            styles={selectorDark}
                           />
                         </div>
                         <button className="btn btn-warning" onClick={handleBulkUpdate}>

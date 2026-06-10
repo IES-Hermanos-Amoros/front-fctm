@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { sendRequest, stringToColor, confirmation, showAlert } from '../../utils/functions'
+import { sendRequest, stringToColor, confirmation, showAlert, selectorDark } from '../../utils/functions'
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from '../../components/List/ListCRUD'
 import Select from 'react-select'
@@ -180,6 +180,7 @@ const ListStudents = () => {
                             noOptionsMessage={() => "No hay más aptitudes"}
                             className="react-select-container"
                             classNamePrefix="react-select"
+                            styles={selectorDark}
                           />
                         </div>
                         <button className="btn btn-warning" onClick={handleBulkUpdate}>

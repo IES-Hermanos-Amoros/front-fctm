@@ -108,154 +108,6 @@ export const sendRequest = async (method, params, url, skipComponentReset = fals
     return res;
 };
 
-
-
-export const sendRequestOLDv2 = async (method, params, url, redir = '') => {
-    let res = {
-        success: false,
-        status: null,
-        data: null,
-        message: ""
-    };
-
-    try {
-
-        console.log(url)
-        console.log(params)
-
-        const response = await axios({
-            method,
-            url,
-            data: params,
-            // withCredentials: true // Si más adelante necesitas cookies
-        });
-
-        console.log(response)
-
-        // Detecta automáticamente msg o data desde el backend
-        res.success = true;
-        res.status = response.status;
-        res.data = response.data.data ?? response.data; // si el backend envía {data:...}
-        res.message = response.data.msg ?? response.data.message ?? "Operación exitosa";
-
-        // Mostrar alerta solo si hay mensaje y no es GET
-        if (method !== "GET" && res.message) {
-            showAlert(res.message, "success");
-        }
-
-        if (redir) {
-            setTimeout(() => window.location.href = redir, 500);
-        }
-    } catch (error) {
-        console.log("ERROR:")
-        console.log(error)
-        console.log(".......................")
-
-        // Error de servidor o de red
-        if (error.response && error.response.data) {
-            res.status = error.response.status;
-            res.data = error.response.data.data ?? error.response.data;
-            res.message = error.response.data.msg 
-                        ?? error.response.data.message 
-                        ?? error.response.data.error?.message 
-                        ?? error.response.data.error 
-                        ?? "Error desconocido";
-        } else {
-            res.message = error.message ?? "Error desconocido";
-        }
-
-        showAlert(res.message, "error");
-
-        if (redir) {
-            setTimeout(() => window.location.href = redir, 500);
-        }
-    }
-
-
-    return res;
-};
-
-
-export const sendRequestOLD = async(method,params,url,redir='',token=true)=>{
-    /*if(token){
-        const authToken = storage.get("authToken")
-        console.log("AuthToken Bearer to send: " + authToken)
-        //axios.default.headers.common["Authorization"] = "Bearer " + authToken //NO FUNCIONA!!
-        axios.defaults.headers = {
-            Authorization: 'Bearer ' + authToken
-        }
-    }*/
-
-    //axios.defaults.withCredentials = true
-
-    console.log("SEND REQUEST")
-    console.log(method)
-    console.log(url)
-    console.log(params)
-    let res = null
-    //await axios({method:method,url:url,data:params, withCredentials:true}).then(
-    await axios({method:method,url:url,data:params}).then(
-        response => {
-            //Cualquier EXITO con código 200, entrará aquí
-            console.log("INI SERVICES")
-            console.log(response.data)
-            console.log("FIN SERVICES")
-            res = response.data,
-            (method != "GET") ? showAlert(response.data.msg, "success"):"",
-            setTimeout(()=>           
-            (redir !== "") ? window.location.href = redir: "", 500)
-        }).catch((errors)=>{
-            //Cualquier error de servidor (400,401,404,500...) entrará aquí
-            //console.log(err)
-            //let desc = ""
-            //res = response.data.error.errors,
-            //response.data.error.errors.map((e)=>{desc = desc + " " + e})
-            //res = response.data   
-            //res = err         
-            //showAlert(desc,"error")
-            //showAlert(response.data.error.message,"error")
-
-            //Cualquier error de servidor (400,401,404,500...) entrará aquí
-            console.log("ERROREEEEEESSSS")
-            console.log(errors)
-            //////errors.response.data.error
-
-            //let desc = errors.response.data.error.message || errors.response.data.error || errors.message
-            let desc = ""
-            if(errors.response && errors.response.data.error){
-                if(errors.response.data.error.message){
-                    desc = errors.response.data.error.message
-                }else{
-                    desc = errors.response.data.error
-                }
-                res = errors.response.data
-            }else if(errors.message){
-                desc = errors.message
-                res = errors
-            }
-
-            //errors.response.data.errors.map((e)=>{desc = desc + " " + e})            
-            console.log(desc)
-            showAlert(desc,"error")
-            
-            setTimeout(()=>           
-            (redir !== "") ? window.location.href = redir: "", 500)
-        })
-       
-
-    return res
-}
-
-
-export function showAlertOLD(msg, iconImage, focusElem=""){
-    const MySwal = withReactContent(Swal)
-    return MySwal.fire({
-        title:msg,
-        icon:iconImage,
-        buttonsStyling:true
-    })
-}
-
 export function showAlert(msg, icon = "success") {
 
     const MySwal = withReactContent(Swal)
@@ -278,20 +130,6 @@ export function showAlert(msg, icon = "success") {
 }
 
 
-export const confirmationOLD = async (title = "¿Seguro que quieres eliminar este dato?") => {
-  const alert = Swal.mixin({ buttonsStyling: true });
-
-  const result = await alert.fire({
-    title,
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: '<i class="fa-solid fa-check"></i> Sí, eliminar',
-    cancelButtonText: '<i class="fa-solid fa-ban"></i> Cancelar'
-  });
-
-  return result.isConfirmed; // 👉 DEVUELVE true o false
-};
-
 export const confirmation = async (
   title = "¿Seguro que quieres eliminar este dato?"
 ) => {
@@ -313,37 +151,6 @@ export const confirmation = async (
   return result.isConfirmed;
 };
 
-/**
- * Solicita username y password mediante SweetAlert2.
- * Devuelve un objeto {username, password} si el usuario confirma,
- * o null si cancela.
- */
-/*export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
-    const MySwal = withReactContent(Swal);
-
-    const { value: formValues } = await MySwal.fire({
-        title: 'Autenticación SAO',
-        html:
-            '<input id="swal-username" class="swal2-input" placeholder="Usuario">' +
-            '<input id="swal-password" type="password" class="swal2-input" placeholder="Contraseña">',
-            mostrarCheckTodasFCTs ? '<input id="swal-todasFCTs" type="checkbox" class="swal2-input">':'',
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        preConfirm: () => {
-            const username = document.getElementById('swal-username').value;
-            const password = document.getElementById('swal-password').value;
-            if (!username || !password) {
-                Swal.showValidationMessage('Por favor ingresa usuario y contraseña');
-            }
-            return { username, password };
-        }
-    });
-
-    if (!formValues) return null; // usuario canceló
-    return formValues;
-};*/
 export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
     const MySwal = withReactContent(Swal);
 
@@ -411,51 +218,6 @@ export const promptCredentials = async (mostrarCheckTodasFCTs = false) => {
     return formValues;
 };
 
-export const promptCredentials_OLD = async (mostrarCheckTodasFCTs = false) => {
-    const MySwal = withReactContent(Swal);
-
-    const { value: formValues } = await MySwal.fire({
-        title: 'Autenticación SAO',
-        html: `
-            <input id="swal-username" class="swal2-input custom-input" placeholder="Usuario">
-            <input id="swal-password" type="password" class="swal2-input custom-input" placeholder="Contraseña">
-            
-            ${
-                mostrarCheckTodasFCTs
-                    ? `
-                    <div class="swal-checkbox-container">
-                        <label class="swal-checkbox">
-                            <input id="swal-todasFCTs" type="checkbox">
-                            <span>Sincronizar Todas las FCTs (solo admin.)</span>
-                        </label>
-                    </div>
-                    `
-                    : ''
-            }
-        `,
-        focusConfirm: false,
-        showCancelButton: true,
-        confirmButtonText: 'Aceptar',
-        cancelButtonText: 'Cancelar',
-        preConfirm: () => {
-            const username = document.getElementById('swal-username').value;
-            const password = document.getElementById('swal-password').value;
-            const todasFCTs = mostrarCheckTodasFCTs
-                ? document.getElementById('swal-todasFCTs').checked
-                : false;
-
-            if (!username || !password) {
-                Swal.showValidationMessage('Por favor ingresa usuario y contraseña');
-                return false;
-            }
-
-            return { username, password, todasFCTs };
-        }
-    });
-
-    if (!formValues) return null; // usuario canceló
-    return formValues;
-};
 
 
 export const normalizeFromApi = (data, configs = []) => {
@@ -699,4 +461,69 @@ export const externLogout = async (clearUser, navigate) => {
     }
     
     return false;
+};
+
+
+// src/utils/selectStyles.js (o dentro de functions.js)
+export const selectorDark = {
+  menuPortal: base => ({ ...base, zIndex: 9999 }),
+  control: (base) => ({
+    ...base,
+    backgroundColor: "var(--bs-body-bg)",
+    color: "var(--bs-body-color)",
+    borderColor: "var(--bs-border-color)",
+    "&:hover": {
+      borderColor: "var(--bs-border-color)"
+    }
+  }),
+  menu: (base) => ({
+    ...base,
+    backgroundColor: "var(--bs-body-bg)",
+    border: "1px solid var(--bs-border-color)"
+  }),
+  option: (base, { isFocused, isSelected }) => ({
+    ...base,
+    backgroundColor: isSelected 
+      ? "#0d6efd" 
+      : isFocused 
+      ? "var(--bs-tertiary-bg)" 
+      : "transparent",
+    color: isSelected 
+      ? "white" 
+      : "var(--bs-body-color)",
+    cursor: "pointer",
+    "&:active": {
+      backgroundColor: "#0d6efd",
+      color: "white"
+    }
+  }),
+  multiValue: (base) => ({
+    ...base,
+    backgroundColor: "var(--bs-tertiary-bg)",
+    border: "1px solid var(--bs-border-color)"
+  }),
+  multiValueLabel: (base) => ({
+    ...base,
+    color: "var(--bs-body-color)",
+  }),
+  multiValueRemove: (base) => ({
+    ...base,
+    color: "var(--bs-body-color)",
+    "&:hover": {
+      backgroundColor: "rgba(220, 53, 69, 0.2)",
+      color: "#dc3545",
+    },
+  }),
+  input: (base) => ({
+    ...base,
+    color: "var(--bs-body-color)",
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: "var(--bs-body-color)",
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: "var(--bs-secondary-color)"
+  })
 };
