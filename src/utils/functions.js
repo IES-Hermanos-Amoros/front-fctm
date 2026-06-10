@@ -683,6 +683,9 @@ export const externLogout = async (clearUser, navigate) => {
     const res = await sendRequest("POST", null, "/auth/logout", false, "", false);
 
     if (res?.success) {
+        // ◄ NUEVO: Limpiar por completo el sessionStorage del navegador (filtros, búsqueda, paginación...)
+        sessionStorage.clear();
+
         // 2. Limpiar el store de Zustand
         if (typeof clearUser === 'function') {
             clearUser();

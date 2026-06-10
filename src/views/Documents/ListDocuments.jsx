@@ -256,6 +256,9 @@ const ListDocuments = () => {
     { key: 'FCTM_document_name', encabezado: 'Nombre' },
     { key: 'FCTM_document_description', 
       encabezado: 'Descripción',
+      accessorFn: row => row.FCTM_document_description && row.FCTM_document_description.length > 60 
+                ? `${row.FCTM_document_description.substring(0, 60)}...` 
+                : row.FCTM_document_description || '-' ,
       render: row => row.FCTM_document_description && row.FCTM_document_description.length > 60 
                 ? `${row.FCTM_document_description.substring(0, 60)}...` 
                 : row.FCTM_document_description || '-' 
@@ -400,6 +403,12 @@ const ListDocuments = () => {
     {
       key: 'FCTM_document_created_by',
       encabezado: 'Subido por',
+      accessorFn: row =>
+        row.FCTM_document_created_by ? (
+          row.FCTM_document_created_by.SAO_name
+         ) : (
+          <span className="text-muted">-</span>
+        ),
       render: row =>
         row.FCTM_document_created_by ? (
           row.FCTM_document_created_by.SAO_name

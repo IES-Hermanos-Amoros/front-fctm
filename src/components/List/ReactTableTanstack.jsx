@@ -8,41 +8,73 @@ import {
   getSortedRowModel
 } from '@tanstack/react-table'
 import './ReactTableTanstack.css'
-import { act } from 'react'
 
 const ReactTableTanstack = ({
   tableTitle = '',
   datos = [],
   columnas = [],
-  mobileMode = 'card', // 'collapse' | 'card'
+  mobileMode = 'card', 
   mostrarCheckBox = false,
-  selectedIds = [], // RECIBIR DE PROPS
+  selectedIds = [], 
   onSelectionChange = null,
-  // Nuevas props para controlar la selección desde el padre
   globalFilter: globalFilterProp,
   setGlobalFilter: setGlobalFilterProp,
+  externalFilters = {}, 
+  onExternalFiltersChange = null, // ◄ Opcional: Para limpiar selectores desde aquí si se pasa
 }) => {
-  //const [globalFilter, setGlobalFilter] = useState('')
-  const [internalFilter, setInternalFilter] = useState(''); // Estado interno para el input de búsqueda
+  
+  // 1. Clave única basada en el título de la tabla para diferenciar almacenes en SessionStorage
+  const sessionKey = `rt_state_${tableTitle.toLowerCase().replace(/\s+/g, '_')}`;
+
+  // 2. Intentar recuperar estados previos guardados antes de montar el componente
+  const savedState = JSON.parse(sessionStorage.getItem(sessionKey)) || {};
+
+  // 3. Inicialización de estados con fallback al valor recuperado de sesión o por defecto
+  const [internalFilter, setInternalFilter] = useState(() => savedState.filter || '');
+  const [pagination, setPagination] = useState(() => savedState.pagination || { pageIndex: 0, pageSize: 5 });
+  const [sorting, setSorting] = useState(() => savedState.sorting || []);
+
+  const [expandedRows, setExpandedRows] = useState({});
+  const [isMobile, setIsMobile] = useState(false);
 
   const actualFilter = globalFilterProp !== undefined ? globalFilterProp : internalFilter;
 
   const handleFilterChange = (value) => {
     if (typeof setGlobalFilterProp === 'function') {
-      // Si el padre (ListDummy) controla el estado
       setGlobalFilterProp(value);
     } else {
-      // Si es una tabla autónoma (Alumnos, Empresas, etc.)
       setInternalFilter(value);
     }
   };
 
-  const [expandedRows, setExpandedRows] = useState({})
-  const [isMobile, setIsMobile] = useState(false)
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
-  //ELIMINADO --> Ahora seleccionamos los Ids del padre
-  //const [selectedIds, setSelectedIds] = useState(new Set())
-  const [sorting, setSorting] = useState([]); // Estado para la ordenación
+  // ◄ FUNCIÓN NUEVA: Limpiar todos los filtros y el almacenamiento
+  const handleClearAllFilters = () => {
+    // 1. Limpiar búsqueda de texto (global filter)
+    handleFilterChange('');
+    
+    // 2. Restablecer paginación y ordenación locales
+    setPagination({ pageIndex: 0, pageSize: 5 });
+    setSorting([]);
+    
+    // 3. Si el padre nos pasa la función para cambiar los selectores, los vaciamos
+    if (typeof onExternalFiltersChange === 'function') {
+      onExternalFiltersChange({});
+    }
+
+    // 4. Fulminar el registro en el sessionStorage
+    sessionStorage.removeItem(sessionKey);
+  };
+
+  // 4. EFECTO CRUCIAL: Escuchar cambios de estados y persistirlos en el sessionStorage de forma automática
+  useEffect(() => {
+    const stateToSave = {
+      filter: actualFilter,
+      pagination,
+      sorting,
+      externalFilters 
+    };
+    sessionStorage.setItem(sessionKey, JSON.stringify(stateToSave));
+  }, [actualFilter, pagination, sorting, sessionKey, externalFilters]); 
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768)
@@ -51,26 +83,9 @@ const ReactTableTanstack = ({
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  /*useEffect(() => {
-    console.log('Estado de selectedIds actualizado:', Array.from(selectedIds))
-  }, [selectedIds])*/
-
   const toggleRow = id =>
     setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
 
-  /*const toggleSelection = id => {
-    setSelectedIds(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(id)) newSet.delete(id)
-      else newSet.add(id)
-
-      console.log("IDs seleccionados actualmente:", [...newSet])
-
-      if (onSelectionChange) onSelectionChange([...newSet])
-      return newSet
-    })
-  }*/
-  // MODIFICADO: Adaptar la lógica de toggle para que use el callback del padre
   const toggleSelection = id => {
     if (!onSelectionChange) return;
     
@@ -81,13 +96,12 @@ const ReactTableTanstack = ({
     onSelectionChange(newSelection);
   };
 
-
   const cols = [
     ...(mostrarCheckBox
       ? [{ id: '_checkbox', header: '', cell: ({ row }) => null, enableSorting: false }]
       : []),
     ...columnas.map(col => ({
-      ...col, // 👈 ¡ESTO FALTA! Pasa limpiamente enableSorting, sortingFn, etc.
+      ...col, 
       accessorFn: col.accessorFn ? col.accessorFn : undefined,
       accessorKey: (!col.accessorFn && !col.render) ? col.key : undefined,
       id: col.id || col.key, 
@@ -102,7 +116,7 @@ const ReactTableTanstack = ({
   const table = useReactTable({
     data: datos,
     columns: cols,
-    state: { globalFilter: actualFilter, pagination, sorting }, // globalFilter - estaba antes ahí, lo moví para integrarlo con el control externo
+    state: { globalFilter: actualFilter, pagination, sorting }, 
     onGlobalFilterChange: handleFilterChange,
     onPaginationChange: setPagination,
     onSortingChange: setSorting,
@@ -121,17 +135,28 @@ const ReactTableTanstack = ({
       <div className="rt-card">
         <div className="rt-card-body">
           <h1>{tableTitle}</h1>
-          <input
-            className="searchInput mb-3"
-            placeholder="Buscar..."
-            value={actualFilter ?? ''} // globalFilter - cambiado para usar el valor correcto según si el filtro es controlado o no
-            onChange={(e) => {handleFilterChange(e.target.value);}} //setGlobalFilter(e.target.value) -- Cambiado para usar la función correcta según si el filtro es controlado o no
-          />
+          
+          {/* Contenedor de búsqueda + botón de limpiar */}
+          <div className="d-flex gap-2 mb-3">
+            <input
+              className="searchInput flex-grow-1"
+              placeholder="Buscar..."
+              value={actualFilter ?? ''} 
+              onChange={(e) => {handleFilterChange(e.target.value);}} 
+            />
+            <button 
+              className="btn btn-outline-danger"
+              type="button"
+              onClick={handleClearAllFilters}
+              title="Limpiar todos los filtros y ordenación"
+            >
+              <i className="bi bi-trash3"></i>
+            </button>
+          </div>
 
           <div className="cardsContainer">
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
-              //const selected = selectedIds.has(row.original._id)
               const selected = selectedIds.includes(row.original._id);
 
               let longPressTimer = null
@@ -147,18 +172,11 @@ const ReactTableTanstack = ({
                   style={{ maxHeight: expanded ? '500px' : '80px' }}
                   onClick={() => toggleRow(row.id)}
                   onMouseDown={mostrarCheckBox ? handleMouseDown : undefined}
-                  onMouseUp={mostrarCheckBox ? handleMouseUp : undefined}
+                  onMouseUp={handleMouseUp}
                   onTouchStart={mostrarCheckBox ? handleMouseDown : undefined}
-                  onTouchEnd={mostrarCheckBox ? handleMouseUp : undefined}
+                  onTouchEnd={handleMouseUp}
                 >
-                  {/*row.getVisibleCells().map(cell => (
-                    <div key={cell.id} style={{ opacity: expanded ? 1 : 1 }}>
-                      <strong>{flexRender(cell.column.columnDef.header, cell.getContext())}:</strong>{' '}
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </div>
-                  ))*/}
                   {row.getVisibleCells()
-                    // FILTRADO: Nos saltamos la celda técnica del checkbox para que no ensucie el diseño
                     .filter(cell => cell.column.id !== '_checkbox')
                     .map(cell => (
                       <div key={cell.id}>
@@ -203,24 +221,27 @@ const ReactTableTanstack = ({
     <div className="rt-card">
       <div className="rt-card-body">
         <h1>{tableTitle}</h1>
-        <input
-          className="searchInput"
-          placeholder="Buscar..."
-          value={actualFilter ?? ''} // globalFilter - cambiado para usar el valor correcto según si el filtro es controlado o no
-          onChange={(e) => {handleFilterChange(e.target.value);}} // setGlobalFilter - Cambiado para usar la función correcta según si el filtro es controlado o no
-        />
+        
+        {/* Contenedor de búsqueda + botón de limpiar */}
+        <div className="d-flex gap-2 mb-3 align-items-center" style={{ maxWidth: '400px' }}>
+          <input
+            className="searchInput m-0"
+            placeholder="Buscar..."
+            value={actualFilter ?? ''} 
+            onChange={(e) => {handleFilterChange(e.target.value);}} 
+          />
+          <button 
+            className="btn btn-outline-danger d-flex align-items-center justify-content-center"
+            type="button"
+            style={{ height: '38px', width: '42px' }}
+            onClick={handleClearAllFilters}
+            title="Limpiar todos los filtros y ordenación"
+          >
+            <i className="bi bi-trash3"></i>
+          </button>
+        </div>
 
         <table className="table">
-          {/*<thead>
-            {table.getHeaderGroups().map(hg => (
-              <tr key={hg.id}>
-                {mostrarCheckBox && <th><input type="checkbox" disabled /></th>}
-                {hg.headers.map(h => (
-                  <th key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</th>
-                ))}
-              </tr>
-            ))}
-          </thead>*/}
           <thead>
             {table.getHeaderGroups().map(hg => (
               <tr key={hg.id}>
@@ -228,7 +249,6 @@ const ReactTableTanstack = ({
                   <th>
                     <input
                       type="checkbox"
-                      // El checkbox maestro está marcado si todos los de la página están en selectedIds
                       checked={
                         table.getPaginationRowModel().rows.length > 0 &&
                         table.getPaginationRowModel().rows.every(row => selectedIds.includes(row.original._id))
@@ -236,11 +256,9 @@ const ReactTableTanstack = ({
                       onChange={(e) => {
                         const idsPagina = table.getPaginationRowModel().rows.map(r => r.original._id);
                         if (e.target.checked) {
-                          // Añadir los de la página que no estén ya
                           const nuevosIds = [...new Set([...selectedIds, ...idsPagina])];
                           onSelectionChange(nuevosIds);
                         } else {
-                          // Quitar solo los de la página actual
                           const nuevosIds = selectedIds.filter(id => !idsPagina.includes(id));
                           onSelectionChange(nuevosIds);
                         }
@@ -255,7 +273,6 @@ const ReactTableTanstack = ({
                   >
                     <div className="d-flex align-items-center justify-content-between">
                       {flexRender(h.column.columnDef.header, h.getContext())}
-                      {/* Indicadores visuales de ordenación */}
                       {h.column.getCanSort() && (
                       <span>
                         {{
@@ -274,7 +291,6 @@ const ReactTableTanstack = ({
           <tbody>
             {table.getRowModel().rows.map(row => {
               const expanded = expandedRows[row.id] || false
-              //const selected = selectedIds.has(row.original._id)
               const selected = selectedIds.includes(row.original._id);
 
               return (
@@ -340,4 +356,4 @@ const ReactTableTanstack = ({
   )
 }
 
-export default ReactTableTanstack
+export default ReactTableTanstack;
