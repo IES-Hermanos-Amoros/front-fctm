@@ -57,6 +57,8 @@ const ListCRUD = ({
         onSelectionChange={onSelectionChange} 
         globalFilter={globalFilter}
         setGlobalFilter={setGlobalFilter}
+        externalFilters={filters} // ◄ Enviamos los filtros a TanStack para que se guarden en sessionStorage
+        onExternalFiltersChange={onFilterChange}
         {...tableProps}
       />
     </div>

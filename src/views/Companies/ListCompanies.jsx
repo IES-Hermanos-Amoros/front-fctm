@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { sendRequest,stringToColor,formatDateDDMMYYYY, confirmation, showAlert } from '../../utils/functions';
+import { sendRequest,stringToColor,formatDateDDMMYYYY, confirmation, showAlert, selectorDark } from '../../utils/functions';
 import { useNavigate } from 'react-router-dom'
 import ListCRUD from "../../components/List/ListCRUD";
 import useCategoryStore from '../../store/categoryStore';
@@ -11,7 +11,12 @@ const ListCompanies = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({});
+    //const [filters, setFilters] = useState({});
+    // Por esto (inicialización limpia por clave):
+    const [filters, setFilters] = useState(() => {
+      const saved = sessionStorage.getItem('rt_state_listado_de_empresas');
+      return saved ? (JSON.parse(saved).externalFilters || {}) : {};
+    });
     const [selectedIds, setSelectedIds] = useState([]);
     const [selectedCategoriesBulk, setSelectedCategoriesBulk] = useState([]);
     const [selectedSkills, setSelectedSkills] = useState([]);
@@ -97,7 +102,7 @@ const ListCompanies = () => {
         { key: 'SAO_company_city', encabezado: 'Localidad' },
         { key: "FCTM_company_category",
               encabezado: "Familias Profesionales",
-              enableSorting: false, // ❌ DESACTIVAR ORDENACIÓN AQUÍ
+              //enableSorting: false, // ❌ DESACTIVAR ORDENACIÓN AQUÍ
               // Esta función le dice a la tabla qué texto usar para BUSCAR y FILTRAR
               accessorFn: (row) => 
                 row.FCTM_company_category?.map(cat => cat.FCTM_category_name).join(" ") || "",
@@ -133,7 +138,7 @@ const ListCompanies = () => {
                 {
                   key: "FCTM_skills",
                   encabezado: "¿Con qué trabajan?",
-                  enableSorting: false,
+                  //enableSorting: false,
                   accessorFn: row => row.FCTM_skills?.map(skill => skill.FCTM_skill_name).join(" ") || "",
                   render: row => (
                     <div className="d-flex flex-wrap gap-1">
@@ -159,7 +164,7 @@ const ListCompanies = () => {
         // Columna de acción (ver ficha)
         {
             key: "__show",
-            encabezado: "Ver",
+            encabezado: "Acciones",
             render: (row) => (
                 <button
                     className="btn btn-sm btn-outline-primary"
@@ -251,6 +256,7 @@ const ListCompanies = () => {
                               noOptionsMessage={() => "No hay más familias"}
                               classNamePrefix="react-select"                              
                               className="react-select-container"
+                              styles={selectorDark}
                           />
                         </div>
                         <button className="btn btn-warning" onClick={handleBulkUpdateCategories}>
@@ -274,6 +280,7 @@ const ListCompanies = () => {
                             noOptionsMessage={() => "No hay más aptitudes"}
                             className="react-select-container"
                             classNamePrefix="react-select"
+                            styles={selectorDark}
                           />
                         </div>
                         <button className="btn btn-warning" onClick={handleBulkUpdate}>

@@ -95,8 +95,12 @@ const NewAction = () => {
       return merged;
     });
 
-    // Permite volver a seleccionar el mismo archivo en una nueva apertura del selector
     e.target.value = "";
+  };
+
+  // --- NUEVA FUNCIÓN PARA ELIMINAR UN ARCHIVO ---
+  const handleRemoveFile = (indexToRemove) => {
+    setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSave = async () => {
@@ -165,10 +169,27 @@ const NewAction = () => {
           className="form-control"
           onChange={handleFileChange}
         />
+        
+        {/* LISTADO MODIFICADO CON BOTÓN DE ELIMINAR */}
         {files.length > 0 && (
-          <ul className="mt-3 mb-0">
+          <ul className="list-group mt-3 mb-0">
             {files.map((file, index) => (
-              <li key={`${file.name}-${index}`}>{file.name}</li>
+              <li 
+                key={`${file.name}-${index}`} 
+                className="list-group-item d-flex justify-content-between align-items-center py-2"
+              >
+                <span className="text-truncate me-3" style={{ maxWidth: '80%' }}>
+                  {file.name}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-danger border-0"
+                  onClick={() => handleRemoveFile(index)}
+                  title="Eliminar archivo"
+                >
+                  &times; {/* Una "X" simple, puedes cambiarlo por un icono de papelera si usas FontAwesome */}
+                </button>
+              </li>
             ))}
           </ul>
         )}

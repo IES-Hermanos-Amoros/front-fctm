@@ -18,10 +18,15 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 import SectionChangePassword from "../../components/User/SectionChangePassword"; // IMPORTANTE: Importar sección
-
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
 import useUserStore from "../../store/userStore";
+import { useStatsStore } from "../../store/useStatsStore";
+import BarChart from "../../components/Charts/BarChart";
+import PieChart from "../../components/Charts/PieChart";
+import RadarChart from "../../components/Charts/RadarChart";
+import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
+import StatsLayout from "../../components/Charts/StatsLayout";
 
 /* =========================
    MERGE HELPERS
@@ -78,7 +83,7 @@ const buildFCTMFields = (skillOptions, categoryOptions) => [
   { key: "FCTM_student_other_contact", label: "Contacto Alternativo", type: "text" },
   {
     key: "FCTM_student_openToWork",
-    label: "Disponible",
+    label: "¿Buscando Empleo?",
     type: "select",
     options: [
       { _id: true, nombre: "Sí" },
@@ -124,6 +129,7 @@ const ShowStudent = () => {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [passwordData, setPasswordData] = useState(null); // NUEVO
   const hostAPI = getBackendHost();
+  const { stats, isLoadingStats } = useStatsStore(); //Estadísticas
 
    // --- GESTIÓN DE PERMISOS ---
   const userRole = user?.user?.profile || user?.profile;
@@ -389,9 +395,19 @@ const ShowStudent = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader title={`Ficha de ${data?.SAO_username || "Student"}`} onBack={() => navigate("/students")} />
+      <ShowHeader title={`ALUMNO: ${data?.SAO_username || "Alumno"}`} onBack={() => navigate("/students")} />
       
       <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchStudent} showUploadAction={canEditAndManage} />
+
+      {/* 🚀 SOLUCIÓN: Condicional correcto usando llaves y validando que existan datos */}
+      {canEditAndManage && !isLoadingStats && stats?.tecnologiasDemandadas?.length > 0 && (
+        <StatsLayout>
+          <PieChart 
+            title="Top 10 Tecnologías más Demandadas" 
+            data={stats.tecnologiasDemandadas} 
+          />        
+        </StatsLayout>
+      )}
 
       <ShowEditableForm
         formTitle="Información SAO"

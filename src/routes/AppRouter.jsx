@@ -115,7 +115,7 @@ export default function AppRouter() {
       <Route
         path="/reviews"
         element={
-          <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR']}>
+          <ProtectedRoutes allowedRoles={['ADMINISTRADOR', 'PROFESOR','ALUMNO']}>
             <ListReviews />
           </ProtectedRoutes>
         }

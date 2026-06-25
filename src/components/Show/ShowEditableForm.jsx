@@ -2,7 +2,7 @@ import { color } from "echarts";
 import React, { useState } from "react"
 import Select from "react-select"
 import CreatableSelect from "react-select/creatable"
-import { formatDateDDMMYYYY } from "../../utils/functions"
+import { formatDateDDMMYYYY, selectorDark } from "../../utils/functions"
 
 const getPrimitiveFieldValue = (data, key, optionLabel) => {
   if (typeof data[key] === "object" && data[key] !== null) {
@@ -33,107 +33,7 @@ const ShowEditableForm = ({
     if (onSave) onSave();
   };
 
-  /*const selectorDark = {
-    menuPortal: base => ({ ...base, zIndex: 9999 }),
-    control: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-body-bg)",
-      color: "var(--bs-body-color)",
-      borderColor: "var(--bs-border-color)"
-    }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-body-bg)",
-      border: "1px solid var(--bs-border-color)"
-    }),
-    option: (base, { isFocused, isSelected }) => ({
-      ...base,
-      backgroundColor: isSelected ? "#0d6efd" : isFocused ? "var(--bs-tertiary-bg)" : "transparent",
-      color: isSelected || isFocused ? "white" : "var(--bs-body-color)",
-      cursor: "pointer",
-    }),
-    multiValue: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-tertiary-bg)",
-    }),
-    multiValueLabel: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    }),
-    input: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    })
-  };*/
-  const selectorDark = {
-    menuPortal: base => ({ ...base, zIndex: 9999 }),
-    control: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-body-bg)",
-      color: "var(--bs-body-color)",
-      borderColor: "var(--bs-border-color)",
-      "&:hover": {
-        borderColor: "var(--bs-border-color)"
-      }
-    }),
-    menu: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-body-bg)",
-      border: "1px solid var(--bs-border-color)"
-    }),
-    option: (base, { isFocused, isSelected }) => ({
-      ...base,
-      // Si está seleccionado: Azul Bootstrap. Si es hover (isFocused): Gris terciario nativo.
-      backgroundColor: isSelected 
-        ? "#0d6efd" 
-        : isFocused 
-        ? "var(--bs-tertiary-bg)" 
-        : "transparent",
-      // El texto SOLO es blanco si está seleccionado. En hover, hereda el color del tema actual.
-      color: isSelected 
-        ? "white" 
-        : "var(--bs-body-color)",
-      cursor: "pointer",
-      "&:active": {
-        backgroundColor: "#0d6efd",
-        color: "white"
-      }
-    }),
-    multiValue: (base) => ({
-      ...base,
-      backgroundColor: "var(--bs-tertiary-bg)",
-      border: "1px solid var(--bs-border-color)"
-    }),
-    multiValueLabel: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    }),
-    // Ajuste extra: Evita que la 'x' de borrar el chip se vuelva invisible
-    multiValueRemove: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-      "&:hover": {
-        backgroundColor: "rgba(220, 53, 69, 0.2)",
-        color: "#dc3545",
-      },
-    }),
-    input: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    }),
-    singleValue: (base) => ({
-      ...base,
-      color: "var(--bs-body-color)",
-    }),
-    placeholder: (base) => ({
-      ...base,
-      color: "var(--bs-secondary-color)"
-    })
-  };
+    
 
   return (
     <div className="card">

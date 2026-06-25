@@ -35,7 +35,13 @@ const ListFcts = () => {
   const [fcts, setFcts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [filters, setFilters] = useState({ academicYear: defaultAcademicYear })
+
+  // ◄ MODIFICACIÓN AQUÍ: Intentar recuperar el filtro del selector guardado, si no, usar el por defecto de las variables de entorno
+  const [filters, setFilters] = useState(() => {
+    const saved = sessionStorage.getItem('rt_state_listado_de_f.e.');
+    return saved ? (JSON.parse(saved).externalFilters || { academicYear: defaultAcademicYear }) : { academicYear: defaultAcademicYear };
+  });
+
   const navigate = useNavigate();
 
   // filtrar datos segun el filtro
@@ -68,7 +74,7 @@ const ListFcts = () => {
       { key: 'SAO_period', encabezado: 'Curso / Periodo' },
       {
             key: "__show",
-            encabezado: "Ver",
+            encabezado: "Acciones",
             render: (row) => (
                 <button
                     className="btn btn-sm btn-outline-primary"
@@ -80,7 +86,7 @@ const ListFcts = () => {
             )
         }
     ],
-    []
+    [navigate] // ◄ Añadido navigate como buena práctica en las dependencias
   )
 
   const fetchData = useCallback(async () => {

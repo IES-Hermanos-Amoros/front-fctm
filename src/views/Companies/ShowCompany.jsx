@@ -19,10 +19,15 @@ import ShowEditableForm from "../../components/Show/ShowEditableForm";
 import ListCRUD from "../../components/List/ListCRUD";
 import UserAvatarUploader from "../../components/User/UserAvatarUploader";
 import SectionChangePassword from "../../components/User/SectionChangePassword";
-
 import useSkillStore from "../../store/skillStore";
 import useCategoryStore from "../../store/categoryStore";
 import useUserStore from "../../store/userStore";
+import { useStatsStore } from "../../store/useStatsStore";
+import BarChart from "../../components/Charts/BarChart";
+import PieChart from "../../components/Charts/PieChart";
+import RadarChart from "../../components/Charts/RadarChart";
+import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
+import StatsLayout from "../../components/Charts/StatsLayout";
 
 // --- HELPERS DE MERGE ---
 const mergeSkillOptions = (storeSkills = [], entitySkills = []) => {
@@ -121,16 +126,13 @@ const ShowCompany = () => {
   const cargarCategorias = useCategoryStore(state => state.cargarCategorias);
   const user = useUserStore(state => state.user);
   const clearUser = useUserStore(state => state.clearUser);
+  const { stats, isLoadingStats } = useStatsStore(); //Estadísticas
 
   // --- GESTIÓN DE PERMISOS ---
   const userRole = user?.user?.profile || user?.profile;
   const userId = user?.user?.id || user?.id;
-
-  console.log("USUARIO LOGUEADO VIENDO FICHA: ", user.user)
-
   // Comprobamos si el usuario logueado es la propia empresa que se está visualizando
   const isOwnCompany = userId === id;
-
   // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
   const canEditAndManage = useMemo(() => {
     return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwnCompany;
@@ -314,10 +316,10 @@ const ShowCompany = () => {
     }
   ], [navigate, id, handleDeleteJobOffer]);
 
-  const handleDeleteDocument = useCallback(async (docId) => {
-    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");
+  const handleDeleteDocument = useCallback(async (docId) => {    
+    const confirmado = await confirmation("¿Seguro que quieres eliminar este documento?");    
     if (!confirmado) return;
-
+    
     const res = await sendRequest("DELETE", undefined, `/documents/${docId}?companyId=${id}`);
 
     if (res.success) {
@@ -414,6 +416,12 @@ const ShowCompany = () => {
   const columnasAcciones = useMemo(() => [
     { key: "FCTM_action_title", encabezado: "Título" },
     { key: "FCTM_action_type", encabezado: "Tipo" },
+    //{ key: "FCTM_created_by", encabezado: "Creada por" },
+    {
+      key: "CreadaPor",
+      encabezado: "Creada por",
+      render: (row) => row.FCTM_created_by?.SAO_name + " (" + row.FCTM_created_by?.SAO_profile + ")" || "",
+    },
     {
       key: "FCTM_action_datetime",
       encabezado: "Fecha y hora",
@@ -457,9 +465,23 @@ const ShowCompany = () => {
 
   return (
     <section className="dashboard section">
-      <ShowHeader title={`Ficha de ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
+      <ShowHeader title={`EMPRESA: ${data?.SAO_name || "Empresa"}`} onBack={() => navigate("/companies")} />
       
-      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} />
+      <UserAvatarUploader userId={id} avatarUrl={avatarUrl} onUploadSuccess={fetchCompany} showUploadAction={canEditAndManage} />
+
+      {/* 🚀 SOLUCIÓN: Condicional con llaves, apertura de etiqueta correcta y validación de carga */}
+      {canEditAndManage && !isLoadingStats && (stats?.habilidadesAlumnos?.length > 0 || stats?.alumnadoPorLocalidad?.length > 0) && (
+        <StatsLayout>
+          <RadarChart 
+            title="Top 10 Habilidades Alumnos" 
+            data={stats.habilidadesAlumnos || []} 
+          />
+          <HorizontalBarChart 
+            title="Alumnado por Localidad" 
+            data={stats.alumnadoPorLocalidad || []}           
+          />
+        </StatsLayout>
+      )}
 
       <ShowEditableForm
         formTitle="Datos de SAO"

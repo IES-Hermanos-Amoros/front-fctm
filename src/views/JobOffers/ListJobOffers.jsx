@@ -21,12 +21,14 @@ const ListJobOffers = () => {
       {
         key: 'FCTM_job_start_date',
         encabezado: 'Fec.Ini',
+        accessorFn: row => row.FCTM_job_start_date ? new Date(row.FCTM_job_start_date).getTime() : 0,
         render: row => formatDateDDMMYYYY(row.FCTM_job_start_date),
       },
 
       {
         key: 'FCTM_job_end_date',
         encabezado: 'Fec.Fin',
+        accessorFn: row => row.FCTM_job_end_date ? new Date(row.FCTM_job_end_date).getTime() : 0,
         render: row => formatDateDDMMYYYY(row.FCTM_job_end_date),
       },
 
@@ -87,7 +89,7 @@ const ListJobOffers = () => {
 
       {
         key: '__show',
-        encabezado: 'Ver',
+        encabezado: 'Acciones',
         render: row => (
           <button
             className="btn btn-sm btn-outline-primary"

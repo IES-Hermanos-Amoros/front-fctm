@@ -23,7 +23,6 @@ import BarChart from "../../components/Charts/BarChart";
 import PieChart from "../../components/Charts/PieChart";
 import RadarChart from "../../components/Charts/RadarChart";
 import HorizontalBarChart from "../../components/Charts/HorizontalBarChart";
-
 import StatsLayout from "../../components/Charts/StatsLayout";
 
 const SAO_FIELDS = [
@@ -189,7 +188,7 @@ const ShowAdmin = () => {
   return (
     <section className="dashboard section">
       <ShowHeader
-        title={`Perfil de ${data?.SAO_name || "Administrador"}`}
+        title={`ADMINISTRADOR: ${data?.SAO_name || "Administrador"}`}
         onBack={() => navigate(-1)}
       />
 
@@ -216,29 +215,18 @@ const ShowAdmin = () => {
 
       <StatsLayout>
         <PieChart 
-          title="Tecnologías más demandadas" 
+          title="Top 10 Tecnologías más Demandadas" 
           data={stats.tecnologiasDemandadas} 
         />
 
-        <PieChart 
-          title="Habilidades Alumnos" 
-          data={stats.habilidadesAlumnos} 
-        />
-
         <RadarChart 
-            title="Perfil de Habilidades" 
+            title="Top 10 Habilidades Alumnos" 
             data={stats.habilidadesAlumnos} 
           />
 
         <HorizontalBarChart 
-          title="Demanda de Tecnologías" 
-          data={stats.tecnologiasDemandadas} 
-        />
-
-        <HorizontalBarChart 
           title="Alumnado por Localidad" 
-          data={stats.alumnadoPorLocalidad} 
-          color="#74b9ff" // Un azul suave para diferenciar de tecnologías
+          data={stats.alumnadoPorLocalidad}           
         />
       </StatsLayout>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { sendRequest, confirmation, showAlert, formatDateDDMMYYYYHHmm, getBackendHost, normalizeFromApi, normalizeToApi, ensureSkills } from '../../utils/functions'
 import ListCRUD from "../../components/List/ListCRUD"
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
@@ -8,6 +8,7 @@ import ShowEditableForm from '../../components/Show/ShowEditableForm'
 
 import useEnumStore from '../../store/enumStore'
 import useSkillStore from '../../store/skillStore'
+import useUserStore from "../../store/userStore";
 
 const SAO_FIELDS = [
   { key: 'empresa_nombre', label: 'Empresa', type: 'text' },
@@ -70,6 +71,7 @@ const ShowJobOffer = () => {
   const readOnly = location.state?.readOnly || false
   const companyId = location.state?.companyId || null
   const returnPath = companyId ? `/companies/${companyId}` : '/joboffers'
+  const user = useUserStore(state => state.user);
 
   //ENUM STORE
   const cargarEnums = useEnumStore(state => state.cargarEnums)
@@ -77,6 +79,8 @@ const ShowJobOffer = () => {
   const enums = useEnumStore(state => state.enums)
   const cargarSkills = useSkillStore(state => state.cargarSkills)
   const skillOptions = useSkillStore(state => state.skills)
+
+
   // Cargar enums y skills
   useEffect(() => {
     cargarEnums()
@@ -97,8 +101,29 @@ const ShowJobOffer = () => {
   const [isEditing, setIsEditing] = useState(false) // Modo SHOW / EDIT
   const [originalData, setOriginalData] = useState(null)
   const [files, setFiles] = useState([])
-
   const hostAPI = getBackendHost()
+
+  // --- GESTIÓN DE PERMISOS ---
+  const userRole = user?.user?.profile || user?.profile;
+  const userId = user?.user?.id || user?.id;
+  
+  // Comprobamos si el usuario logueado es la empresa propietaria de esta oferta
+  // Usamos res.data.empresa._id (que guardaste en el fetch) o como venga en tu objeto original
+  const isOwner = useMemo(() => {
+    if (!data || !userId) return false;
+    
+    // Si en normalizedData guardaste el objeto completo de la empresa, o si prefieres 
+    // mapear el ID en el fetch (ver paso 2), lo comparamos aquí:
+    console.log("INFO DATA EMPRESA: ", data.empresa._id)
+    return data.empresa._id === userId; 
+  }, [data, userId]);
+
+  // ADMINISTRADOR, PROFESOR o la propia EMPRESA logueada
+  // Se recalculará automáticamente en cuanto 'userRole' o 'isOwner' cambien (tras el fetch)
+  const canEditAndManage = useMemo(() => {
+    return ["ADMINISTRADOR", "PROFESOR"].includes(userRole) || isOwner;
+  }, [userRole, isOwner]);
+
 
   const columnasDocuments = [
     { key: 'FCTM_document_name', encabezado: 'Nombre' },
@@ -159,6 +184,9 @@ const ShowJobOffer = () => {
         };
       }
 
+      //Obtener usuario que creó la oferta
+      console.log("JOB OFFER INFOOOO: ", normalizedData)
+
       // ✅ Guardar en los estados locales de la oferta
       setData(normalizedData);
       setOriginalData(normalizedData);
@@ -178,7 +206,7 @@ const ShowJobOffer = () => {
     setLoading(false);
   }, [id]);
 
-  const handleDelete = async docId => {
+  const handleDelete_OLD = async docId => {
     const confirmado = await confirmation(
       '¿Seguro que quieres eliminar este documento?'
     )
@@ -212,6 +240,52 @@ const ShowJobOffer = () => {
       showAlert(res.message, 'error')
     }
   }
+
+  const handleDelete = async docId => {
+    const confirmado = await confirmation(
+      '¿Seguro que quieres eliminar este documento?'
+    )
+    if (!confirmado) return
+
+    // 1. Borramos el documento del servidor
+    const res = await sendRequest('DELETE', undefined, `/documents/${docId}`)
+
+    if (res.success) {
+      // 2. Filtramos la lista de IDs originales que tiene la oferta de trabajo
+      // Nos aseguramos de comparar strings usando ._id o el propio item si viniera plano
+      const originalDocs = data.FCTM_documents || [];
+      const updatedDocuments = originalDocs.filter(item => {
+        const idString = typeof item === 'object' ? item._id : item;
+        return idString !== docId;
+      });
+
+      // 3. Desvinculamos el documento de la oferta mediante un PATCH
+      const patchRes = await sendRequest(
+        'PATCH',
+        { FCTM_documents: updatedDocuments },
+        `/joboffers/${id}`
+      )
+
+      if (patchRes.success) {
+        // 4. Actualizamos de golpe AMBOS estados locales para sincronizar la UI
+        setData(prev => ({
+          ...prev,
+          FCTM_documents: updatedDocuments,
+        }))
+
+        // Filtramos también el estado visual de la tabla (objetos completos)
+        setDocumentData(prevDocs => prevDocs.filter(doc => doc._id !== docId));
+        
+        // OPCIONAL: Si quieres re-confirmar con el backend que todo está sincronizado
+        // fetchJobOffer() 
+      } else {
+        showAlert('Error actualizando la oferta: ' + patchRes.message, 'error')
+      }
+    } else {
+      showAlert(res.message, 'error')
+    }
+  }
+
 //CAMBIOS PARA LA PRECARGA DE FECHAS
 const handleSave = async () => {
     try {
@@ -273,81 +347,7 @@ const handleSave = async () => {
 
     setFiles(selectedFiles)
   }
-
-  const handleUploadDocs__OLD = async () => {
-    if (files.length === 0) {
-      showAlert('Debes seleccionar al menos un archivo', 'error')
-      return
-    }
-
-    if (files.length > 10) {
-      showAlert('No puedes subir más de 10 archivos a la vez', 'error')
-      return
-    }
-
-    let allNewIds = []
-    if (files.length === 1) {
-      const formData = new FormData()
-      const file = files[0]
-      formData.append('documents', file)
-      formData.append('FCTM_document_name', file.name)
-      formData.append('FCTM_document_type', 'OTRO')
-      formData.append('FCTM_document_url', file.name)
-      formData.append('FCTM_document_created_by', '000000000000000000000000')
-      formData.append('jobOfferId', id)
-
-      const res = await sendRequest('POST', formData, '/documents')
-      if (res.success) {
-        allNewIds = Array.isArray(res.data)
-          ? res.data.map(doc => doc._id)
-          : [res.data._id]
-      } else {
-        showAlert(res.message, 'error')
-        return
-      }
-    } else {
-      for (const file of files) {
-        const formData = new FormData()
-
-        formData.append('documents', file)
-        formData.append('FCTM_document_type', 'OTRO')
-        formData.append('FCTM_document_name', file.name)
-        formData.append('FCTM_document_url', file.name)
-        formData.append('FCTM_document_created_by', '000000000000000000000000')
-        formData.append('userId', '000000000000000000000000')
-        formData.append('jobOfferId', id)
-
-        const res = await sendRequest('POST', formData, '/documents')
-
-        if (res.success) {
-          const idCreated = Array.isArray(res.data)
-            ? res.data[0]._id
-            : res.data._id
-          allNewIds.push(idCreated)
-        }
-      }
-    }
-
-    if (allNewIds.length > 0) {
-      const updatedDocuments = [...(data.FCTM_documents || []), ...allNewIds]
-
-      const patchRes = await sendRequest(
-        'PATCH',
-        { FCTM_documents: updatedDocuments },
-        `/joboffers/${id}`
-      )
-
-      if (patchRes.success) {
-        showAlert('Documentos subidos correctamente', 'success')
-        setData(prev => ({
-          ...prev,
-          FCTM_documents: updatedDocuments,
-        }))
-        setFiles([])
-      }
-      fetchJobOffer()
-    }
-  }
+ 
 
   const handleUploadDocs = async () => {
     if (files.length === 0) {
@@ -431,7 +431,7 @@ const handleSave = async () => {
         hideEditButton={readOnly} // Si readOnly es true, ocultamos el botón de editar
       />
 
-      {isEditing && !readOnly && (
+      {/*isEditing && !readOnly && (
         <div className="card p-3 mt-3">
           <h5>Adjuntar Documentos</h5>
 
@@ -446,17 +446,27 @@ const handleSave = async () => {
             Adjuntar Docs.
           </button>
         </div>
-      )}
+      )*/}
 
-      {documentData.length === 0 ? (
-        <h4>Oferta sin documentos</h4>
-      ) : (
+      
         <ListCRUD
           title="Documentos Relacionados"
           datos={documentData}
           columnas={columnasDocuments}
-        />
-      )}
+        >
+          {canEditAndManage && (<>
+            <button className="btn btn-primary text-nowrap" onClick={handleUploadDocs}>                  
+              Adjuntar Docs.
+            </button>
+            <input
+              type="file"
+              multiple
+              className="form-control form-control-sm"
+              onChange={handleFileChange}
+            />
+          </>)}
+        </ListCRUD>
+      
     </section>
   )
 }
